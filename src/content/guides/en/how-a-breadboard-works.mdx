@@ -1,0 +1,114 @@
+---
+guideId: breadboard
+urlSlug: how-a-breadboard-works
+order: 2
+title: How Does a Breadboard Work?
+summary: >-
+  Which hole connects to which? The logic behind building circuits without
+  solder. You cannot wire any project correctly without this page — and it
+  takes five minutes to learn.
+---
+
+A breadboard is a plastic block full of holes that lets you build circuits
+without soldering. There are metal clips under the holes, and **some holes are
+connected to each other.**
+
+The whole skill comes down to one question: **which holes are connected?**
+
+<WiringDiagram file="breadboard-baglantilar.svg" caption="Holes outlined in the same colour are connected to each other" />
+
+## Three rules
+
+### 1. Vertical groups: columns of five
+
+In the large middle area, **the five holes in one column** are connected.
+
+So `a5`, `b5`, `c5`, `d5` and `e5` are all the same point. Put a wire in one and
+a resistor in another, and you have connected them.
+
+### 2. The centre channel splits everything in two
+
+The groove down the middle is not decoration — it is **an electrical wall.**
+
+`e5` and `f5` look like the same column but they are **not connected.** The
+upper block (f-j) and the lower block (a-e) are completely separate.
+
+The channel has a purpose: an integrated circuit sits astride it, so each of its
+legs lands in its own column.
+
+### 3. Horizontal power rails: connected end to end
+
+The long strips along the edges (marked with a red **+** and a blue **−** line)
+are **connected along their entire length.** A wire in hole 2 of the `−` rail is
+at the same point as a wire in hole 28.
+
+<Callout lang="en" variant="tip" title="Why do the power rails exist?">
+Most circuits have many parts that all connect to the same GND. Rather than
+running each one back to the board separately, you connect them all to the `−`
+rail and then run **a single wire** from that rail to the board's GND pin.
+
+That is how every project on this site handles ground.
+</Callout>
+
+## Hole addresses
+
+Every diagram on this site names holes like this:
+
+| Notation | Meaning |
+| --- | --- |
+| `a5` | Lower block, row `a`, column 5 |
+| `f12` | Upper block, row `f`, column 12 |
+| `−6` | Bottom minus rail, level with hole 6 |
+| `+6` | Bottom plus rail, level with hole 6 |
+
+Row letters are printed down both sides of the board; column numbers run along
+the top and through the middle.
+
+<Callout lang="en" variant="warning" title="Your board may look different">
+On some breadboards the power rails are the other way round: `+` on the outside
+on one, `−` on another. **Go by the colour of the line, not the position** — a
+red line means plus, a blue line means minus.
+
+On some cheap boards the power rails are split in the middle. If you suspect
+that, check both ends with a multimeter's continuity mode.
+</Callout>
+
+## The three most common mistakes
+
+### Putting both LED legs in the same column
+
+`a5` and `b5` are the same point. Put both legs of an LED there and you have
+shorted it out — it will never light.
+
+**Instead:** the legs must go into **different columns**, such as `a5` and `a6`.
+
+### Forgetting the centre channel
+
+Assuming a wire in `e10` connects to a resistor in `f10`. It does not. The
+channel sits between them.
+
+**Instead:** keep both in the same block, or bridge them with a jumper wire.
+
+### Never running GND back to the board
+
+Connecting every part's negative side to the `−` rail and then forgetting to run
+that rail to the board's **GND** pin. The circuit is not closed, and nothing works.
+
+**Instead:** always run one wire from the `−` rail to the board's GND pin.
+
+<Callout lang="en" variant="danger" title="If you use an external supply">
+When you power something from a separate 5V adapter, its **negative must also
+join the board's GND**. Without a common zero point between the two circuits,
+the signals become meaningless.
+
+Projects 7 and 10 both come back to this.
+</Callout>
+
+## Before you plug anything in
+
+1. **Power the board down** (unplug the USB cable)
+2. Follow the hole addresses in the diagram one by one
+3. When you are done, **check against the diagram** — then apply power
+
+Repeat those three steps in every project. Most mistakes are caught by half a
+minute of checking before the power goes on.

@@ -1,0 +1,112 @@
+---
+guideId: breadboard
+urlSlug: breadboard-nasil-calisir
+order: 2
+title: Breadboard Nasıl Çalışır?
+summary: >-
+  Hangi delik hangisine bağlı? Lehim yapmadan devre kurmanın mantığı. Bu sayfayı
+  anlamadan hiçbir projeyi doğru kuramazsın — beş dakikada öğrenilir.
+---
+
+Breadboard (devre tahtası), lehim yapmadan devre kurmanı sağlayan delikli bir
+plastik levha. Deliklerin altında metal yaylar var ve **bazı delikler birbirine
+bağlı.**
+
+İşin tamamı şu tek soruyu bilmekten ibaret: **hangi delikler birbirine bağlı?**
+
+<WiringDiagram file="breadboard-baglantilar.svg" caption="Aynı renkle çevrelenmiş delikler birbirine bağlıdır" />
+
+## Üç kural
+
+### 1. Dikey gruplar: 5'li sütunlar
+
+Ortadaki geniş alanda, **aynı sütundaki 5 delik** birbirine bağlıdır.
+
+Yani `a5`, `b5`, `c5`, `d5`, `e5` aynı noktadır. Birine kablo, diğerine
+direnç takarsan ikisi bağlanmış olur.
+
+### 2. Orta kanal her şeyi ikiye böler
+
+Tahtanın ortasındaki oluk sadece görsel değil — **elektriksel bir duvar.**
+
+`e5` ile `f5` aynı sütunda görünür ama **bağlı değildir.** Üst blok (f-j) ve
+alt blok (a-e) tamamen ayrıdır.
+
+Bu kanal boşuna yok: entegre devreler (çip) tam buraya oturur, her bacağı
+kendi sütununa gelir.
+
+### 3. Yatay güç hatları: baştan sona bağlı
+
+Kenarlardaki uzun şeritler (kırmızı **+** ve mavi **−** çizgili) **boydan boya
+bağlıdır.** `−` hattının 2. deliğine taktığın kablo, 28. deliğindeki kabloyla
+aynı noktadadır.
+
+<Callout lang="tr" variant="tip" title="Güç hatları neden var?">
+Devrede genellikle çok sayıda parça aynı GND'ye bağlanır. Her birini ayrı ayrı
+karta götürmek yerine hepsini `−` hattına bağlarsın, sonra **tek bir kabloyla**
+o hattı kartın GND pinine götürürsün.
+
+Bu projelerde GND'yi hep böyle bağlıyoruz.
+</Callout>
+
+## Delik adresleri
+
+Bu sitedeki bütün şemalarda delikleri şöyle yazıyoruz:
+
+| Yazım | Anlamı |
+| --- | --- |
+| `a5` | Alt blok, `a` satırı, 5. sütun |
+| `f12` | Üst blok, `f` satırı, 12. sütun |
+| `−6` | Alt eksi hattı, 6. deliğin hizası |
+| `+6` | Alt artı hattı, 6. deliğin hizası |
+
+Satır harfleri tahtanın iki yanında, sütun numaraları üstünde ve ortada yazılıdır.
+
+<Callout lang="tr" variant="warning" title="Senin tahtan farklı görünebilir">
+Bazı breadboard'larda güç hatlarının sırası değişir: kimisinde `+` üstte,
+kimisinde `−`. **Numaralara değil, çizgilerin rengine bak** — kırmızı çizgi
+artı, mavi çizgi eksi demektir.
+
+Bazı ucuz tahtalarda güç hatları ortadan ikiye bölünmüştür. Şüphelenirsen
+multimetrenin süreklilik modu ile iki ucu ölç.
+</Callout>
+
+## En sık yapılan üç hata
+
+### LED'in iki bacağını aynı sütuna takmak
+
+`a5` ve `b5` aynı noktadır. LED'in iki bacağını buraya takarsan LED'i kısa
+devre etmiş olursun — hiç yanmaz.
+
+**Doğrusu:** bacaklar **farklı sütunlara** girmeli, örneğin `a5` ve `a6`.
+
+### Orta kanalı unutmak
+
+`e10`'a taktığın kablo ile `f10`'a taktığın direncin bağlı olduğunu sanmak.
+Değiller. Aralarında kanal var.
+
+**Doğrusu:** ikisini de aynı blokta tut, ya da bir jumper ile birleştir.
+
+### GND'yi karta hiç götürmemek
+
+Bütün parçaların eksi ucunu `−` hattına bağlayıp, o hattı kartın **GND**
+pinine götürmeyi unutmak. Devre bu haliyle kapanmaz, hiçbir şey çalışmaz.
+
+**Doğrusu:** `−` hattından kartın GND pinine mutlaka bir kablo çek.
+
+<Callout lang="tr" variant="danger" title="Harici besleme kullanıyorsan">
+Ayrı bir adaptörle (5V) parça besliyorsan, o adaptörün **eksi ucunu da kartın
+GND'sine** bağlamalısın. İki devrenin ortak bir sıfır noktası yoksa sinyaller
+anlamsızlaşır.
+
+7. ve 10. projelerde bu konu tekrar karşına çıkacak.
+</Callout>
+
+## Kablo takmadan önce
+
+1. Kartın **gücünü kes** (USB kabloyu çıkar)
+2. Şemadaki delik adreslerini tek tek takip et
+3. Takmayı bitirince **şemayla karşılaştır**, sonra gücü ver
+
+Bu üç adımı her projede tekrarla. Hataların çoğu, güç verilmeden önce
+yapılacak yarım dakikalık bir kontrolle yakalanır.
