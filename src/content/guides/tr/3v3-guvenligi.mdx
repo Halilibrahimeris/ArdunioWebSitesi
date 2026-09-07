@@ -1,0 +1,121 @@
+---
+guideId: 3v3-safety
+urlSlug: 3v3-guvenligi
+order: 3
+title: 3.3V Güvenliği — Kartını Yakmadan Önce Oku
+summary: >-
+  UNO Q'nun pinleri 3.3V ile çalışır, ama kullanacağın modüllerin çoğu 5V
+  dünyasından geliyor. Hangi modül doğrudan bağlanır, hangisi ek devre ister
+  ve neden — bu sayfa projelerin tamamının dayandığı temel.
+---
+
+Klasik Arduino UNO 5V lojik kullanır. Yıllardır internetteki devre şemaları,
+kit içerikleri ve Tinkercad alışkanlıkları hep bu varsayım üzerine kurulu.
+
+**UNO Q ise 3.3V lojik kullanır.** Kartın beyni Qualcomm ve STM32 tarafında,
+ikisi de 3.3V dünyasında yaşıyor. Bu, kartın daha modern olmasının doğal bir
+sonucu — ama eski alışkanlıkla bir modül bağlarsan pahalı bir ders alırsın.
+
+<Callout lang="tr" variant="danger" title="Tek cümlelik özet">
+Bir modülün **çıkışı** 5V ise, o çıkışı doğrudan UNO Q'nun bir pinine
+bağlayamazsın. Araya gerilim düşüren bir devre koyman gerekir.
+</Callout>
+
+## Hangi yön tehlikeli?
+
+Karışıklığın çoğu şuradan çıkıyor: sorun modülü 5V ile *beslemek* değil,
+modülden karta 5V *sinyal göndermek*.
+
+- **Karttan modüle çıkış (kart → modül):** Kart 3.3V verir. Çoğu 5V modül
+  3.3V'u "1" olarak kabul eder. Genelde sorunsuz çalışır.
+- **Modülden karta giriş (modül → kart):** Modül 5V verir. Kartın pini en fazla
+  3.3V bekler. **İşte tehlikeli olan yön bu.**
+
+Kartın 5V pini de vardır ve modülleri beslemek için kullanılabilir. 5V pini
+sorun değil; sorun 5V'luk bir *sinyalin* giriş pinine ulaşması.
+
+## Kullandığımız modüllerin durumu
+
+Bu sitedeki 10 projede geçen tüm modüller:
+
+| Modül | Durum | Ne yapmalı |
+| --- | --- | --- |
+| LED, buton, buzzer, potansiyometre | Güvenli | Doğrudan bağla |
+| LDR foto direnç | Güvenli | 10 kΩ ile bölücü kur, çıkış 3.3V'u aşmaz |
+| DHT11 | Güvenli | **3.3V ile besle**, veri hattı da 3.3V olur |
+| HC-SR501 PIR | Güvenli | 5V ile beslenir ama çıkışı zaten 3.3V TTL |
+| SSD1306 OLED | Güvenli | Doğal olarak 3.3V çalışır |
+| **HC-SR04** | **Tehlikeli** | ECHO pinine gerilim bölücü **şart** |
+| WS2812 LED şerit | Dikkat | Kısa şeritte 3.3V veri çalışır, uzunda çevirici gerekir |
+| Röle modülü | Dikkat | 3.3V ile tetiklenmeyebilir, transistörle sür |
+| SG90 servo | Dikkat | Sinyal 3.3V olur, ama gücü harici 5V'den al |
+
+<Callout lang="tr" variant="warning" title="I2C LCD ekranlara dikkat">
+Klasik 16x2 I2C LCD'lerin arkasındaki PCF8574 kartı, I2C hatlarını kendi
+pull-up dirençleriyle **5V'a çeker**. Bu, SDA ve SCL pinlerine 5V bindirir.
+Bu yüzden projelerde LCD yerine SSD1306 OLED kullanıyoruz: aynı fiyat,
+doğal olarak 3.3V, hiç ek devre yok.
+</Callout>
+
+## Gerilim bölücü: iki dirençle çözüm
+
+En sık ihtiyaç duyacağın devre bu. İki direnç, 5V'luk bir sinyali güvenli bir
+seviyeye indirir.
+
+<WiringDiagram file="voltage-divider.svg" caption="HC-SR04 ECHO pini için gerilim bölücü" />
+
+Mantığı basit: iki direnç 5V ile GND arasına seri bağlanır. Aradaki noktanın
+gerilimi, dirençlerin oranına göre belirlenir.
+
+```
+Vçıkış = Vgiriş × R2 / (R1 + R2)
+```
+
+Bizim değerlerimizle:
+
+```
+5.0 V × 3300 / (2200 + 3300) = 3.0 V
+```
+
+3.0 V, kartın beklediği 3.3 V sınırının altında ve "1" olarak okunmak için
+fazlasıyla yüksek. Aradaki 0.3 V'luk pay da direnç toleranslarını karşılıyor.
+
+<Callout lang="tr" variant="tip" title="Neden tam 3.3V hedeflemiyoruz?">
+Dirençlerin gerçek değeri, üzerlerinde yazandan %5'e kadar sapabilir.
+Tam 3.3V hedeflersen, kötü bir kombinasyonda 3.4-3.5V çıkabilir. 3.0V
+hedefleyerek bu riski ortadan kaldırıyoruz.
+</Callout>
+
+### Neden 2.2k ve 3.3k?
+
+Oranı tutturan başka değerler de var (1k + 2k gibi). İki sebeple bunları seçtik:
+
+1. **Standart değerler.** 2.2 kΩ ve 3.3 kΩ her direnç setinde bulunur.
+2. **Yeterince yüksek.** Toplam 5.5 kΩ, devreden yalnızca ~0.9 mA akıtır.
+   Çok daha küçük dirençler boşuna akım harcar; çok daha büyükleri ise
+   sinyalin hızlı değişmesini engeller.
+
+## Ölçerek doğrula
+
+Multimetren varsa, kabloyu karta takmadan önce bölücünün çıkışını ölç:
+
+1. HC-SR04'ü 5V ve GND'ye bağla, bölücüyü kur
+2. Bölücünün orta noktası ile GND arasına multimetreyi koy
+3. Karta **henüz bağlama**
+
+HC-SR04 sürekli sinyal üretmediği için ortalama düşük bir değer okursun.
+Emin olmak istiyorsan bölücünün girişine doğrudan 5V pinini bağla ve çıkışı
+ölç — 2.9-3.1 V arası okuman gerekir.
+
+<Callout lang="tr" variant="info" title="Bu ders tekrar edecek">
+3. projede (Park Sensörü) bu devreyi kuracaksın. 7. projede (Akıllı Priz) ise
+benzer bir sorunu farklı bir yolla, transistörle çözeceğiz. Kalıbı bir kez
+anladığında hepsi aynı fikrin varyasyonları.
+</Callout>
+
+## Kartı bozmamak için üç kural
+
+1. **Kablo takmadan önce gücü kes.** Her seferinde.
+2. **3V3 ile GND'yi asla doğrudan birleştirme.** Bu kısa devredir.
+3. **Bir modülün veri sayfasına bak.** "Output voltage" veya "TTL level"
+   satırı 5V diyorsa, araya bölücü koy.

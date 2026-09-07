@@ -1,0 +1,173 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ProjectCard from '../../components/ProjectCard.astro';
+import { useTranslations, path, type Lang } from '../../i18n/utils';
+import { locales } from '../../i18n/ui';
+import { getProjectPages, getGuidePages } from '../../lib/content';
+import { projects } from '../../data/projects';
+
+export function getStaticPaths() {
+  return locales.map((lang) => ({ params: { lang } }));
+}
+
+const lang = Astro.params.lang as Lang;
+const t = useTranslations(lang);
+
+const projectPages = await getProjectPages(lang);
+const guides = await getGuidePages(lang);
+
+const firstProject = projectPages[0];
+const offlineCount = projects.filter((p) => p.category === 'offline' || p.category === 'bridge').length;
+const wifiCount = projects.filter((p) => p.category === 'wifi').length;
+
+const stats = [
+  { value: projects.length, label: t('home.stats.projects') },
+  { value: offlineCount, label: t('home.stats.offline') },
+  { value: wifiCount, label: t('home.stats.wifi') },
+  { value: locales.length, label: t('home.stats.languages') },
+];
+---
+
+<BaseLayout lang={lang}>
+  <!-- ───────────────── Hero ───────────────── -->
+  <section class="relative overflow-hidden border-b" style="border-color: var(--border);">
+    <div
+      class="pointer-events-none absolute inset-0 -z-10 opacity-[0.55]"
+      style="background:
+        radial-gradient(52rem 26rem at 78% -12%, color-mix(in srgb, var(--color-brand-400) 22%, transparent), transparent 70%),
+        radial-gradient(38rem 20rem at 8% 0%, color-mix(in srgb, var(--color-wifi-500) 14%, transparent), transparent 70%);"
+      aria-hidden="true"
+    >
+    </div>
+
+    <div class="mx-auto max-w-6xl px-4 py-20 sm:px-6 lg:py-28">
+      <p
+        class="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium"
+        style="border-color: var(--border); background-color: var(--surface); color: var(--text-muted);"
+      >
+        <span class="h-1.5 w-1.5 rounded-full bg-brand-500" aria-hidden="true"></span>
+        {t('home.hero.badge')}
+      </p>
+
+      <h1 class="mt-5 max-w-3xl text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl" style="color: var(--text);">
+        {t('home.hero.title')}
+      </h1>
+
+      <p class="mt-5 max-w-2xl text-lg leading-relaxed" style="color: var(--text-muted);">
+        {t('home.hero.subtitle')}
+      </p>
+
+      <div class="mt-8 flex flex-wrap gap-3">
+        {
+          firstProject && (
+            <a
+              href={path(lang, 'projects', firstProject.project.slug[lang])}
+              class="inline-flex items-center gap-2 rounded-xl bg-brand-500 px-5 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-600"
+            >
+              {t('home.hero.cta')}
+              <span aria-hidden="true">→</span>
+            </a>
+          )
+        }
+        <a
+          href={path(lang, 'guides')}
+          class="inline-flex items-center gap-2 rounded-xl border px-5 py-3 text-sm font-semibold transition-colors hover:bg-brand-50 dark:hover:bg-brand-950/50"
+          style="border-color: var(--border); color: var(--text);"
+        >
+          {t('home.hero.ctaSecondary')}
+        </a>
+      </div>
+
+      <!-- İstatistikler -->
+      <dl class="mt-14 grid max-w-2xl grid-cols-2 gap-6 sm:grid-cols-4">
+        {
+          stats.map((s) => (
+            <div>
+              <dt class="text-xs font-medium uppercase tracking-wide" style="color: var(--text-faint);">
+                {s.label}
+              </dt>
+              <dd class="mt-1 text-3xl font-bold tabular-nums" style="color: var(--text);">
+                {s.value}
+              </dd>
+            </div>
+          ))
+        }
+      </dl>
+    </div>
+  </section>
+
+  <!-- ───────────────── Rehberler ───────────────── -->
+  {
+    guides.length > 0 && (
+      <section class="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+        <div class="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h2 class="text-2xl font-bold tracking-tight" style="color: var(--text);">
+              {t('home.guides.title')}
+            </h2>
+            <p class="mt-1.5 text-sm" style="color: var(--text-muted);">
+              {t('home.guides.subtitle')}
+            </p>
+          </div>
+          <a
+            href={path(lang, 'guides')}
+            class="text-sm font-semibold underline underline-offset-4"
+            style="color: var(--color-brand-600);"
+          >
+            {t('nav.guides')} →
+          </a>
+        </div>
+
+        <ul class="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {guides.map((guide) => (
+            <li>
+              <a
+                href={path(lang, 'guides', guide.data.urlSlug)}
+                class="flex h-full items-start gap-3 rounded-xl border p-4 transition-colors hover:border-brand-400"
+                style="border-color: var(--border); background-color: var(--surface);"
+              >
+                <span
+                  class="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-md text-[0.7rem] font-bold tabular-nums"
+                  style="background-color: color-mix(in srgb, var(--color-brand-500) 14%, transparent); color: var(--color-brand-600);"
+                >
+                  {guide.data.order}
+                </span>
+                <span>
+                  <span class="block text-sm font-semibold" style="color: var(--text);">
+                    {guide.data.title}
+                  </span>
+                  <span class="mt-1 block text-xs leading-relaxed" style="color: var(--text-muted);">
+                    {guide.data.summary}
+                  </span>
+                </span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )
+  }
+
+  <!-- ───────────────── Projeler ───────────────── -->
+  <section class="mx-auto max-w-6xl px-4 pb-20 sm:px-6">
+    <h2 class="text-2xl font-bold tracking-tight" style="color: var(--text);">
+      {t('home.projects.title')}
+    </h2>
+    <p class="mt-1.5 text-sm" style="color: var(--text-muted);">
+      {t('home.projects.subtitle')}
+    </p>
+
+    <div class="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      {
+        projectPages.map(({ project, entry }) => (
+          <ProjectCard
+            lang={lang}
+            project={project}
+            title={entry.data.title}
+            summary={entry.data.summary}
+          />
+        ))
+      }
+    </div>
+  </section>
+</BaseLayout>

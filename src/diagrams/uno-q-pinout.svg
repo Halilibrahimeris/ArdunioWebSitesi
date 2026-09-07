@@ -1,0 +1,103 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 430" role="img" aria-labelledby="pin-title">
+  <title id="pin-title">Arduino UNO Q pin düzeni / pinout</title>
+  <style>
+    .board  { fill: var(--bg-subtle, #f6f8f9); stroke: var(--color-brand-500, #00979d); stroke-width: 2.6; }
+    .chip   { fill: var(--bg-inset, #eef2f4); stroke: var(--border, #dde4e8); stroke-width: 1.6; }
+    .lbl    { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 12px; fill: var(--text, #102b2e); }
+    .lbl-b  { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 13px; font-weight: 700; fill: var(--text, #102b2e); }
+    .muted  { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 10.5px; fill: var(--text-faint, #83969b); }
+    .pin    { font-family: ui-monospace, monospace; font-size: 11px; font-weight: 700; }
+    .p-dig  { fill: #0d8ce0; }
+    .p-ana  { fill: #7c6cf5; }
+    .p-pwr  { fill: #d94a3d; }
+    .p-gnd  { fill: #6b7b80; }
+    .pad-d  { fill: #0d8ce0; }
+    .pad-a  { fill: #7c6cf5; }
+    .pad-p  { fill: #d94a3d; }
+    .pad-g  { fill: #6b7b80; }
+  </style>
+
+  <!-- Kart gövdesi -->
+  <rect class="board" x="180" y="70" width="400" height="250" rx="14" />
+
+  <!-- İşlemciler -->
+  <rect class="chip" x="228" y="140" width="130" height="72" rx="8" />
+  <text class="lbl-b" x="293" y="167" text-anchor="middle">QRB2210</text>
+  <text class="muted" x="293" y="184" text-anchor="middle">4× Cortex-A53</text>
+  <text class="muted" x="293" y="199" text-anchor="middle">Debian Linux</text>
+
+  <rect class="chip" x="400" y="140" width="130" height="72" rx="8" />
+  <text class="lbl-b" x="465" y="167" text-anchor="middle">STM32U585</text>
+  <text class="muted" x="465" y="184" text-anchor="middle">Cortex-M33</text>
+  <text class="muted" x="465" y="199" text-anchor="middle">pinleri sürer / drives pins</text>
+
+  <!-- LED matris -->
+  <rect class="chip" x="300" y="236" width="160" height="44" rx="6" />
+  <text class="muted" x="380" y="255" text-anchor="middle">8 × 13 LED matrix</text>
+  <text class="muted" x="380" y="270" text-anchor="middle">MCU tarafından / driven by MCU</text>
+
+  <!-- USB-C -->
+  <rect class="chip" x="168" y="86" width="26" height="34" rx="5" />
+  <text class="muted" x="150" y="107" text-anchor="end">USB-C</text>
+  <text class="muted" x="150" y="121" text-anchor="end">güç+veri / power+data</text>
+
+  <!-- Qwiic -->
+  <rect class="chip" x="566" y="86" width="26" height="34" rx="5" />
+  <text class="muted" x="602" y="107">Qwiic I2C</text>
+
+  <!-- ───────── Üst header: dijital pinler ───────── -->
+  <g>
+    <text class="lbl-b" x="380" y="42" text-anchor="middle">Dijital pinler / Digital pins — 3.3V</text>
+    <!-- D13..D8 solda, D7..D2 sağda gibi tek sıra -->
+    <g>
+      <circle class="pad-d" cx="212" cy="70" r="5" /><text class="pin p-dig" x="212" y="60" text-anchor="middle">D2</text>
+      <circle class="pad-d" cx="248" cy="70" r="5" /><text class="pin p-dig" x="248" y="60" text-anchor="middle">D3~</text>
+      <circle class="pad-d" cx="284" cy="70" r="5" /><text class="pin p-dig" x="284" y="60" text-anchor="middle">D4</text>
+      <circle class="pad-d" cx="320" cy="70" r="5" /><text class="pin p-dig" x="320" y="60" text-anchor="middle">D5~</text>
+      <circle class="pad-d" cx="356" cy="70" r="5" /><text class="pin p-dig" x="356" y="60" text-anchor="middle">D6~</text>
+      <circle class="pad-d" cx="392" cy="70" r="5" /><text class="pin p-dig" x="392" y="60" text-anchor="middle">D7</text>
+      <circle class="pad-d" cx="428" cy="70" r="5" /><text class="pin p-dig" x="428" y="60" text-anchor="middle">D8</text>
+      <circle class="pad-d" cx="464" cy="70" r="5" /><text class="pin p-dig" x="464" y="60" text-anchor="middle">D9~</text>
+      <circle class="pad-d" cx="500" cy="70" r="5" /><text class="pin p-dig" x="500" y="60" text-anchor="middle">D10~</text>
+      <circle class="pad-d" cx="536" cy="70" r="5" /><text class="pin p-dig" x="536" y="60" text-anchor="middle">D11~</text>
+    </g>
+    <text class="muted" x="380" y="25" text-anchor="middle">~ = PWM</text>
+  </g>
+
+  <!-- ───────── Alt header: analog + güç ───────── -->
+  <g>
+    <circle class="pad-a" cx="212" cy="320" r="5" /><text class="pin p-ana" x="212" y="340" text-anchor="middle">A0</text>
+    <circle class="pad-a" cx="248" cy="320" r="5" /><text class="pin p-ana" x="248" y="340" text-anchor="middle">A1</text>
+    <circle class="pad-a" cx="284" cy="320" r="5" /><text class="pin p-ana" x="284" y="340" text-anchor="middle">A2</text>
+    <circle class="pad-a" cx="320" cy="320" r="5" /><text class="pin p-ana" x="320" y="340" text-anchor="middle">A3</text>
+    <circle class="pad-a" cx="356" cy="320" r="5" /><text class="pin p-ana" x="356" y="340" text-anchor="middle">A4</text>
+    <circle class="pad-a" cx="392" cy="320" r="5" /><text class="pin p-ana" x="392" y="340" text-anchor="middle">A5</text>
+
+    <circle class="pad-p" cx="440" cy="320" r="5" /><text class="pin p-pwr" x="440" y="340" text-anchor="middle">3V3</text>
+    <circle class="pad-p" cx="480" cy="320" r="5" /><text class="pin p-pwr" x="480" y="340" text-anchor="middle">5V</text>
+    <circle class="pad-g" cx="518" cy="320" r="5" /><text class="pin p-gnd" x="518" y="340" text-anchor="middle">GND</text>
+    <circle class="pad-g" cx="556" cy="320" r="5" /><text class="pin p-gnd" x="556" y="340" text-anchor="middle">GND</text>
+
+    <text class="muted" x="300" y="358" text-anchor="middle">Analog giriş / input — 3.3V ref</text>
+    <text class="muted" x="500" y="358" text-anchor="middle">Güç / Power</text>
+  </g>
+
+  <!-- Uyarı -->
+  <g transform="translate(180, 378)">
+    <rect x="0" y="0" width="400" height="40" rx="8" fill="#fdecea" stroke="#e09a90" stroke-width="1.5" />
+    <text x="14" y="17" font-family="ui-sans-serif, system-ui, sans-serif" font-size="11.5" font-weight="700" fill="#9d2f24">
+      Tüm veri pinleri 3.3V ile çalışır. / All data pins are 3.3V.
+    </text>
+    <text x="14" y="32" font-family="ui-sans-serif, system-ui, sans-serif" font-size="11" fill="#9d2f24">
+      5V pini yalnızca besleme içindir. / The 5V pin is for power only — never a 5V signal.
+    </text>
+  </g>
+
+  <!-- Açıklama -->
+  <g transform="translate(600, 150)">
+    <circle class="pad-d" cx="6" cy="0" r="5" /><text class="muted" x="18" y="4">dijital / digital</text>
+    <circle class="pad-a" cx="6" cy="22" r="5" /><text class="muted" x="18" y="26">analog</text>
+    <circle class="pad-p" cx="6" cy="44" r="5" /><text class="muted" x="18" y="48">güç / power</text>
+    <circle class="pad-g" cx="6" cy="66" r="5" /><text class="muted" x="18" y="70">GND</text>
+  </g>
+</svg>

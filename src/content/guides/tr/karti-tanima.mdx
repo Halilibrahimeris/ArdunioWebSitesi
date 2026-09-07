@@ -1,0 +1,95 @@
+---
+guideId: board-tour
+urlSlug: karti-tanima
+order: 1
+title: Kartı Tanıma ve Pin Düzeni
+summary: >-
+  UNO Q neden "iki kart bir arada"? Üzerindeki iki işlemci ne iş yapar, hangi
+  pin neye yarar ve klasik UNO'dan farkı nedir?
+---
+
+UNO Q'yu ilk kez elinize aldığınızda klasik Arduino UNO'ya çok benziyor:
+aynı boyut, aynı header düzeni, aynı shield'ler takılıyor. Ama içinde
+tamamen farklı bir şey var.
+
+## İki işlemci, iki dünya
+
+Bu kartın üzerinde **iki ayrı bilgisayar** var ve ikisi birbiriyle konuşuyor.
+
+<WiringDiagram file="uno-q-pinout.svg" caption="UNO Q pin düzeni ve iki işlemcili yapı" />
+
+### MPU — Qualcomm Dragonwing QRB2210
+
+Dört çekirdekli, 2 GHz'de çalışan bir ARM işlemci. Üzerinde **tam bir Debian
+Linux** koşuyor. 4 GB RAM ve 32 GB depolaması var.
+
+Bu taraf tam anlamıyla bir bilgisayar: Python çalıştırır, dosya sistemi vardır,
+WiFi'a bağlanır, web sunucusu açar, yapay zekâ modeli koşturur, Docker
+konteyneri çalıştırır.
+
+### MCU — STM32U585
+
+Cortex-M33 çekirdekli klasik bir mikrodenetleyici. **Pinleri bu taraf sürer.**
+LED'leri yakan, sensörleri okuyan, zamanlaması hassas işleri yapan o.
+
+Bu taraf işletim sistemi karmaşasından uzak: kodun her seferinde aynı sürede
+çalışır. Bir LED'i tam olarak 10 mikrosaniye yakmak istiyorsan, burası doğru yer.
+
+<Callout lang="tr" variant="tip" title="Neden ikisi birden?">
+Linux çok yetenekli ama zamanlaması güvenilmez — işletim sistemi araya girip
+kodunu milisaniyelerce bekletebilir. Mikrodenetleyici ise zamanlamada
+kusursuz ama web sunucusu çalıştıramaz. UNO Q ikisini birleştirip her işi
+doğru işlemciye veriyor.
+</Callout>
+
+## Pinler
+
+Header düzeni klasik UNO ile aynı, yani eski shield'ler fiziksel olarak uyar:
+
+- **14 dijital pin** (D0-D13), bunların 6'sı PWM üretebilir
+- **6 analog giriş** (A0-A5)
+- **Güç pinleri:** 3V3, 5V, GND
+- **Qwiic konnektörü:** I2C cihazları lehimsiz takmak için
+
+<Callout lang="tr" variant="voltage" linkToGuide>
+Pinlerin hepsi **3.3V** ile çalışır, klasik UNO'daki gibi 5V değil.
+Bu, modül seçimini doğrudan etkiliyor. Herhangi bir sensör bağlamadan önce
+3.3V rehberini oku.
+</Callout>
+
+### D0 ve D1'i kullanma
+
+D0 ve D1 pinleri seri haberleşme (UART) için ayrılmıştır. Projelerde bunlara
+dokunmuyoruz; sensörlerini D2 ve üzerindeki pinlere bağla.
+
+## Kartın üzerindeki ekstralar
+
+Bu kartta ek malzeme almadan kullanabileceğin iki şey var:
+
+**8×13 LED matris.** 104 mavi LED'den oluşan küçük bir ekran. 8 kademeli
+parlaklık desteği var. MCU tarafından sürülür. 1. ve 6. projede kullanacağız.
+
+**4 adet RGB LED.** İkisini Linux tarafı, ikisini mikrodenetleyici kontrol eder.
+Durum göstergesi olarak kullanışlıdır.
+
+## USB-C portu
+
+Kartta **tek bir USB-C portu** var ve bu port hem gücü sağlıyor hem veri
+taşıyor hem de video çıkışı verebiliyor.
+
+<Callout lang="tr" variant="warning" title="Kamera projesi için önemli">
+Tek port olduğu için kamera, mikrofon ve hoparlörü aynı anda bağlamak
+istediğinde **harici beslemeli bir USB-C hub** gerekiyor. 10. projede bunu
+kullanacağız.
+</Callout>
+
+## Klasik UNO'dan farkları — özet
+
+| Konu | Klasik UNO | UNO Q |
+| --- | --- | --- |
+| Lojik seviye | 5V | **3.3V** |
+| İşlemci | Tek MCU | MPU (Linux) + MCU |
+| İşletim sistemi | Yok | Debian Linux |
+| WiFi | Yok (shield gerekir) | Yerleşik WiFi 5 + BT 5.1 |
+| Programlama | Arduino IDE | Arduino App Lab |
+| Dil | C++ | C++ **ve** Python |

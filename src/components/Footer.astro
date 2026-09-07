@@ -1,0 +1,64 @@
+---
+import { useTranslations, path, type Lang } from '../i18n/utils';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+
+const sources = [
+  { label: 'Arduino UNO Q · docs.arduino.cc', href: 'https://docs.arduino.cc/hardware/uno-q' },
+  { label: 'App Lab · docs.arduino.cc', href: 'https://docs.arduino.cc/software/app-lab/' },
+  { label: 'app-bricks-examples · GitHub', href: 'https://github.com/arduino/app-bricks-examples' },
+];
+---
+
+<footer class="mt-24 border-t" style="border-color: var(--border); background-color: var(--bg-subtle);">
+  <div class="mx-auto max-w-6xl px-4 py-12 sm:px-6">
+    <div class="grid gap-10 sm:grid-cols-2 lg:grid-cols-3">
+      <div>
+        <p class="font-semibold" style="color: var(--text);">{t('site.title')}</p>
+        <p class="mt-2 text-sm leading-relaxed" style="color: var(--text-muted);">
+          {t('site.tagline')}
+        </p>
+      </div>
+
+      <nav aria-label={t('nav.menu')}>
+        <p class="text-xs font-semibold uppercase tracking-wider" style="color: var(--text-faint);">
+          {t('nav.menu')}
+        </p>
+        <ul class="mt-3 space-y-2 text-sm">
+          <li><a class="hover:underline" style="color: var(--text-muted);" href={path(lang, 'projects')}>{t('nav.projects')}</a></li>
+          <li><a class="hover:underline" style="color: var(--text-muted);" href={path(lang, 'guides')}>{t('nav.guides')}</a></li>
+          <li><a class="hover:underline" style="color: var(--text-muted);" href={path(lang, 'parts')}>{t('nav.parts')}</a></li>
+        </ul>
+      </nav>
+
+      <div>
+        <p class="text-xs font-semibold uppercase tracking-wider" style="color: var(--text-faint);">
+          {t('footer.sources')}
+        </p>
+        <ul class="mt-3 space-y-2 text-sm">
+          {
+            sources.map((s) => (
+              <li>
+                <a
+                  class="hover:underline"
+                  style="color: var(--text-muted);"
+                  href={s.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {s.label}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+    </div>
+
+    <p class="mt-10 border-t pt-6 text-xs leading-relaxed" style="border-color: var(--border); color: var(--text-faint);">
+      {t('footer.disclaimer')} · {t('footer.builtWith')}
+    </p>
+  </div>
+</footer>

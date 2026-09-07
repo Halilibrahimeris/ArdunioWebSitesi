@@ -1,0 +1,109 @@
+---
+guideId: app-lab-setup
+urlSlug: app-lab-kurulumu
+order: 2
+title: Arduino App Lab Kurulumu
+summary: >-
+  UNO Q, Arduino IDE ile değil App Lab ile programlanıyor. Kurulum, kartla ilk
+  bağlantı ve "çalışıyor mu?" testi.
+---
+
+UNO Q'yu klasik Arduino IDE ile programlamıyorsun. Kartın iki işlemcisi
+olduğu için Arduino, ikisini tek arayüzden yönetebilen yeni bir program
+yaptı: **Arduino App Lab**.
+
+## Neyi indireceksin
+
+App Lab'i [arduino.cc](https://www.arduino.cc/) üzerinden bilgisayarına indir.
+Desteklenen sistemler:
+
+- Windows 10 ve üzeri
+- macOS 11 ve üzeri
+- Ubuntu 22.04 / Debian Trixie (64-bit)
+
+<Step n={1} title="App Lab'i kur">
+
+İndirdiğin kurulum dosyasını çalıştır ve adımları takip et. Kurulum sırasında
+işletim sistemin USB sürücüsü için izin isteyebilir — kabul et, kartla
+iletişim için gerekli.
+
+<PhotoSlot lang="tr" caption="App Lab kurulum ekranı" />
+
+</Step>
+
+<Step n={2} title="Kartı bağla">
+
+Kartı **veri destekli** bir USB-C kabloyla bilgisayara bağla.
+
+<Callout lang="tr" variant="warning" title="Kablo tuzağı">
+Telefonla gelen ucuz USB-C kabloların bir kısmı yalnızca şarj eder, veri
+taşımaz. Kart bilgisayarda hiç görünmüyorsa, ilk şüphelenmen gereken şey
+kablodur. Başka bir kabloyla dene.
+</Callout>
+
+Kart açılırken üzerindeki LED matris kısa bir animasyon gösterir. Linux'un
+açılması ilk seferde bir dakikayı bulabilir — sabırlı ol.
+
+</Step>
+
+<Step n={3} title="App Lab kartı görüyor mu?">
+
+App Lab'i aç. Üst tarafta kartın adı ve bağlantı durumu görünmeli.
+
+Görünmüyorsa sırayla dene:
+
+1. Başka bir USB-C kablo
+2. Bilgisayarın başka bir USB portu
+3. Kartın açılmasını 60 saniye bekle
+4. App Lab'i kapatıp yeniden aç
+
+</Step>
+
+<Step n={4} title="İlk uygulamayı çalıştır">
+
+**Create → New App** de ve bir isim ver. App Lab senin için şu klasörleri
+oluşturur:
+
+```
+uygulamam/
+├── app.yaml        ← uygulamanın kimlik kartı
+├── python/
+│   └── main.py     ← Linux tarafında çalışır
+└── sketch/
+    └── sketch.ino  ← mikrodenetleyicide çalışır
+```
+
+Bu yapıyı bir sonraki rehberde ayrıntılı anlatıyoruz. Şimdilik **Run**
+düğmesine basıp bir şeyin çalıştığını görmen yeterli.
+
+</Step>
+
+## Kütüphaneler
+
+Projelerde harici kütüphaneler kullanacağız (LED matris, OLED ekran, DHT11
+sensörü gibi). App Lab'de bunları **Libraries** bölümünden arayıp
+ekleyebilirsin.
+
+Alternatif olarak `sketch/sketch.yaml` dosyasına elle yazabilirsin:
+
+```yaml
+profiles:
+  default:
+    platforms:
+      - platform: arduino:zephyr
+    libraries:
+      - DHT sensor library (1.4.6)
+default_profile: default
+```
+
+<Callout lang="tr" variant="tip">
+Sürüm numarasını yazmak iyi bir alışkanlık. Kütüphane güncellenip API'si
+değiştiğinde projen bozulmaz.
+</Callout>
+
+## Komut satırı da var
+
+İstersen kartın Linux tarafına doğrudan bağlanabilirsin. App Lab bir terminal
+sunar; oradan `ls`, `python3`, `nano` gibi tanıdık Linux komutlarını
+çalıştırabilirsin. Bu, 5. projeden itibaren kaydedilen verilere bakmak için
+işine yarayacak.

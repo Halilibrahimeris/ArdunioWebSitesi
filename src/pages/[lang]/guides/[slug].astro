@@ -1,0 +1,65 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import Callout from '../../../components/Callout.astro';
+import PhotoSlot from '../../../components/PhotoSlot.astro';
+import WiringDiagram from '../../../components/WiringDiagram.astro';
+import Step from '../../../components/Step.astro';
+import { useTranslations, path, type Lang } from '../../../i18n/utils';
+import { locales } from '../../../i18n/ui';
+import { getGuidePages, getGuideAlternateSlug } from '../../../lib/content';
+import { render } from 'astro:content';
+
+export async function getStaticPaths() {
+  const routes = [];
+  for (const lang of locales) {
+    const guides = await getGuidePages(lang);
+    for (const entry of guides) {
+      routes.push({ params: { lang, slug: entry.data.urlSlug }, props: { entry } });
+    }
+  }
+  return routes;
+}
+
+const lang = Astro.params.lang as Lang;
+const t = useTranslations(lang);
+const { entry } = Astro.props;
+
+const { Content } = await render(entry);
+
+// Dil değiştirici aynı rehberin çevirisine gitsin.
+const otherLang: Lang = lang === 'tr' ? 'en' : 'tr';
+const otherSlug = await getGuideAlternateSlug(entry.data.guideId, otherLang);
+const alternateHref = otherSlug ? path(otherLang, 'guides', otherSlug) : path(otherLang, 'guides');
+
+const mdxComponents = { Callout, PhotoSlot, WiringDiagram, Step };
+---
+
+<BaseLayout
+  lang={lang}
+  title={entry.data.title}
+  description={entry.data.summary}
+  alternateHref={alternateHref}
+>
+  <article class="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:py-14">
+    <a
+      href={path(lang, 'guides')}
+      class="inline-flex items-center gap-1.5 text-sm font-medium hover:underline"
+      style="color: var(--text-muted);"
+    >
+      <span aria-hidden="true">←</span> {t('guide.backToList')}
+    </a>
+
+    <header class="mt-5">
+      <h1 class="text-3xl font-bold leading-tight tracking-tight sm:text-4xl" style="color: var(--text);">
+        {entry.data.title}
+      </h1>
+      <p class="mt-3 text-lg leading-relaxed" style="color: var(--text-muted);">
+        {entry.data.summary}
+      </p>
+    </header>
+
+    <div class="prose-doc mt-8">
+      <Content components={mdxComponents} />
+    </div>
+  </article>
+</BaseLayout>

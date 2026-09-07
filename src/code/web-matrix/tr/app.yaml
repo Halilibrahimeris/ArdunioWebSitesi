@@ -1,0 +1,11 @@
+# Proje 6 — Web'den LED Matrise Yazı Yazma
+#
+# web_ui brick'i bize hazır bir web sunucusu ve WebSocket bağlantısı veriyor.
+# Kendimiz Flask kurmuyor, port açmıyor, WebSocket yazmıyoruz.
+
+name: Web'den Yazi Yazma
+icon: ✍️
+description: Tarayicidan yazilan metni LED matriste kaydirir
+
+bricks:
+  - arduino:web_ui

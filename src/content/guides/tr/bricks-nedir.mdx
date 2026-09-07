@@ -1,0 +1,108 @@
+---
+guideId: bricks
+urlSlug: bricks-nedir
+order: 6
+title: Bricks — Hazır Yetenek Blokları
+summary: >-
+  Web sunucusu, nesne tanıma, konuşma sentezi, veritabanı… App Lab'in 30 hazır
+  brick'i ve bu projelerde hangilerini kullanacağımız.
+---
+
+Brick, App Lab'in sana hazır verdiği bir yetenek bloğu. `app.yaml` dosyasına
+adını yazarsın, birkaç satır Python ile kullanırsın.
+
+Bir örnek: kameradan nesne tanımak normalde bir yapay zekâ modeli indirmeyi,
+kurmayı ve görüntü işlemeyi gerektirir. Brick ile:
+
+```yaml
+bricks:
+  - arduino:object_detection
+```
+
+```python
+from arduino.app_bricks.object_detection import ObjectDetection
+
+detector = ObjectDetection()
+```
+
+Bu kadar.
+
+## Mevcut brickler
+
+App Lab 30 brick ile geliyor. Konularına göre:
+
+### Web ve arayüz
+| Brick | Ne yapar |
+| --- | --- |
+| `web_ui` | Web sunucusu açar, tarayıcı ile WebSocket kurar |
+| `streamlit_ui` | Python'la hızlı gösterge paneli |
+| `telegram_bot` | Telegram üzerinden mesaj alıp gönderir |
+| `arduino_cloud` | Arduino Cloud ile bağlantı |
+
+### Görüntü
+| Brick | Ne yapar |
+| --- | --- |
+| `object_detection` | Görüntüdeki nesneleri tanır |
+| `video_object_detection` | Aynısını canlı video akışında yapar |
+| `image_classification` | Görüntüyü sınıflandırır |
+| `video_image_classification` | Canlı videoda sınıflandırma |
+| `camera_code_detection` | QR ve barkod okur |
+| `pose_estimation` | İnsan vücudunun duruşunu çıkarır |
+| `gesture_recognition` | El hareketlerini tanır |
+| `mood_detector` | Yüz ifadesinden duygu tahmini |
+| `visual_anomaly_detection` | Görüntüde beklenmeyen durumu yakalar |
+
+### Ses
+| Brick | Ne yapar |
+| --- | --- |
+| `asr` | Konuşmayı yazıya çevirir (kartın kendisinde) |
+| `cloud_asr` | Aynısını bulut servisiyle, daha yüksek doğrulukla |
+| `tts` | Yazıyı sese çevirir |
+| `keyword_spotting` | Belirli bir uyandırma kelimesini bekler |
+| `audio_classification` | Sesin türünü tanır (cam kırılması gibi) |
+| `sound_generator` | Ses üretir |
+| `wave_generator` | Dalga formu üretir |
+
+### Yapay zekâ ve dil
+| Brick | Ne yapar |
+| --- | --- |
+| `llm` | Kartın üzerinde çalışan dil modeli |
+| `cloud_llm` | Bulut tabanlı dil modeli |
+| `vlm` | Görüntüyü anlayıp yorumlayan model |
+| `mcp_client` | MCP sunucularına bağlanır |
+
+### Veri ve sensör
+| Brick | Ne yapar |
+| --- | --- |
+| `dbstorage_tsstore` | Zaman serisi verisi kaydeder |
+| `dbstorage_sqlstore` | SQL veritabanı |
+| `motion_detection` | İvmeölçer verisinden hareket tanır |
+| `vibration_anomaly_detection` | Titreşimde anormallik yakalar |
+| `weather_forecast` | Hava durumu bilgisi çeker |
+| `air_quality_monitoring` | Hava kalitesi verisi çeker |
+
+## Bu projelerde kullandıklarımız
+
+10 projede yalnızca altı brick kullanıyoruz — az sayıda aracı iyi öğrenmek,
+hepsine yüzeysel dokunmaktan iyidir.
+
+| Brick | Proje |
+| --- | --- |
+| `dbstorage_tsstore` | 5, 8 |
+| `web_ui` | 6, 7, 8, 10 |
+| `telegram_bot` | 9 |
+| `weather_forecast` | 9 |
+| `object_detection` | 10 |
+| `asr` ve `tts` | 10 |
+
+<Callout lang="tr" variant="info" title="Buluta giden brickler">
+Adında `cloud_` geçen brickler internete bağlanır ve genellikle hesap
+gerektirir. Bu projelerde bilinçli olarak **karta yerleşik** olanları
+seçtik — internetsiz de çalışsınlar diye.
+</Callout>
+
+<Callout lang="tr" variant="tip" title="Kendi brick'ini yazabilirsin">
+App Lab 0.7 ile birlikte kendi brick'ini yazma özelliği geldi. Bu projelerin
+kapsamı dışında ama tekrar eden bir işi kendi brick'ine dönüştürebileceğini
+bilmen iyi olur.
+</Callout>

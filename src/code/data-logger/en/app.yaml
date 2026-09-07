@@ -1,0 +1,14 @@
+# Project 5 — Data Logger
+#
+# This file is the app's identity card. The important part is the "bricks"
+# list: App Lab prepares every capability named here for you.
+#
+# dbstorage_tsstore = a time-series database.
+# We never set a database up ourselves; the brick handles it.
+
+name: Data Logger
+icon: 📈
+description: Logs DHT11 and LDR readings on the board's Linux side
+
+bricks:
+  - arduino:dbstorage_tsstore

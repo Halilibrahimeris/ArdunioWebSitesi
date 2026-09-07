@@ -1,0 +1,94 @@
+---
+guideId: board-tour
+urlSlug: board-tour
+order: 1
+title: Meet the Board and Its Pinout
+summary: >-
+  Why is the UNO Q "two boards in one"? What do its two processors do, which
+  pin does what, and how does it differ from a classic UNO?
+---
+
+Pick up a UNO Q for the first time and it looks a lot like a classic Arduino
+UNO: same size, same header layout, the same shields fit. Inside, it is
+something else entirely.
+
+## Two processors, two worlds
+
+There are **two separate computers** on this board, and they talk to each other.
+
+<WiringDiagram file="uno-q-pinout.svg" caption="UNO Q pinout and its dual-processor layout" />
+
+### MPU — Qualcomm Dragonwing QRB2210
+
+A quad-core ARM processor running at 2 GHz with a **full Debian Linux** on top.
+4 GB of RAM and 32 GB of storage.
+
+This side is a computer in every sense: it runs Python, has a file system,
+joins WiFi networks, serves web pages, runs AI models and Docker containers.
+
+### MCU — STM32U585
+
+A classic microcontroller built around a Cortex-M33 core. **This side drives
+the pins.** It lights the LEDs, reads the sensors and handles anything where
+timing matters.
+
+There is no operating system in the way here, so your code takes the same
+amount of time on every pass. If you need an LED lit for exactly 10
+microseconds, this is where that belongs.
+
+<Callout lang="en" variant="tip" title="Why both?">
+Linux is enormously capable but its timing is unreliable — the OS can pause
+your code for milliseconds at a time. A microcontroller has perfect timing but
+cannot run a web server. The UNO Q combines the two and sends each job to the
+processor suited to it.
+</Callout>
+
+## The pins
+
+The header layout matches the classic UNO, so old shields physically fit:
+
+- **14 digital pins** (D0-D13), six of which can produce PWM
+- **6 analog inputs** (A0-A5)
+- **Power pins:** 3V3, 5V, GND
+- **Qwiic connector** for plugging in I2C devices without soldering
+
+<Callout lang="en" variant="voltage" linkToGuide>
+Every pin runs at **3.3V**, not 5V as on a classic UNO. This directly shapes
+which modules you can use. Read the 3.3V guide before wiring up any sensor.
+</Callout>
+
+### Leave D0 and D1 alone
+
+D0 and D1 are reserved for serial communication (UART). None of the projects
+touch them — connect your sensors to D2 and above.
+
+## What is already on the board
+
+Two things you can use without buying anything extra:
+
+**An 8x13 LED matrix.** A small display made of 104 blue LEDs with 8 brightness
+levels, driven by the MCU. Projects 1 and 6 use it.
+
+**Four RGB LEDs.** Two controlled by the Linux side, two by the microcontroller.
+Handy as status indicators.
+
+## The USB-C port
+
+The board has **a single USB-C port**, and it carries power, data and video
+output all at once.
+
+<Callout lang="en" variant="warning" title="Important for the camera project">
+Because there is only one port, connecting a camera, a microphone and a
+speaker at the same time needs **a powered USB-C hub**. Project 10 uses one.
+</Callout>
+
+## Differences from a classic UNO
+
+| Aspect | Classic UNO | UNO Q |
+| --- | --- | --- |
+| Logic level | 5V | **3.3V** |
+| Processor | One MCU | MPU (Linux) + MCU |
+| Operating system | None | Debian Linux |
+| WiFi | None (needs a shield) | Built-in WiFi 5 + BT 5.1 |
+| Programming | Arduino IDE | Arduino App Lab |
+| Language | C++ | C++ **and** Python |

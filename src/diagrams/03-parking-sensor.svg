@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 460" role="img" aria-labelledby="d3-title">
+  <title id="d3-title">Park sensörü bağlantı şeması / Parking sensor wiring</title>
+  <style>
+    .wire  { fill: none; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+    .w-sig { stroke: #0d8ce0; }
+    .w-hi  { stroke: #d94a3d; stroke-dasharray: 7 4; }
+    .w-pwr { stroke: #d94a3d; }
+    .w-ok  { stroke: #2f9e5e; }
+    .w-gnd { stroke: #6b7b80; }
+    .board { fill: var(--bg-subtle, #f6f8f9); stroke: var(--color-brand-500, #00979d); stroke-width: 2.4; }
+    .part  { fill: var(--surface, #fff); stroke: var(--border, #dde4e8); stroke-width: 1.8; }
+    .danger{ fill: #fdecea; stroke: #e09a90; stroke-width: 2; }
+    .lbl   { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 12.5px; fill: var(--text, #102b2e); }
+    .lbl-b { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 13px; font-weight: 650; fill: var(--text, #102b2e); }
+    .pin   { font-family: ui-monospace, monospace; font-size: 12px; font-weight: 700; fill: var(--text, #102b2e); }
+    .muted { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 11px; fill: var(--text-faint, #83969b); }
+    .warn  { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 11.5px; font-weight: 700; fill: #9d2f24; }
+    .volt  { font-family: ui-monospace, monospace; font-size: 13px; font-weight: 700; }
+    .pad   { fill: var(--color-brand-500, #00979d); }
+  </style>
+
+  <!-- Kart -->
+  <rect class="board" x="26" y="60" width="170" height="330" rx="12" />
+  <text class="lbl-b" x="111" y="88" text-anchor="middle">Arduino UNO Q</text>
+  <text class="muted" x="111" y="105" text-anchor="middle">3.3V logic</text>
+
+  <g>
+    <circle class="pad" cx="196" cy="140" r="4.5" /><text class="pin" x="180" y="144" text-anchor="end">D10</text>
+    <circle class="pad" cx="196" cy="215" r="4.5" /><text class="pin" x="180" y="219" text-anchor="end">D9</text>
+    <circle class="pad" cx="196" cy="290" r="4.5" /><text class="pin" x="180" y="294" text-anchor="end">D8</text>
+    <circle class="pad" cx="196" cy="330" r="4.5" /><text class="pin" x="180" y="334" text-anchor="end">D2-D4</text>
+    <circle class="pad" cx="196" cy="365" r="4.5" /><text class="pin" x="180" y="369" text-anchor="end">5V</text>
+    <circle class="pad" cx="196" cy="390" r="4.5" /><text class="pin" x="180" y="394" text-anchor="end">GND</text>
+  </g>
+
+  <!-- HC-SR04 -->
+  <rect class="part" x="560" y="80" width="160" height="96" rx="10" />
+  <text class="lbl-b" x="640" y="106" text-anchor="middle">HC-SR04</text>
+  <text class="muted" x="640" y="124" text-anchor="middle">VCC · TRIG · ECHO · GND</text>
+  <circle cx="606" cy="152" r="11" fill="none" stroke="var(--border, #dde4e8)" stroke-width="2" />
+  <circle cx="674" cy="152" r="11" fill="none" stroke="var(--border, #dde4e8)" stroke-width="2" />
+
+  <!-- VCC 5V -->
+  <path class="wire w-pwr" d="M196 365 H520 V92 H560" />
+  <text class="muted" x="530" y="86">VCC → 5V</text>
+
+  <!-- TRIG: karttan sensöre, bölücü gerekmez -->
+  <path class="wire w-sig" d="M196 140 H560" />
+  <text class="muted" x="330" y="132">TRIG · D10 → sensör  (3.3V yeterli / 3.3V is fine)</text>
+
+  <!-- ECHO: 5V — TEHLİKELİ BÖLGE -->
+  <rect class="danger" x="230" y="196" width="500" height="120" rx="10" />
+  <text class="warn" x="246" y="216">ECHO 5V verir — gerilim bölücü ZORUNLU / mandatory</text>
+
+  <path class="wire w-hi" d="M700 176 V246 H500" />
+  <text class="volt" x="620" y="240" text-anchor="middle" fill="#d94a3d">5.0 V</text>
+
+  <!-- R1 -->
+  <rect class="part" x="418" y="232" width="82" height="28" rx="6" />
+  <text class="lbl" x="459" y="251" text-anchor="middle">R1 2.2kΩ</text>
+
+  <!-- orta düğüm -->
+  <path class="wire w-ok" d="M418 246 H352" />
+  <circle cx="352" cy="246" r="4.5" fill="#2f9e5e" />
+  <path class="wire w-ok" d="M352 246 V215 H196" />
+  <text class="volt" x="300" y="208" fill="#2f9e5e">3.0 V</text>
+
+  <!-- R2 -->
+  <path class="wire w-gnd" d="M352 246 V276" />
+  <rect class="part" x="311" y="276" width="82" height="28" rx="6" />
+  <text class="lbl" x="352" y="295" text-anchor="middle">R2 3.3kΩ</text>
+  <path class="wire w-gnd" d="M352 304 V330 H262 V390 H196" />
+
+  <!-- Sensör GND -->
+  <path class="wire w-gnd" d="M560 164 H540 V420 H196 V390" />
+  <text class="muted" x="548" y="180">GND</text>
+
+  <!-- Buzzer -->
+  <path class="wire w-sig" d="M196 290 H240 V352 H300" />
+  <rect class="part" x="300" y="338" width="112" height="28" rx="6" />
+  <text class="lbl" x="356" y="357" text-anchor="middle">Pasif buzzer</text>
+  <path class="wire w-gnd" d="M412 352 H480 V420" />
+
+  <!-- LED'ler -->
+  <text class="lbl-b" x="440" y="392">3 LED + 220Ω → D2 · D3 · D4</text>
+  <text class="muted" x="440" y="408">kırmızı / sarı / yeşil — red / yellow / green</text>
+
+  <!-- Açıklama -->
+  <g transform="translate(26, 432)">
+    <line class="wire w-pwr" x1="0" y1="6" x2="24" y2="6" /><text class="muted" x="30" y="10">5V besleme / power</text>
+    <line class="wire w-hi" x1="150" y1="6" x2="174" y2="6" /><text class="muted" x="180" y="10">5V sinyal — tehlikeli</text>
+    <line class="wire w-ok" x1="322" y1="6" x2="346" y2="6" /><text class="muted" x="352" y="10">3.0V — güvenli / safe</text>
+    <line class="wire w-gnd" x1="500" y1="6" x2="524" y2="6" /><text class="muted" x="530" y="10">GND</text>
+  </g>
+</svg>

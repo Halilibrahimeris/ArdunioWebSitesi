@@ -1,0 +1,14 @@
+# Proje 5 — Veri Kaydedici
+#
+# Bu dosya uygulamanın kimlik kartı. En önemli kısmı "bricks" listesi:
+# App Lab burada yazan yetenekleri senin için hazırlar.
+#
+# dbstorage_tsstore = zaman serisi veritabanı.
+# Kendimiz veritabanı kurmuyoruz; brick bunu hallediyor.
+
+name: Veri Kaydedici
+icon: 📈
+description: DHT11 ve LDR verilerini kartın Linux tarafında kaydeder
+
+bricks:
+  - arduino:dbstorage_tsstore

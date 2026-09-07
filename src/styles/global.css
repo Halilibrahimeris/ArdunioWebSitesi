@@ -1,0 +1,161 @@
+@import "tailwindcss";
+
+/* Karanlık mod: .dark sınıfı ile manuel kontrol / Manual dark mode via .dark class */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  /* Arduino teal marka rengi / Arduino teal brand */
+  --color-brand-50:  #eafafa;
+  --color-brand-100: #ccf1f2;
+  --color-brand-200: #99e3e5;
+  --color-brand-300: #5ccfd3;
+  --color-brand-400: #26b5ba;
+  --color-brand-500: #00979d;
+  --color-brand-600: #007d83;
+  --color-brand-700: #00646a;
+  --color-brand-800: #064e53;
+  --color-brand-900: #0a4045;
+  --color-brand-950: #032629;
+
+  /* Kategori renkleri / Category accents */
+  --color-offline-500: #7c6cf5;
+  --color-wifi-500:    #0d8ce0;
+  --color-ai-500:      #d9534a;
+
+  --font-sans: "Inter", ui-sans-serif, system-ui, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "Cascadia Code", Consolas, monospace;
+}
+
+/* ---- Anlamsal değişkenler / Semantic tokens ---- */
+:root {
+  --bg:          #ffffff;
+  --bg-subtle:   #f6f8f9;
+  --bg-inset:    #eef2f4;
+  --surface:     #ffffff;
+  --border:      #dde4e8;
+  --border-soft: #e9eef1;
+  --text:        #102b2e;
+  --text-muted:  #5a6f74;
+  --text-faint:  #83969b;
+  --shadow-card: 0 1px 2px rgb(16 43 46 / 0.05), 0 4px 16px -8px rgb(16 43 46 / 0.12);
+}
+
+.dark {
+  --bg:          #0b1416;
+  --bg-subtle:   #101d20;
+  --bg-inset:    #16272b;
+  --surface:     #101d20;
+  --border:      #23393e;
+  --border-soft: #1b2f33;
+  --text:        #e6f1f2;
+  --text-muted:  #9ab2b6;
+  --text-faint:  #6d8a8f;
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.4), 0 4px 16px -8px rgb(0 0 0 / 0.6);
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 5rem;
+    color-scheme: light;
+  }
+  html.dark { color-scheme: dark; }
+
+  body {
+    background-color: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-brand-500);
+    outline-offset: 2px;
+    border-radius: 3px;
+  }
+
+  /* Hareket azaltma tercihi / Respect reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer components {
+  /* Uzun içerik tipografisi / Long-form prose */
+  .prose-doc { color: var(--text); line-height: 1.75; }
+  .prose-doc > * + * { margin-top: 1.1em; }
+  .prose-doc h2 {
+    font-size: 1.5rem; font-weight: 700; letter-spacing: -0.01em;
+    margin-top: 2.5rem; margin-bottom: 0.75rem; scroll-margin-top: 5rem;
+  }
+  .prose-doc h3 {
+    font-size: 1.175rem; font-weight: 650;
+    margin-top: 1.75rem; margin-bottom: 0.5rem; scroll-margin-top: 5rem;
+  }
+  .prose-doc a {
+    color: var(--color-brand-600);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-thickness: 1px;
+  }
+  .dark .prose-doc a { color: var(--color-brand-300); }
+  .prose-doc a:hover { text-decoration-thickness: 2px; }
+  .prose-doc ul, .prose-doc ol { padding-left: 1.5rem; }
+  .prose-doc ul { list-style: disc; }
+  .prose-doc ol { list-style: decimal; }
+  .prose-doc li + li { margin-top: 0.4em; }
+  .prose-doc strong { font-weight: 650; }
+
+  /* Satır içi kod / Inline code */
+  .prose-doc :not(pre) > code {
+    font-family: var(--font-mono);
+    font-size: 0.86em;
+    background: var(--bg-inset);
+    border: 1px solid var(--border-soft);
+    padding: 0.1em 0.38em;
+    border-radius: 5px;
+    white-space: nowrap;
+  }
+
+  /* Kod blokları yatayda kendi içinde kaysın / Code blocks scroll internally */
+  .prose-doc pre,
+  pre.astro-code {
+    overflow-x: auto;
+    padding: 1rem 1.1rem;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    font-size: 0.855rem;
+    line-height: 1.65;
+    tab-size: 2;
+  }
+  .prose-doc table { width: 100%; border-collapse: collapse; font-size: 0.925rem; }
+  .prose-doc th, .prose-doc td {
+    border: 1px solid var(--border);
+    padding: 0.55rem 0.7rem;
+    text-align: left;
+  }
+  .prose-doc th { background: var(--bg-subtle); font-weight: 650; }
+  .prose-doc blockquote {
+    border-left: 3px solid var(--color-brand-400);
+    padding-left: 1rem;
+    color: var(--text-muted);
+  }
+
+  /* Geniş içerik sarmalayıcı: gövde asla yatay kaymaz */
+  .scroll-x { overflow-x: auto; max-width: 100%; }
+}
+
+/* Shiki çift tema / Shiki dual theme */
+.dark .astro-code,
+.dark .astro-code span {
+  color: var(--shiki-dark) !important;
+  background-color: var(--shiki-dark-bg) !important;
+  font-style: var(--shiki-dark-font-style) !important;
+  font-weight: var(--shiki-dark-font-weight) !important;
+  text-decoration: var(--shiki-dark-text-decoration) !important;
+}

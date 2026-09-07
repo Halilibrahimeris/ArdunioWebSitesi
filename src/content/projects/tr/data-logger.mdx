@@ -1,0 +1,252 @@
+---
+projectId: data-logger
+title: Veri Kaydedici — Bridge'e Giriş
+summary: >-
+  Bu proje kartın neden özel olduğunu gösteriyor. Mikrodenetleyici sensörleri
+  okuyor, Linux tarafı verileri veritabanına ve CSV dosyasına kaydediyor.
+  İkisi Bridge üzerinden konuşuyor — ilk kez iki işlemciyi birden kullanacaksın.
+learn:
+  - "Bridge ile MCU'dan Linux'a veri göndermek: notify ve provide"
+  - "app.yaml yazmak ve brick eklemek"
+  - "dbstorage_tsstore brick'i ile zaman serisi verisi kaydetmek"
+  - Python tarafında gelen veriyi doğrulamak (çöp veriyi kaydetmemek)
+  - Bir işi hangi işlemciye vereceğine karar vermek
+troubleshooting:
+  - q: Python tarafında hiçbir şey görünmüyor, sadece "bekleniyor" yazıyor.
+    a: >-
+      Neredeyse her zaman isim uyuşmazlığıdır. Sketch'teki Bridge.notify("kayit_al", ...)
+      ile main.py'deki Bridge.provide("kayit_al", ...) metinleri BİREBİR aynı
+      olmalı. Bir harf farkı bile olsa hata mesajı almazsın, sadece hiçbir şey
+      olmaz. İkisini yan yana koyup karakter karakter karşılaştır.
+  - q: Sketch tarafında "Gonderildi" yazıyor ama Python bir şey almıyor.
+    a: >-
+      setup() içinde Bridge.begin() çağırdığından emin ol. Bu satır olmadan
+      Bridge.notify sessizce hiçbir şey yapmaz. Ayrıca uygulamayı App Lab'den
+      Run ile başlattığından emin ol — sadece sketch'i yüklemek yetmez, Python
+      tarafının da çalışıyor olması gerekir.
+  - q: 'ModuleNotFoundError hatası alıyorum (arduino.app_bricks.dbstorage_tsstore)'
+    a: >-
+      app.yaml dosyasındaki bricks listesine arduino:dbstorage_tsstore satırını
+      eklemeyi unutmuşsun. Brick orada listelenmezse App Lab onu yüklemez.
+      Ekledikten sonra uygulamayı durdurup yeniden başlat.
+  - q: CSV dosyasını bulamıyorum.
+    a: >-
+      Dosya, uygulamanın python klasörünün içinde oluşuyor. App Lab'deki
+      terminali açıp uygulama klasörüne git ve "ls python/" komutunu çalıştır.
+      Python tarafı başlarken tam yolu da ekrana yazıyor — çıktının ilk
+      satırlarına bak.
+  - q: Parametre sayısı uyuşmuyor gibi bir hata alıyorum.
+    a: >-
+      Sketch'te üç değer gönderiyoruz (sıcaklık, nem, ışık), Python fonksiyonu
+      da üç parametre almalı. Fonksiyonun tanımını kontrol et. Sıra da önemli —
+      gönderdiğin sırayla karşılanır.
+  - q: Veriler geliyor ama saatler yanlış.
+    a: >-
+      Zaman damgasını kartın Linux saati üretiyor. Kart internete bağlı değilse
+      saati yanlış olabilir. App Lab terminalinde "date" komutuyla kontrol et;
+      kartı WiFi'a bağlarsan saat otomatik düzelir.
+---
+
+Buraya kadar yazdığın dört proje, klasik bir Arduino UNO ile de yapılabilirdi.
+Bu proje ise **yalnızca UNO Q ile** yapılabilir.
+
+Sebebi basit: sensörleri okumak mikrodenetleyicinin işi, ama verileri
+kaydetmek için bir dosya sistemine ve veritabanına ihtiyacın var. Klasik bir
+Arduino'da bunlar yok. UNO Q'da ise ikisi de aynı kartın üzerinde.
+
+<WiringDiagram file="05-data-logger.svg" caption="Verinin sensörden veritabanına kadar izlediği yol" />
+
+## İş bölümü
+
+Bu projede karar vermen gereken şey şu: hangi iş hangi işlemcide?
+
+| İş | İşlemci | Neden |
+| --- | --- | --- |
+| DHT11'i okumak | MCU | Sensörün hassas zamanlama gerektiren bir protokolü var |
+| LDR'yi okumak | MCU | Analog pinler MCU'ya bağlı |
+| Veriyi doğrulamak | MPU | Mantık işi, zamanlama gerektirmiyor |
+| Veritabanına yazmak | MPU | Veritabanı Linux'ta |
+| CSV dosyası tutmak | MPU | Dosya sistemi Linux'ta |
+
+<Callout lang="tr" variant="tip" title="Genel kural">
+Mikrodenetleyici **ölçer**, Linux **düşünür ve saklar**. Bu ayrımı aklında
+tutarsan bundan sonraki her projede neyi nereye koyacağını bilirsin.
+</Callout>
+
+<Step n={1} title="Devreyi hazırla">
+
+İyi haber: yeni malzeme almana gerek yok. 4. projedeki DHT11 bağlantısı ve
+2. projedeki LDR bağlantısı aynen duruyor.
+
+Eğer söktüysen tekrar kur:
+
+- **DHT11**: VCC → 3V3, DATA → **D7**, GND → GND (+ DATA ile VCC arası 10kΩ)
+- **LDR**: 3V3 → LDR → **A0**, A0 → 10kΩ → GND
+
+OLED'e bu projede ihtiyacımız yok, takılı kalabilir.
+
+</Step>
+
+<Step n={2} title="Yeni bir uygulama oluştur ve brick ekle">
+
+App Lab'de **Create → New App** de, adını `veri-kaydedici` koy.
+
+Şimdi ilk kez `app.yaml` dosyasını düzenleyeceksin. Aç ve şunu yaz:
+
+```yaml
+name: Veri Kaydedici
+icon: 📈
+description: DHT11 ve LDR verilerini kartın Linux tarafında kaydeder
+
+bricks:
+  - arduino:dbstorage_tsstore
+```
+
+Son iki satır kritik. `bricks` listesine bir şey eklediğinde App Lab o yeteneği
+senin için hazırlıyor. Burada zaman serisi veritabanı istiyoruz — kendimiz
+PostgreSQL kurup tablo açmıyoruz, brick hallediyor.
+
+<Callout lang="tr" variant="warning">
+Brick'i `app.yaml`'a eklemeyi unutursan Python tarafı çalıştığında
+`ModuleNotFoundError` alırsın. Kütüphane orada değil çünkü sen istemedin.
+</Callout>
+
+</Step>
+
+<Step n={3} title="Sketch'i yaz — ölçen taraf">
+
+`sketch/sketch.ino` dosyasına aşağıdaki **Kodlar** bölümündeki sketch'i yapıştır.
+
+Dikkat edilecek iki satır var. Birincisi `setup()` içinde:
+
+```cpp
+Bridge.begin();
+```
+
+Bu satır köprüyü kurar. Yazmazsan `Bridge.notify` sessizce hiçbir şey yapmaz —
+hata da vermez, bu yüzden fark etmesi zordur.
+
+İkincisi `loop()` içinde:
+
+```cpp
+Bridge.notify("kayit_al", sicaklik, nem, isik);
+```
+
+Bu satır Linux tarafındaki `kayit_al` fonksiyonunu çağırıyor ve üç değeri
+gönderiyor.
+
+<Callout lang="tr" variant="info" title="notify neden cevap beklemiyor?">
+`notify()` veriyi gönderir ve hemen devam eder. Cevap beklemez.
+
+Sensör verisi akıtırken tam olarak bunu istersin: mikrodenetleyicinin, Linux
+tarafı meşgulken beklemesinin bir anlamı yok. Ölçümü fırlatır, işine bakar.
+</Callout>
+
+</Step>
+
+<Step n={4} title="Python'u yaz — kaydeden taraf">
+
+`python/main.py` dosyasına Python kodunu yapıştır.
+
+Buradaki en önemli satır şu:
+
+```python
+Bridge.provide("kayit_al", kayit_al)
+```
+
+Bu satır Python'a der ki: *"`kayit_al` adında bir fonksiyonum var,
+mikrodenetleyici bunu çağırabilir."*
+
+<Callout lang="tr" variant="danger" title="En sık yapılan hata">
+`Bridge.notify("kayit_al", ...)` içindeki metin ile `Bridge.provide("kayit_al", ...)`
+içindeki metin **birebir aynı** olmalı.
+
+Bir harf bile farklı olursa hata mesajı almazsın. Sketch tarafı "gönderdim"
+der, Python tarafı hiçbir şey almaz ve sen ne olduğunu anlamazsın. Bir şey
+çalışmıyorsa **ilk bakacağın yer burasıdır.**
+</Callout>
+
+</Step>
+
+<Step n={5} title="Gelen veriyi neden doğruluyoruz?">
+
+Python kodunda şu bölüm var:
+
+```python
+if not (-40 <= sicaklik <= 80):
+    print(f"Gecersiz sicaklik atlandi: {sicaklik}")
+    return
+```
+
+Sensör kablosu gevşerse ya da sensör bozulursa saçma değerler gelebilir.
+Bunları kaydetmek, hiç kaydetmemekten **daha kötüdür** — çünkü sonradan
+grafiğe baktığında gerçek veriyle çöp veriyi ayırt edemezsin.
+
+<Callout lang="tr" variant="tip" title="Sınırda doğrulama">
+Bu, yazılımın genel bir kuralı: dış dünyadan gelen her veriyi, sisteme
+girdiği noktada doğrula. Burada "dış dünya" mikrodenetleyici, "sınır" ise
+`kayit_al` fonksiyonu.
+</Callout>
+
+</Step>
+
+<Step n={6} title="Çalıştır ve veriyi izle">
+
+**Run** düğmesine bas. Artık iki taraf birden çalışıyor.
+
+Python çıktısında beş saniyede bir şuna benzer satırlar görmelisin:
+
+```
+Veri kaydedici hazir. Mikrodenetleyiciden veri bekleniyor...
+[   1] 2026-09-07 15:42:10  23.4°C  %48  isik=712
+[   2] 2026-09-07 15:42:15  23.4°C  %48  isik=698
+[   3] 2026-09-07 15:42:20  23.5°C  %49  isik=203
+```
+
+Son satırda ışık değerinin düştüğüne dikkat et — elimi LDR'nin üzerine kapattım.
+
+</Step>
+
+<Step n={7} title="Kaydedilen veriyi bul">
+
+Artık verilerin iki yerde birden duruyor.
+
+**CSV dosyası** en kolay ulaşabileceğin yer. App Lab'de terminali aç ve
+uygulama klasöründe şunu çalıştır:
+
+```bash
+cat python/olcumler.csv
+```
+
+Şuna benzer bir çıktı görürsün:
+
+```
+zaman,sicaklik_C,nem_yuzde,isik_ham
+2026-09-07 15:42:10,23.4,48,712
+2026-09-07 15:42:15,23.4,48,698
+```
+
+Bu dosyayı bilgisayarına kopyalayıp Excel'de açabilir, grafik çizebilirsin.
+
+**Veritabanı** ise programlar için. `read_last_sample()` ve `read_samples()`
+fonksiyonlarıyla sorgulanabilir — 8. projede bunu web arayüzünde grafiğe
+dökeceğiz.
+
+<PhotoSlot lang="tr" caption="App Lab terminalinde CSV dosyasının içeriği" />
+
+</Step>
+
+<Step n={8} title="Geliştir">
+
+- `SEND_INTERVAL_MS` değerini 60000 yapıp gece boyunca kayıt al, sabah grafiğe bak
+- Python tarafında sıcaklık 30 dereceyi geçince ekrana uyarı bastır
+- `read_last_sample()` fonksiyonunu kullanarak son kaydı geri okuyup yazdır
+- LDR yerine 3. projedeki HC-SR04'ü bağlayıp mesafe kaydı tut
+
+<Callout lang="tr" variant="info" title="Sıradaki adım">
+Bridge'i artık biliyorsun. Bir sonraki projede aynı köprüyü ters yönde
+kullanacağız: tarayıcıdan yazdığın bir metin Linux'a, oradan da
+mikrodenetleyiciye gidip LED matriste görünecek.
+</Callout>
+
+</Step>

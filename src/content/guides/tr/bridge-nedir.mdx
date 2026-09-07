@@ -1,0 +1,106 @@
+---
+guideId: bridge
+urlSlug: bridge-nedir
+order: 5
+title: Bridge — İki İşlemci Nasıl Konuşur?
+summary: >-
+  Mikrodenetleyicideki sketch ile Linux'taki Python birbirine nasıl veri
+  gönderir? Bridge.notify ve Bridge.provide ile RPC mantığı.
+---
+
+Kartta iki ayrı işlemci olduğunu biliyorsun. Peki biri diğerine nasıl veri
+gönderir? Cevap: **Bridge**.
+
+Bridge, iki taraf arasında **RPC** (uzaktan yordam çağrısı) kurar. Karmaşık
+gelebilir ama fikri çok basit:
+
+> Bir taraf bir fonksiyon tanımlar, diğer taraf o fonksiyonu adıyla çağırır.
+
+## MCU'dan Python'a veri göndermek
+
+En sık kullanacağın yön bu: mikrodenetleyici sensörü okur, sonucu Linux'a
+gönderir.
+
+### Python tarafı: fonksiyonu kaydet
+
+```python
+from arduino.app_utils import App, Bridge
+
+def sicaklik_geldi(derece: float, nem: float):
+    print(f"Sıcaklık: {derece} °C, Nem: {nem} %")
+
+# Bu fonksiyonu sketch'in çağırabilmesi için kaydet
+Bridge.provide("sicaklik_geldi", sicaklik_geldi)
+
+App.run()
+```
+
+`Bridge.provide()` şunu der: *"`sicaklik_geldi` adında bir fonksiyonum var,
+mikrodenetleyici istediğinde çağırabilir."*
+
+### Sketch tarafı: fonksiyonu çağır
+
+```cpp
+#include <Arduino_RouterBridge.h>
+
+void setup() {
+  Bridge.begin();
+}
+
+void loop() {
+  float derece = 23.5;
+  float nem = 48.0;
+
+  // Python tarafındaki fonksiyonu çağır
+  Bridge.notify("sicaklik_geldi", derece, nem);
+
+  delay(2000);
+}
+```
+
+`Bridge.notify()` fonksiyonu çağırır ama **cevap beklemez**. Sensör verisi
+göndermek için tam olarak istediğin davranış budur: mikrodenetleyici veriyi
+fırlatır ve işine devam eder.
+
+<Callout lang="tr" variant="tip" title="İsimler birebir eşleşmeli">
+`Bridge.provide("sicaklik_geldi", ...)` ile `Bridge.notify("sicaklik_geldi", ...)`
+içindeki metin birebir aynı olmalı. Yazım hatası yaparsan hata mesajı almazsın,
+sadece hiçbir şey olmaz — bu yüzden ilk bakacağın yer burasıdır.
+</Callout>
+
+## Parametreler
+
+Bridge sayı, metin ve mantıksal değer taşıyabilir. Sketch tarafında
+gönderdiğin sırayla Python tarafında karşılanır:
+
+```cpp
+Bridge.notify("olcum", 12, 3.5, "aktif");
+```
+
+```python
+def olcum(sayi: int, oran: float, durum: str):
+    ...
+```
+
+## Neden doğrudan seri port kullanmıyoruz?
+
+Kullanabilirdin ama Bridge sana şunları hazır veriyor:
+
+- Değişkenleri kendisi paketleyip açıyor (sen `float` gönderiyorsun, `float` geliyor)
+- Bağlantı koptuğunda yeniden kuruyor
+- Mesajları sıraya koyuyor, kaybolmalarını engelliyor
+
+Elle yazsan bunların hepsini kendin halletmen gerekirdi.
+
+## Ne zaman kullanılır?
+
+Bridge'e **her projede ihtiyacın yok**. Kural basit:
+
+- İşin tamamı pinlerdeyse (LED, buton, sensör) → sadece sketch yaz, Bridge'e gerek yok
+- Veriyi kaydetmek, göstermek veya internete göndermek istiyorsan → Bridge kullan
+
+<Callout lang="tr" variant="info" title="Nerede göreceksin?">
+**5. proje (Veri Kaydedici)** tamamen bu konuya ayrıldı — Bridge'i ilk orada
+kuracaksın. 6, 8 ve 10. projelerde ise Bridge arka planda çalışıp tarayıcı ile
+mikrodenetleyiciyi birbirine bağlayacak.
+</Callout>

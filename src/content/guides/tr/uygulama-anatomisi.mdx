@@ -1,0 +1,108 @@
+---
+guideId: app-anatomy
+urlSlug: uygulama-anatomisi
+order: 4
+title: Bir App Lab Uygulamasının Anatomisi
+summary: >-
+  app.yaml, python/ ve sketch/ klasörleri ne işe yarar? Hangi kod nerede
+  çalışır ve bir işi hangi tarafa vermelisin?
+---
+
+App Lab'de oluşturduğun her uygulama aynı üç parçadan oluşur. Bu yapıyı bir
+kez anladığında bütün projeler tanıdık gelecek.
+
+```
+uygulamam/
+├── app.yaml         ← uygulamanın kimlik kartı
+├── python/
+│   └── main.py      ← Linux (MPU) tarafında çalışır
+├── sketch/
+│   ├── sketch.ino   ← mikrodenetleyici (MCU) tarafında çalışır
+│   └── sketch.yaml  ← sketch'in kütüphane bağımlılıkları
+└── assets/
+    └── index.html   ← web arayüzü dosyaları (gerekiyorsa)
+```
+
+## app.yaml — kimlik kartı
+
+En küçük dosya ama en önemlilerinden biri. Uygulamanın adını, simgesini ve
+**hangi bricklere ihtiyaç duyduğunu** söyler.
+
+```yaml
+name: Canlı Sensör Paneli
+icon: 📊
+description: Sıcaklık ve nemi tarayıcıda gösterir
+
+bricks:
+  - arduino:web_ui
+  - arduino:dbstorage_tsstore
+```
+
+`bricks` listesindeki her satır, App Lab'in senin için hazır bir yetenek
+yüklemesini sağlar. Web sunucusu yazmana gerek kalmaz; `web_ui` brick'ini
+listeye eklersin, gerisini o halleder.
+
+## python/main.py — Linux tarafı
+
+Burada koşan kod, kartın Debian Linux'unda çalışan normal bir Python
+programıdır. Elinin altında bir bilgisayarın tüm imkânları var:
+
+- Ağ bağlantısı, web sunucusu, WebSocket
+- Dosya sistemi, veritabanı
+- Yapay zekâ modelleri, kamera, ses
+- İnternet API'lerine istek atma
+
+Her Python dosyası şu satırla biter:
+
+```python
+App.run()  # Uygulama durdurulana kadar burada bekler
+```
+
+## sketch/sketch.ino — mikrodenetleyici tarafı
+
+Bu, bildiğin Arduino kodu: `setup()` ve `loop()`. Kartın pinlerini **yalnızca
+bu taraf** sürebilir.
+
+```cpp
+void setup() {
+  pinMode(2, OUTPUT);
+}
+
+void loop() {
+  digitalWrite(2, HIGH);
+}
+```
+
+`sketch.yaml` dosyası ise bu sketch'in hangi kütüphanelere ihtiyaç duyduğunu
+listeler.
+
+## Hangi iş hangi tarafta?
+
+Yeni bir projeye başlarken sorman gereken soru bu. Basit bir kural:
+
+| İş | Nerede |
+| --- | --- |
+| Pin okuma / yazma | **MCU** (sketch) |
+| Hassas zamanlama (mikrosaniye) | **MCU** |
+| Sensör örnekleme | **MCU** |
+| Web arayüzü, WiFi | **MPU** (python) |
+| Veri kaydetme, veritabanı | **MPU** |
+| Yapay zekâ, kamera, ses | **MPU** |
+| İnternet API'leri | **MPU** |
+
+<Callout lang="tr" variant="tip" title="Pratik kural">
+"Bu işin **tam zamanında** yapılması gerekiyor mu?" diye sor. Cevap evetse
+mikrodenetleyiciye ver. "Bu iş **bilgisayar gücü** istiyor mu?" Cevap evetse
+Linux'a ver.
+</Callout>
+
+## Her projede ikisi de gerekmez
+
+Önemli bir nokta: bir uygulamanın **iki tarafı da dolu olmak zorunda değil**.
+
+- **1-4. projeler** yalnızca `sketch/` kullanır. Linux tarafı boş kalır,
+  çünkü LED yakmak için bilgisayar gerekmiyor.
+- **6. proje** ikisini birden kullanır: tarayıcıdan gelen yazıyı Python alır,
+  mikrodenetleyiciye iletir, o da matriste gösterir.
+
+İki taraf arasındaki iletişimi bir sonraki rehberde anlatıyoruz.

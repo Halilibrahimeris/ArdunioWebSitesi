@@ -1,0 +1,181 @@
+---
+projectId: light-sound-meter
+title: Light and Sound Meter
+summary: >-
+  Measure the light in the room with an LDR, show it on a bar of five LEDs, set
+  an alarm threshold with a potentiometer and make the buzzer sound in the dark.
+  Here the pins stop being on/off and start reading numbers in between.
+learn:
+  - "Reading values from 0-1023 with analogRead() and what the 3.3V reference means"
+  - "Rescaling one range onto another with map() and constrain()"
+  - Using a voltage divider to turn a changing resistance into a measurable voltage
+  - "Producing any frequency you like from a passive buzzer with tone()"
+  - Smoothing jittery sensor readings with a simple low-pass filter
+troubleshooting:
+  - q: The LED bar is always full or always empty.
+    a: >-
+      Check the order of the LDR connections. The LDR belongs between 3V3 and
+      A0, and the 10kΩ resistor between A0 and GND. Swap them and the readings
+      invert. Open the serial monitor and cover the LDR with your hand — if the
+      number does not move, a connection is broken.
+  - q: The buzzer makes no sound at all.
+    a: >-
+      You probably bought an active buzzer. An active buzzer contains its own
+      oscillator, plays a single fixed tone and cannot be driven by tone(). You
+      need a passive one — usually unlabelled, with an open black underside.
+  - q: The buzzer sounds constantly and the potentiometer does nothing.
+    a: >-
+      Make sure the potentiometer's middle leg goes to A1. Its outer legs go to
+      3V3 and GND — NOT to 5V. If the "Threshold" value in the serial monitor
+      does not change as you turn the knob, the middle leg is not connected.
+  - q: The LEDs flicker on and off constantly.
+    a: >-
+      The light level is sitting right on one LED's boundary. Lower SMOOTHING
+      from 0.2 to 0.05 — the readings become gentler and the flicker stops.
+  - q: Nothing shows in the serial monitor.
+    a: >-
+      Make sure setup() calls Monitor.begin(). You do not need to pick a baud
+      rate in App Lab's serial monitor — the Monitor class handles that. Also
+      confirm the app was started with Run.
+---
+
+In the first project the pins knew only two states: on or off. The real world
+does not work that way — a room is not "bright" or "dark" but somewhere in
+between.
+
+This project uses the board's **analog inputs**. These pins measure a voltage
+and hand you back a number.
+
+<Callout lang="en" variant="info" title="What does the 3.3V reference mean?">
+`analogRead()` converts the voltage on a pin into a number from 0 to 1023.
+That 1023 corresponds to the board's **3.3V**, not the 5V of a classic UNO. So
+a reading of 512 means roughly 1.65V is present on the pin.
+</Callout>
+
+<Step n={1} title="Power down before building">
+
+As with every project: unplug the USB-C cable. This build adds five LEDs, a
+buzzer and two analog sensors, so the breadboard gets busier.
+
+</Step>
+
+<Step n={2} title="Wire the LDR as a voltage divider">
+
+An LDR (photoresistor) is a component whose **resistance changes** with light.
+Bright light lowers it; darkness raises it.
+
+But the board cannot measure resistance — only voltage. So we pair the LDR
+with a fixed resistor to turn that changing resistance into a changing voltage:
+
+- **3V3** → LDR → **A0**
+- **A0** → 10kΩ resistor → **GND**
+
+In bright light the LDR's resistance drops, the voltage at A0 rises, and
+`analogRead()` returns a large number. In the dark, the opposite happens.
+
+<Callout lang="en" variant="tip" title="This is exactly a voltage divider">
+It is the same circuit the 3.3V guide describes for the HC-SR04. The
+difference: there both resistors were fixed and the goal was to lower a
+voltage. Here one of them is the sensor itself and the goal is to measure how
+it changes.
+</Callout>
+
+</Step>
+
+<Step n={3} title="Wire the potentiometer">
+
+A potentiometer has three legs, and the order matters:
+
+| Leg | Goes to |
+| --- | --- |
+| Left end | 3V3 |
+| Middle (wiper) | A1 |
+| Right end | GND |
+
+As you turn the knob, the voltage on the middle leg sweeps between 0V and 3.3V.
+
+<Callout lang="en" variant="warning">
+Do **not** wire the outer legs to the 5V pin. If you do, the wiper can feed up
+to 5V into A1 and damage it. Use 3V3.
+</Callout>
+
+</Step>
+
+<Step n={4} title="Wire the LED bar and the buzzer">
+
+Line up five LEDs side by side. Run each long leg through its own 220Ω
+resistor to these pins: **D2, D3, D4, D5, D6**. The short legs go to the
+breadboard's negative rail.
+
+Connect one side of the passive buzzer to **D8** and the other to **GND**.
+
+<Callout lang="en" variant="danger" title="It must be a passive buzzer">
+An active buzzer contains its own oscillator, so applying voltage produces one
+fixed tone and you cannot change its frequency. `tone()` only works with a
+**passive** buzzer.
+</Callout>
+
+<PhotoSlot lang="en" caption="The completed circuit: LDR, potentiometer, LED bar and buzzer" />
+
+</Step>
+
+<Step n={5} title="Upload and open the serial monitor">
+
+Paste the code in and press **Run**. Then open App Lab's **serial monitor**.
+
+Lines like this should scroll past twice a second:
+
+```
+Light: 742   Threshold: 400   LEDs: 3
+```
+
+Cover the LDR with your hand: "Light" drops quickly and fewer LEDs stay lit.
+Turn the potentiometer and "Threshold" moves.
+
+</Step>
+
+<Step n={6} title="See what the smoothing does">
+
+This line is the most instructive part of the project:
+
+```cpp
+smoothedLight = smoothedLight * (1.0 - SMOOTHING) + rawLight * SMOOTHING;
+```
+
+Rather than using the new reading directly, we blend it with the old one. With
+`SMOOTHING` at 0.2 the new value carries only 20% of the weight, so sudden
+jumps get flattened out.
+
+Try it yourself:
+
+1. Set `SMOOTHING` to **1.0**. Now there is no smoothing at all; the LEDs and
+   the tone jitter, because raw ADC readings always wobble by a few counts.
+2. Set it to **0.02**. Very smooth, but sluggish — the bar fills slowly after
+   you take your hand away.
+3. Go back to **0.2**. A reasonable balance for most sensors.
+
+<Callout lang="en" variant="tip" title="This is a filter">
+What you just wrote is called an *exponential moving average*, or a
+*first-order low-pass filter*. In professional embedded software it is used in
+exactly this three-line form.
+</Callout>
+
+</Step>
+
+<Step n={7} title="Take it further">
+
+You have a working circuit — now play with it:
+
+- Change `TONE_MIN` and `TONE_MAX` to widen the range of pitches
+- Invert the LED bar so it fills in darkness and empties in bright light
+- Make the potentiometer control **sensitivity** instead of a threshold by
+  deriving `SMOOTHING` from it
+- Drop the buzzer and use the LED matrix from project 1 to draw the light level
+  as a bar chart
+
+<Callout lang="en" variant="info">
+The LDR and buzzer from this project come back in projects 3 and 5 — take a
+look at what is next before you dismantle anything.
+</Callout>
+
+</Step>

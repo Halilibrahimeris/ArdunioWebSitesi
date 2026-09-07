@@ -1,0 +1,50 @@
+---
+/**
+ * Numaralı yapım adımı / Numbered build step.
+ * MDX içinde kullanılır; içine şema, fotoğraf ve uyarı kutusu konabilir.
+ */
+interface Props {
+  n: number;
+  title: string;
+}
+const { n, title } = Astro.props;
+---
+
+<section class="step relative mt-8 pl-11 sm:pl-12">
+  <span
+    class="absolute left-0 top-0 grid h-8 w-8 place-items-center rounded-full text-sm font-bold tabular-nums"
+    style="background-color: var(--color-brand-500); color: #fff;"
+    aria-hidden="true"
+  >
+    {n}
+  </span>
+
+  <h3
+    id={`adim-${n}`}
+    class="!mt-0.5 scroll-mt-24 text-lg font-semibold leading-snug tracking-tight"
+    style="color: var(--text);"
+  >
+    {title}
+  </h3>
+
+  <div class="step-body mt-2">
+    <slot />
+  </div>
+</section>
+
+<style>
+  /* Adımları birbirine bağlayan dikey çizgi */
+  .step::before {
+    content: '';
+    position: absolute;
+    left: 0.9375rem;
+    top: 2.25rem;
+    bottom: -2rem;
+    width: 2px;
+    background: var(--border);
+  }
+  .step:last-of-type::before { display: none; }
+
+  .step-body > :global(* + *) { margin-top: 0.9em; }
+  .step-body :global(p) { line-height: 1.75; }
+</style>

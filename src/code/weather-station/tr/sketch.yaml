@@ -1,0 +1,19 @@
+# Proje 4 — OLED Hava İstasyonu
+# Bu dosya sketch'in hangi kütüphanelere ihtiyaç duyduğunu söyler.
+# App Lab derleme sırasında bunları otomatik indirir.
+#
+# Sürüm numaralarını yazmak iyi bir alışkanlık: kütüphane güncellenip
+# API'si değişse bile projen çalışmaya devam eder.
+
+profiles:
+  default:
+    platforms:
+      - platform: arduino:zephyr
+    libraries:
+      - Adafruit SSD1306 (2.5.13)
+      - Adafruit GFX Library (1.11.11)
+      - Adafruit BusIO (1.16.2)
+      - DHT sensor library (1.4.6)
+      - Adafruit Unified Sensor (1.1.14)
+
+default_profile: default

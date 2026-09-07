@@ -1,0 +1,55 @@
+---
+/**
+ * Bağlantı şeması / Wiring diagram.
+ *
+ * SVG'ler src/diagrams/ altında tutulur ve sayfaya GÖMÜLÜR (public/ yerine).
+ * Gömülü olduğu için CSS değişkenlerine erişebilir; şema karanlık modda da okunur kalır.
+ * SVGs are inlined rather than linked so they can read CSS variables and stay
+ * legible in dark mode.
+ */
+interface Props {
+  /** src/diagrams/ altındaki dosya adı, ör. "01-traffic-light.svg" */
+  file: string;
+  caption?: string;
+  title?: string;
+}
+
+const { file, caption, title } = Astro.props;
+
+const diagrams = import.meta.glob('../diagrams/*.svg', { query: '?raw', import: 'default', eager: true }) as Record<string, string>;
+const svg = diagrams[`../diagrams/${file}`];
+---
+
+{
+  svg ? (
+    <figure class="my-6">
+      <div
+        class="scroll-x rounded-xl border p-3 sm:p-5"
+        style="border-color: var(--border); background-color: var(--bg-subtle);"
+        role="img"
+        aria-label={title ?? caption ?? ''}
+      >
+        <Fragment set:html={svg} />
+      </div>
+      {caption && (
+        <figcaption class="mt-2 text-center text-xs" style="color: var(--text-faint);">
+          {caption}
+        </figcaption>
+      )}
+    </figure>
+  ) : (
+    <p class="my-6 rounded-xl border border-dashed px-4 py-3 text-sm" style="border-color: var(--border); color: var(--text-faint);">
+      Şema bulunamadı / Diagram not found: <code>{file}</code>
+    </p>
+  )
+}
+
+<style>
+  figure :global(svg) {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-width: 100%;
+    min-width: 480px; /* dar ekranda sıkışıp okunmaz hale gelmesin */
+  }
+</style>

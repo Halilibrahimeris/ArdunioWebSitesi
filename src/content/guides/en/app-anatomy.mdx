@@ -1,0 +1,106 @@
+---
+guideId: app-anatomy
+urlSlug: app-anatomy
+order: 4
+title: Anatomy of an App Lab Application
+summary: >-
+  What are app.yaml, python/ and sketch/ for? Where does each piece of code
+  run, and which side should a given job go to?
+---
+
+Every app you create in App Lab is built from the same three parts. Once you
+understand the layout, every project on this site will feel familiar.
+
+```
+my-app/
+├── app.yaml         ← the app's identity card
+├── python/
+│   └── main.py      ← runs on the Linux side (MPU)
+├── sketch/
+│   ├── sketch.ino   ← runs on the microcontroller (MCU)
+│   └── sketch.yaml  ← the sketch's library dependencies
+└── assets/
+    └── index.html   ← web interface files, when you need them
+```
+
+## app.yaml — the identity card
+
+The smallest file, and one of the most important. It declares the app's name,
+its icon, and **which bricks it needs**.
+
+```yaml
+name: Live Sensor Dashboard
+icon: 📊
+description: Shows temperature and humidity in a browser
+
+bricks:
+  - arduino:web_ui
+  - arduino:dbstorage_tsstore
+```
+
+Each line under `bricks` makes App Lab load a ready-made capability for you.
+You never write a web server; you add the `web_ui` brick and it handles that.
+
+## python/main.py — the Linux side
+
+The code here is an ordinary Python program running on the board's Debian
+Linux. You have a whole computer at your disposal:
+
+- Networking, web servers, WebSockets
+- A file system and databases
+- AI models, cameras, audio
+- Calls out to internet APIs
+
+Every Python file ends with this line:
+
+```python
+App.run()  # Blocks here until the app is stopped
+```
+
+## sketch/sketch.ino — the microcontroller side
+
+This is Arduino code as you know it: `setup()` and `loop()`. **Only this side**
+can drive the board's pins.
+
+```cpp
+void setup() {
+  pinMode(2, OUTPUT);
+}
+
+void loop() {
+  digitalWrite(2, HIGH);
+}
+```
+
+The `sketch.yaml` file next to it lists the libraries this sketch needs.
+
+## Which job goes where?
+
+This is the question to ask when starting a project. A simple rule:
+
+| Job | Where |
+| --- | --- |
+| Reading and writing pins | **MCU** (sketch) |
+| Precise timing (microseconds) | **MCU** |
+| Sampling a sensor | **MCU** |
+| Web interface, WiFi | **MPU** (python) |
+| Logging data, databases | **MPU** |
+| AI, camera, audio | **MPU** |
+| Internet APIs | **MPU** |
+
+<Callout lang="en" variant="tip" title="A practical rule">
+Ask "does this have to happen at an **exact** moment?" If yes, give it to the
+microcontroller. Ask "does this need **computing power**?" If yes, give it to
+Linux.
+</Callout>
+
+## Not every project needs both
+
+An important point: an app **does not have to fill both sides**.
+
+- **Projects 1-4** only use `sketch/`. The Linux side sits empty, because
+  blinking an LED does not need a computer.
+- **Project 6** uses both: Python receives text from the browser, hands it to
+  the microcontroller, which shows it on the matrix.
+
+The next guide covers how those two sides talk to each other.

@@ -1,0 +1,52 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { useTranslations, path, type Lang } from '../../../i18n/utils';
+import { locales } from '../../../i18n/ui';
+import { getGuidePages } from '../../../lib/content';
+
+export function getStaticPaths() {
+  return locales.map((lang) => ({ params: { lang } }));
+}
+
+const lang = Astro.params.lang as Lang;
+const t = useTranslations(lang);
+const guides = await getGuidePages(lang);
+---
+
+<BaseLayout lang={lang} title={t('guides.title')} description={t('guides.subtitle')}>
+  <div class="mx-auto max-w-3xl px-4 py-12 sm:px-6">
+    <h1 class="text-3xl font-bold tracking-tight sm:text-4xl" style="color: var(--text);">
+      {t('guides.title')}
+    </h1>
+    <p class="mt-2" style="color: var(--text-muted);">{t('guides.subtitle')}</p>
+
+    <ol class="mt-8 space-y-3">
+      {
+        guides.map((guide) => (
+          <li>
+            <a
+              href={path(lang, 'guides', guide.data.urlSlug)}
+              class="flex items-start gap-4 rounded-xl border p-4 transition-colors hover:border-brand-400"
+              style="border-color: var(--border); background-color: var(--surface);"
+            >
+              <span
+                class="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-sm font-bold tabular-nums"
+                style="background-color: color-mix(in srgb, var(--color-brand-500) 14%, transparent); color: var(--color-brand-600);"
+              >
+                {guide.data.order}
+              </span>
+              <span class="min-w-0">
+                <span class="block font-semibold" style="color: var(--text);">
+                  {guide.data.title}
+                </span>
+                <span class="mt-1 block text-sm leading-relaxed" style="color: var(--text-muted);">
+                  {guide.data.summary}
+                </span>
+              </span>
+            </a>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+</BaseLayout>

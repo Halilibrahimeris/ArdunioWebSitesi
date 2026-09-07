@@ -1,0 +1,92 @@
+---
+/**
+ * Malzeme tablosu / Parts table.
+ * Veriyi projects.ts + parts.ts'ten alır — Markdown'da malzeme tekrarı yok.
+ * Yalnızca "ne gerekiyor" bilgisini verir; fiyat ve satın alma bilgisi taşımaz.
+ */
+import { useTranslations, type Lang } from '../i18n/utils';
+import { parts, type VoltageRisk } from '../data/parts';
+import type { BomLine } from '../data/projects';
+
+interface Props {
+  lang: Lang;
+  bom: BomLine[];
+  /** Ana kartı listeden gizle (her projede tekrar etmesin) */
+  hideBoard?: boolean;
+}
+
+const { lang, bom, hideBoard = false } = Astro.props;
+const t = useTranslations(lang);
+
+const lines = hideBoard ? bom.filter((l) => l.part !== 'uno-q') : bom;
+
+const riskStyle: Record<VoltageRisk, string> = {
+  safe: 'background-color:#e7f6ec; color:#1c7a44;',
+  caution: 'background-color:#fdf1dd; color:#8a5714;',
+  danger: 'background-color:#fbe9e7; color:#963026;',
+};
+
+const riskLabel: Record<VoltageRisk, { tr: string; en: string }> = {
+  safe: { tr: '3.3V güvenli', en: '3.3V safe' },
+  caution: { tr: 'Dikkat', en: 'Caution' },
+  danger: { tr: 'Ek devre şart', en: 'Extra circuit required' },
+};
+---
+
+<div class="my-6 scroll-x rounded-xl border" style="border-color: var(--border);">
+  <table class="w-full border-collapse text-sm">
+    <thead>
+      <tr style="background-color: var(--bg-subtle);">
+        <th class="px-3 py-2.5 text-left font-semibold" style="color: var(--text);">{t('bom.part')}</th>
+        <th class="w-16 px-3 py-2.5 text-center font-semibold" style="color: var(--text);">{t('bom.qty')}</th>
+        <th class="px-3 py-2.5 text-left font-semibold" style="color: var(--text);">{t('bom.notes')}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {
+        lines.map((line) => {
+          const part = parts[line.part];
+          const note = line.note?.[lang] ?? part.voltageNote?.[lang];
+          return (
+            <tr class="border-t align-top" style="border-color: var(--border-soft);">
+              <td class="px-3 py-3">
+                <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
+                  <span class="font-medium" style="color: var(--text);">{part.name[lang]}</span>
+                  {part.voltageRisk !== 'safe' && (
+                    <span
+                      class="rounded px-1.5 py-0.5 text-[0.68rem] font-bold whitespace-nowrap"
+                      style={riskStyle[part.voltageRisk]}
+                    >
+                      {riskLabel[part.voltageRisk][lang]}
+                    </span>
+                  )}
+                  {line.optional && (
+                    <span class="text-[0.68rem] font-medium" style="color: var(--text-faint);">
+                      ({t('common.optional')})
+                    </span>
+                  )}
+                  {line.reusedFrom && (
+                    <span
+                      class="rounded px-1.5 py-0.5 text-[0.68rem] font-medium whitespace-nowrap"
+                      style="background-color: var(--bg-inset); color: var(--text-faint);"
+                    >
+                      {t('bom.alreadyOwned')} #{line.reusedFrom}
+                    </span>
+                  )}
+                </div>
+              </td>
+
+              <td class="px-3 py-3 text-center tabular-nums" style="color: var(--text-muted);">
+                {line.qty}
+              </td>
+
+              <td class="px-3 py-3 text-xs leading-relaxed" style="color: var(--text-muted);">
+                {note}
+              </td>
+            </tr>
+          );
+        })
+      }
+    </tbody>
+  </table>
+</div>

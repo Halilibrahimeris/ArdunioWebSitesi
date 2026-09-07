@@ -1,0 +1,62 @@
+---
+import { useTranslations, path, type Lang } from '../i18n/utils';
+import { languages, locales } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+  /** Diğer dildeki tam yol. Verilmezse URL öneki değiştirilir. */
+  alternateHref?: string;
+}
+
+const { lang, alternateHref } = Astro.props;
+const t = useTranslations(lang);
+
+/**
+ * Hedef dilin adresini bulur.
+ * Slug'lar dile göre farklı olduğundan (ör. trafik-lambasi / traffic-light)
+ * detay sayfaları `alternateHref` geçmek zorundadır — aksi halde kullanıcı
+ * çeviri yerine 404'e düşerdi.
+ */
+function hrefFor(target: Lang): string {
+  if (target === lang) return Astro.url.pathname;
+  if (alternateHref) return alternateHref;
+
+  const segments = Astro.url.pathname.split('/').filter(Boolean);
+  if (locales.includes(segments[0] as Lang)) {
+    segments[0] = target;
+    return '/' + segments.join('/');
+  }
+  return path(target);
+}
+---
+
+<div
+  class="flex items-center rounded-lg border p-0.5"
+  style="border-color: var(--border);"
+  role="group"
+  aria-label={t('lang.switch')}
+>
+  {
+    locales.map((code) => {
+      const active = code === lang;
+      return (
+        <a
+          href={hrefFor(code)}
+          hreflang={code}
+          lang={code}
+          aria-current={active ? 'true' : undefined}
+          title={languages[code]}
+          class="rounded-md px-2 py-1 text-xs font-semibold uppercase tracking-wide transition-colors"
+          style={
+            active
+              ? 'background-color: var(--color-brand-500); color: #fff;'
+              : 'color: var(--text-faint);'
+          }
+        >
+          {code}
+          <span class="sr-only"> — {languages[code]}</span>
+        </a>
+      );
+    })
+  }
+</div>

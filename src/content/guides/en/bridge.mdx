@@ -1,0 +1,107 @@
+---
+guideId: bridge
+urlSlug: bridge
+order: 5
+title: Bridge — How the Two Processors Talk
+summary: >-
+  How does the sketch on the microcontroller send data to Python on Linux?
+  Bridge.notify, Bridge.provide, and the idea of remote procedure calls.
+---
+
+You know the board has two separate processors. So how does one send data to
+the other? The answer is **Bridge**.
+
+Bridge sets up **RPC** — remote procedure calls — between the two sides. That
+sounds complicated, but the idea is very simple:
+
+> One side defines a function; the other side calls it by name.
+
+## Sending data from the MCU to Python
+
+This is the direction you will use most: the microcontroller reads a sensor
+and passes the result to Linux.
+
+### On the Python side: register the function
+
+```python
+from arduino.app_utils import App, Bridge
+
+def on_reading(celsius: float, humidity: float):
+    print(f"Temperature: {celsius} °C, humidity: {humidity} %")
+
+# Register it so the sketch is able to call it
+Bridge.provide("on_reading", on_reading)
+
+App.run()
+```
+
+`Bridge.provide()` says: *"I have a function called `on_reading`, and the
+microcontroller may call it."*
+
+### On the sketch side: call it
+
+```cpp
+#include <Arduino_RouterBridge.h>
+
+void setup() {
+  Bridge.begin();
+}
+
+void loop() {
+  float celsius = 23.5;
+  float humidity = 48.0;
+
+  // Call the function on the Python side
+  Bridge.notify("on_reading", celsius, humidity);
+
+  delay(2000);
+}
+```
+
+`Bridge.notify()` calls the function but **does not wait for a reply**. For
+streaming sensor data that is exactly the behaviour you want: the
+microcontroller fires the data off and gets on with its work.
+
+<Callout lang="en" variant="tip" title="The names must match exactly">
+The string in `Bridge.provide("on_reading", ...)` and the one in
+`Bridge.notify("on_reading", ...)` must be identical. A typo produces no error
+message at all — simply nothing happens — so this is the first place to look.
+</Callout>
+
+## Parameters
+
+Bridge carries numbers, strings and booleans. They arrive on the Python side
+in the order the sketch sent them:
+
+```cpp
+Bridge.notify("reading", 12, 3.5, "active");
+```
+
+```python
+def reading(count: int, ratio: float, state: str):
+    ...
+```
+
+## Why not just use the serial port?
+
+You could, but Bridge hands you these for free:
+
+- It packs and unpacks your values (send a `float`, receive a `float`)
+- It reconnects when the link drops
+- It queues messages so they are not lost
+
+Writing that by hand means handling all of it yourself.
+
+## When do you need it?
+
+You do **not** need Bridge in every project. The rule is simple:
+
+- If the whole job lives on the pins (LEDs, buttons, sensors) → write only a
+  sketch, no Bridge needed
+- If you want to log, display or upload the data → use Bridge
+
+<Callout lang="en" variant="info" title="Where you will see it">
+**Project 5 (Data Logger)** is dedicated to this topic — that is where you
+first wire Bridge up. In projects 6, 8 and 10 it works in the background,
+connecting the browser to the microcontroller.
+</Callout>

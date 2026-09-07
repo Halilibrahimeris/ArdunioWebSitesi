@@ -1,0 +1,218 @@
+---
+projectId: weather-station
+title: OLED Hava İstasyonu
+summary: >-
+  DHT11 sensöründen sıcaklık ve nem oku, 0.96 inçlik OLED ekranda büyük puntoyla
+  göster ve altına son 60 ölçümün grafiğini çiz. İlk kez harici kütüphane
+  kullanacak ve I2C ile tanışacaksın.
+learn:
+  - Harici kütüphane kurmak ve sketch.yaml ile sürümlerini sabitlemek
+  - "I2C haberleşmesi: iki kabloyla birden çok cihaza bağlanmak"
+  - OLED ekrana metin, çizgi ve grafik çizmek
+  - Halka tampon (ring buffer) ile son N ölçümü saklamak
+  - Sensör hatalarını çökmeden yönetmek (NaN kontrolü)
+troubleshooting:
+  - q: Ekran hiç açılmıyor, seri monitörde "OLED bulunamadi" yazıyor.
+    a: >-
+      İki olası sebep var. Birincisi I2C adresi: çoğu modül 0x3C kullanır ama
+      bazıları 0x3D. Koddaki OLED_ADDRESS değerini 0x3D yapıp dene. İkincisi
+      kablolama: SDA ve SCL'yi A4/A5'e değil, kartın SDA ve SCL yazan
+      pinlerine bağlaman gerekiyor.
+  - q: SDA/SCL pinlerini bağladım ama yine çalışmıyor.
+    a: >-
+      Qwiic konnektörünü kullanıyorsan kodda Wire yerine Wire1 denemelisin.
+      UNO Q'da Qwiic konnektörü ayrı bir I2C hattına bağlı. Ekranı header
+      pinlerine bağladıysan Wire doğrudur.
+  - q: Sıcaklık okunuyor ama nem hep 0 veya saçma bir değer.
+    a: >-
+      DHT11'in DATA pini ile VCC arasına 10kΩ pull-up direnci koyduğundan emin
+      ol. Bu direnç olmadan veri hattı kararsız kalır ve okumalar bozulur.
+      Bazı DHT11 modüllerinde bu direnç kart üzerinde hazır gelir — modülünde
+      üç pin varsa (VCC/DATA/GND ve küçük bir direnç) zaten vardır.
+  - q: Seri monitörde ara sıra "DHT11 okunamadi" görüyorum.
+    a: >-
+      Bu normal ve kod bunu bilerek tolere ediyor. DHT11 ucuz bir sensör, arada
+      okuma kaçırır. Kod NaN geldiğinde eski değeri koruyor, bu yüzden ekranda
+      bir bozulma görmezsin. Her okuma başarısız oluyorsa kablolamaya bak.
+  - q: Grafik çok zıplıyor, küçük değişimler kocaman görünüyor.
+    a: >-
+      Grafiğin Y ekseni gördüğü min-max aralığına göre otomatik ölçekleniyor.
+      Oda sıcaklığı sabitse aralık çok dar olur ve gürültü büyütülür. Kodda
+      "hi - lo < 2.0" satırındaki 2.0 değerini 5.0 yaparsan grafik yumuşar.
+  - q: Ekranda Türkçe karakterler bozuk çıkıyor.
+    a: >-
+      Adafruit GFX kütüphanesinin varsayılan fontu Türkçe karakter içermez.
+      Bu yüzden kodda "Olculuyor" gibi ASCII yazımlar kullandık. İstersen
+      kütüphaneye özel font ekleyebilirsin ama bellek maliyeti olur.
+---
+
+Şimdiye kadar yazdığın kodlar tek dosyaydı ve hiçbir dış bağımlılığı yoktu.
+Bu projede iki yeni şey öğreneceksin: **kütüphane kullanmak** ve **I2C**.
+
+<Callout lang="tr" variant="info" title="Neden LCD değil OLED?">
+Türkiye'deki çoğu Arduino setinde 16x2 I2C LCD gelir ve muhtemelen "neden onu
+kullanmıyoruz?" diye sordun. Sebebi 3.3V: o ekranların arkasındaki PCF8574
+kartı I2C hatlarını kendi dirençleriyle **5V'a çeker** ve bu gerilim kartın
+SDA/SCL pinlerine biner. SSD1306 OLED doğal olarak 3.3V çalışır, hiç ek devre
+istemez — üstelik daha net görünür.
+</Callout>
+
+## I2C nedir?
+
+Şimdiye kadar her bileşen kendi pinini kullandı: LED'ler D2-D6, buzzer D8...
+Pinler sınırlı ve hızla tükenir.
+
+I2C bu sorunu çözer. **Sadece iki kablo** ile onlarca cihaz bağlayabilirsin:
+
+- **SDA** (Serial Data) — veri hattı
+- **SCL** (Serial Clock) — saat hattı
+
+Her cihazın hat üzerinde benzersiz bir **adresi** vardır. Kart "0x3C'ye
+diyorum ki..." der ve yalnızca o adresteki cihaz yanıt verir.
+
+<Callout lang="tr" variant="warning" title="A4/A5 değil, SDA/SCL">
+Klasik Arduino UNO'da I2C pinleri A4 ve A5'tir. **UNO Q'da öyle değil** —
+kartın üzerinde ayrıca SDA ve SCL yazan pinler var, onları kullanman gerekiyor.
+İnternetteki eski şemaları körü körüne takip edersen çalışmaz.
+</Callout>
+
+<Step n={1} title="Kütüphaneleri kur">
+
+Bu projede dört kütüphane kullanacağız. App Lab'de **Libraries** bölümünden
+şunları ara ve ekle:
+
+- `Adafruit SSD1306` — OLED sürücüsü
+- `Adafruit GFX Library` — çizim fonksiyonları
+- `DHT sensor library` — DHT11 okuma
+- `Adafruit Unified Sensor` — DHT kütüphanesinin bağımlılığı
+
+Alternatif olarak aşağıdaki **Kodlar** bölümündeki `sketch/sketch.yaml`
+dosyasını olduğu gibi kullanabilirsin — App Lab kütüphaneleri otomatik indirir.
+
+<Callout lang="tr" variant="tip" title="Sürüm numaralarını yaz">
+`sketch.yaml` içinde her kütüphanenin sürümünü belirttik. Bu, altı ay sonra
+kütüphane güncellenip API'si değiştiğinde projenin bozulmamasını sağlar.
+Profesyonel projelerde bağımlılık sürümleri her zaman sabitlenir.
+</Callout>
+
+</Step>
+
+<Step n={2} title="Gücü kes ve OLED'i bağla">
+
+USB-C kabloyu çıkar. OLED modülünün dört pini var:
+
+| OLED pini | Karta |
+| --- | --- |
+| VCC | **3V3** |
+| GND | **GND** |
+| SCL | **SCL** |
+| SDA | **SDA** |
+
+<Callout lang="tr" variant="danger" title="VCC'yi 5V'a bağlama">
+Modül çoğu zaman 5V'a da dayanır ama I2C hatları üzerinden karta 5V sızma
+riski doğar. 3V3 kullan — ekran zaten 3.3V ile tam parlaklıkta çalışır.
+</Callout>
+
+</Step>
+
+<Step n={3} title="DHT11'i bağla">
+
+DHT11 sensörünün üç kullanılan pini var (dört bacaklı modelde bir bacak boştur):
+
+- **VCC** → **3V3**
+- **DATA** → **D7**
+- **GND** → **GND**
+
+Ayrıca **DATA ile VCC arasına 10kΩ pull-up direnci** koy. Bu direnç veri
+hattını boştayken yukarı çeker ve haberleşmeyi kararlı hale getirir.
+
+<Callout lang="tr" variant="tip" title="Modülünde direnç zaten olabilir">
+Üç pinli, küçük bir devre kartına lehimli DHT11 modüllerinde pull-up direnci
+genellikle hazır gelir. Modülün üzerinde küçük bir direnç görüyorsan ekstra
+direnç koymana gerek yok. Dört bacaklı çıplak sensör kullanıyorsan direnç şart.
+</Callout>
+
+<PhotoSlot lang="tr" caption="OLED ve DHT11 bağlanmış devre" />
+
+</Step>
+
+<Step n={4} title="Kodu yükle">
+
+Kodu yapıştır ve **Run** de. Birkaç saniye içinde ekranda büyük puntoyla
+sıcaklık, sağ üstte nem ve altta boş bir grafik ekseni görmelisin.
+
+Ekran açılmıyorsa seri monitöre bak — kod sana ne olduğunu söyler:
+
+```
+OLED bulunamadi! Adresi (0x3C / 0x3D) ve kablolari kontrol et.
+```
+
+Bu mesajı görüyorsan koddaki `OLED_ADDRESS` değerini `0x3D` yapıp tekrar dene.
+Modüllerin yaklaşık %20'si bu adresi kullanır.
+
+</Step>
+
+<Step n={5} title="Grafiğin nasıl çalıştığını anla">
+
+Grafik için **halka tampon** (ring buffer) denen bir yapı kullanıyoruz. 60
+elemanlık bir dizi var ve sonuna geldiğimizde başa dönüyoruz:
+
+```cpp
+history[historyHead] = t;
+historyHead = (historyHead + 1) % HISTORY_SIZE;
+```
+
+`%` (mod) operatörü sayacı 0-59 arasında tutuyor. Böylece diziyi hiç
+kaydırmadan, sürekli en son 60 ölçümü saklıyoruz.
+
+Diziyi kaydırmak (her yeni değerde tüm elemanları bir sola almak) da işe
+yarardı ama 60 kat daha yavaş olurdu. Halka tampon, gömülü sistemlerde çok
+sık kullanılan bir kalıptır.
+
+<Callout lang="tr" variant="info" title="Y ekseni kendini ayarlıyor">
+Grafik sabit bir ölçek kullanmıyor; gördüğü en düşük ve en yüksek sıcaklığa
+göre kendini yeniden ölçekliyor. Bu sayede 0.5 derecelik değişimler bile
+görünür oluyor. Aralık 2 dereceden darsa yapay olarak genişletiyoruz, yoksa
+gürültü dağ gibi görünürdü.
+</Callout>
+
+</Step>
+
+<Step n={6} title="Sensör hatalarını gör">
+
+Kodda şu satırlar var:
+
+```cpp
+if (isnan(t) || isnan(h)) {
+  sensorOk = false;
+  return;
+}
+```
+
+DHT11 ucuz bir sensör ve arada bir okuma kaçırır. Bu durumda `NaN`
+(Not a Number) döndürür. Kontrol etmezsen ekranda "nan" yazar ve grafik bozulur.
+
+Denemek için: sensörün DATA kablosunu çalışırken bir saniyeliğine çıkar.
+Ekranda `! sensor okunamadi` uyarısı belirir ama son geçerli değer ekranda
+kalmaya devam eder — çökme yok.
+
+<Callout lang="tr" variant="tip">
+Bu, gerçek dünyada yazdığın her sensör kodunda uygulaman gereken bir alışkanlık:
+**sensörden gelen veriye asla güvenme, önce geçerli mi diye bak.**
+</Callout>
+
+</Step>
+
+<Step n={7} title="Geliştir">
+
+- Ekranı ikiye bölüp sıcaklık ve nem için ayrı grafik çiz
+- Nem %70'i geçince 2. projedeki buzzer'ı öttür
+- Butonla ekranlar arasında geçiş yap (sıcaklık ekranı / nem ekranı / min-max)
+- `HISTORY_SIZE` ve `READ_INTERVAL_MS` değerlerini büyütüp saatlik bir grafik yap
+
+<Callout lang="tr" variant="info" title="Sıradaki projeye hazırlık">
+Bu devreyi **bozma**. Bir sonraki proje (Veri Kaydedici) aynı DHT11'i kullanıyor
+ve okuduğu değerleri kartın Linux tarafına gönderip kalıcı olarak kaydediyor.
+</Callout>
+
+</Step>

@@ -1,0 +1,137 @@
+---
+import { useTranslations, path, type Lang } from '../i18n/utils';
+import LangSwitcher from './LangSwitcher.astro';
+import ThemeToggle from './ThemeToggle.astro';
+
+interface Props {
+  lang: Lang;
+  alternateHref?: string;
+}
+
+const { lang, alternateHref } = Astro.props;
+const t = useTranslations(lang);
+
+const current = Astro.url.pathname.replace(/\/$/, '');
+const links = [
+  { href: path(lang), label: t('nav.home'), exact: true },
+  { href: path(lang, 'projects'), label: t('nav.projects'), exact: false },
+  { href: path(lang, 'guides'), label: t('nav.guides'), exact: false },
+  { href: path(lang, 'parts'), label: t('nav.parts'), exact: false },
+];
+
+function isActive(href: string, exact: boolean) {
+  const clean = href.replace(/\/$/, '');
+  return exact ? current === clean : current.startsWith(clean);
+}
+---
+
+<header
+  class="sticky top-0 z-50 border-b backdrop-blur-md"
+  style="background-color: color-mix(in srgb, var(--bg) 88%, transparent); border-color: var(--border);"
+>
+  <div class="mx-auto flex h-16 max-w-6xl items-center gap-3 px-4 sm:px-6">
+    <!-- Logo -->
+    <a
+      href={path(lang)}
+      class="flex shrink-0 items-center gap-2.5 font-semibold tracking-tight"
+      style="color: var(--text);"
+    >
+      <span
+        class="grid h-9 w-9 place-items-center rounded-lg bg-brand-500 text-white shadow-sm"
+        aria-hidden="true"
+      >
+        <svg viewBox="0 0 24 24" fill="none" class="h-5 w-5">
+          <path
+            d="M3 12h2.6c.9 0 1.5-.8 2.1-1.9C8.5 8.6 9.4 7 11.2 7c1.9 0 3.3 2.2 3.3 5s-1.4 5-3.3 5c-1.8 0-2.7-1.6-3.5-3.1C7.1 12.8 6.5 12 5.6 12H3Z"
+            stroke="currentColor"
+            stroke-width="1.7"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+          <path d="M15 12h6M18 9v6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+        </svg>
+      </span>
+      <span class="hidden text-[0.95rem] sm:inline">UNO Q</span>
+    </a>
+
+    <!-- Masaüstü gezinme -->
+    <nav class="ml-2 hidden items-center gap-1 md:flex" aria-label={t('nav.menu')}>
+      {
+        links.map((link) => (
+          <a
+            href={link.href}
+            aria-current={isActive(link.href, link.exact) ? 'page' : undefined}
+            class="rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-brand-50 dark:hover:bg-brand-950/60"
+            style={
+              isActive(link.href, link.exact)
+                ? 'color: var(--color-brand-600);'
+                : 'color: var(--text-muted);'
+            }
+          >
+            {link.label}
+          </a>
+        ))
+      }
+    </nav>
+
+    <div class="ml-auto flex items-center gap-1.5">
+      <ThemeToggle lang={lang} />
+      <LangSwitcher lang={lang} alternateHref={alternateHref} />
+
+      <!-- Mobil menü açma -->
+      <button
+        type="button"
+        id="nav-toggle"
+        aria-expanded="false"
+        aria-controls="mobile-nav"
+        aria-label={t('nav.menu')}
+        class="grid h-9 w-9 place-items-center rounded-lg border transition-colors md:hidden"
+        style="border-color: var(--border); color: var(--text-muted);"
+      >
+        <svg viewBox="0 0 24 24" fill="none" class="h-5 w-5" aria-hidden="true">
+          <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Mobil gezinme -->
+  <nav
+    id="mobile-nav"
+    hidden
+    class="border-t md:hidden"
+    style="border-color: var(--border); background-color: var(--bg);"
+    aria-label={t('nav.menu')}
+  >
+    <div class="mx-auto max-w-6xl px-4 py-2 sm:px-6">
+      {
+        links.map((link) => (
+          <a
+            href={link.href}
+            aria-current={isActive(link.href, link.exact) ? 'page' : undefined}
+            class="block rounded-lg px-3 py-2.5 text-sm font-medium"
+            style={
+              isActive(link.href, link.exact)
+                ? 'color: var(--color-brand-600);'
+                : 'color: var(--text-muted);'
+            }
+          >
+            {link.label}
+          </a>
+        ))
+      }
+    </div>
+  </nav>
+</header>
+
+<script>
+  const toggle = document.getElementById('nav-toggle');
+  const nav = document.getElementById('mobile-nav');
+
+  toggle?.addEventListener('click', () => {
+    if (!nav) return;
+    const open = toggle.getAttribute('aria-expanded') === 'true';
+    toggle.setAttribute('aria-expanded', String(!open));
+    nav.hidden = open;
+  });
+</script>

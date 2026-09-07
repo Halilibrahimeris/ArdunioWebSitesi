@@ -1,0 +1,165 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import ProjectCard from '../../../components/ProjectCard.astro';
+import { useTranslations, type Lang } from '../../../i18n/utils';
+import { locales } from '../../../i18n/ui';
+import { getProjectPages } from '../../../lib/content';
+import { categories, difficulties } from '../../../data/projects';
+
+export function getStaticPaths() {
+  return locales.map((lang) => ({ params: { lang } }));
+}
+
+const lang = Astro.params.lang as Lang;
+const t = useTranslations(lang);
+const projectPages = await getProjectPages(lang);
+
+const categoryFilters = [
+  { value: 'all', label: t('filter.all') },
+  ...categories.map((c) => ({ value: c, label: t(`category.${c}.short` as const) })),
+];
+
+const difficultyFilters = [
+  { value: 'all', label: t('filter.all') },
+  ...difficulties.map((d) => ({ value: d, label: t(`difficulty.${d}` as const) })),
+];
+---
+
+<BaseLayout lang={lang} title={t('nav.projects')} description={t('home.projects.subtitle')}>
+  <div class="mx-auto max-w-6xl px-4 py-12 sm:px-6">
+    <h1 class="text-3xl font-bold tracking-tight sm:text-4xl" style="color: var(--text);">
+      {t('home.projects.title')}
+    </h1>
+    <p class="mt-2 max-w-2xl" style="color: var(--text-muted);">
+      {t('home.projects.subtitle')}
+    </p>
+
+    <!-- ───────── Filtreler ───────── -->
+    <div class="mt-8 space-y-4" id="filters">
+      <fieldset>
+        <legend class="text-xs font-semibold uppercase tracking-wider" style="color: var(--text-faint);">
+          {t('filter.category')}
+        </legend>
+        <div class="mt-2 flex flex-wrap gap-2">
+          {
+            categoryFilters.map((f, i) => (
+              <button
+                type="button"
+                class="filter-btn rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors"
+                data-filter="category"
+                data-value={f.value}
+                aria-pressed={i === 0 ? 'true' : 'false'}
+              >
+                {f.label}
+              </button>
+            ))
+          }
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend class="text-xs font-semibold uppercase tracking-wider" style="color: var(--text-faint);">
+          {t('filter.difficulty')}
+        </legend>
+        <div class="mt-2 flex flex-wrap gap-2">
+          {
+            difficultyFilters.map((f, i) => (
+              <button
+                type="button"
+                class="filter-btn rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors"
+                data-filter="difficulty"
+                data-value={f.value}
+                aria-pressed={i === 0 ? 'true' : 'false'}
+              >
+                {f.label}
+              </button>
+            ))
+          }
+        </div>
+      </fieldset>
+
+      <p class="text-sm" style="color: var(--text-faint);" aria-live="polite">
+        <span id="result-count">{projectPages.length}</span>
+        {' '}{t('filter.showing')}
+      </p>
+    </div>
+
+    <!-- ───────── Kartlar ───────── -->
+    <div id="project-grid" class="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      {
+        projectPages.map(({ project, entry }) => (
+          <div class="project-item" data-category={project.category} data-difficulty={project.difficulty}>
+            <ProjectCard
+              lang={lang}
+              project={project}
+              title={entry.data.title}
+              summary={entry.data.summary}
+            />
+          </div>
+        ))
+      }
+    </div>
+
+    <p id="no-results" hidden class="mt-10 text-center text-sm" style="color: var(--text-muted);">
+      {t('filter.noResults')}
+    </p>
+  </div>
+</BaseLayout>
+
+<style>
+  .filter-btn {
+    border-color: var(--border);
+    color: var(--text-muted);
+    background-color: var(--surface);
+  }
+  .filter-btn[aria-pressed='true'] {
+    border-color: var(--color-brand-500);
+    background-color: var(--color-brand-500);
+    color: #fff;
+  }
+  .project-item { display: block; }
+  .project-item[hidden] { display: none; }
+</style>
+
+<script>
+  const grid = document.getElementById('project-grid');
+  const countEl = document.getElementById('result-count');
+  const noResults = document.getElementById('no-results');
+
+  if (grid) {
+    const items = Array.from(grid.querySelectorAll<HTMLElement>('.project-item'));
+    const buttons = Array.from(document.querySelectorAll<HTMLButtonElement>('.filter-btn'));
+    const active: Record<string, string> = { category: 'all', difficulty: 'all' };
+
+    function apply() {
+      let visible = 0;
+      items.forEach((item) => {
+        const matches =
+          (active.category === 'all' || item.dataset.category === active.category) &&
+          (active.difficulty === 'all' || item.dataset.difficulty === active.difficulty);
+        item.hidden = !matches;
+        if (matches) visible++;
+      });
+
+      if (countEl) countEl.textContent = String(visible);
+      if (noResults) noResults.hidden = visible > 0;
+    }
+
+    buttons.forEach((button) => {
+      button.addEventListener('click', () => {
+        const group = button.dataset.filter;
+        const value = button.dataset.value;
+        if (!group || !value) return;
+
+        active[group] = value;
+
+        // Aynı gruptaki diğer düğmelerin basılı durumunu kaldır
+        buttons
+          .filter((b) => b.dataset.filter === group)
+          .forEach((b) => b.setAttribute('aria-pressed', String(b === button)));
+
+        apply();
+      });
+    });
+  }
+</script>

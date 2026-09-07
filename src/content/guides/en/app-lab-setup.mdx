@@ -1,0 +1,108 @@
+---
+guideId: app-lab-setup
+urlSlug: app-lab-setup
+order: 2
+title: Setting Up Arduino App Lab
+summary: >-
+  The UNO Q is programmed with App Lab, not the classic Arduino IDE. Installing
+  it, connecting the board, and checking that it all works.
+---
+
+You do not program the UNO Q with the classic Arduino IDE. Because the board
+has two processors, Arduino built a new tool that drives both from one
+interface: **Arduino App Lab**.
+
+## What to download
+
+Download App Lab from [arduino.cc](https://www.arduino.cc/). Supported systems:
+
+- Windows 10 and newer
+- macOS 11 and newer
+- Ubuntu 22.04 / Debian Trixie (64-bit)
+
+<Step n={1} title="Install App Lab">
+
+Run the installer and follow the steps. Your operating system may ask
+permission to install a USB driver — accept it, as it is needed to talk to the
+board.
+
+<PhotoSlot lang="en" caption="The App Lab installer" />
+
+</Step>
+
+<Step n={2} title="Connect the board">
+
+Connect the board to your computer with a **data-capable** USB-C cable.
+
+<Callout lang="en" variant="warning" title="The cable trap">
+Some of the cheap USB-C cables that ship with phones only carry power, not
+data. If the board never shows up on your computer, the cable is the first
+thing to suspect. Try a different one.
+</Callout>
+
+While it boots, the LED matrix plays a short animation. The first Linux boot
+can take up to a minute — be patient.
+
+</Step>
+
+<Step n={3} title="Does App Lab see the board?">
+
+Open App Lab. The board's name and connection status should appear at the top.
+
+If it does not, work through these in order:
+
+1. A different USB-C cable
+2. A different USB port on your computer
+3. Wait 60 seconds for the board to finish booting
+4. Close and reopen App Lab
+
+</Step>
+
+<Step n={4} title="Run your first app">
+
+Choose **Create → New App** and give it a name. App Lab creates this structure
+for you:
+
+```
+my-app/
+├── app.yaml        ← the app's identity card
+├── python/
+│   └── main.py     ← runs on the Linux side
+└── sketch/
+    └── sketch.ino  ← runs on the microcontroller
+```
+
+The next guide walks through this in detail. For now, pressing **Run** and
+seeing something happen is enough.
+
+</Step>
+
+## Libraries
+
+The projects use external libraries (for the LED matrix, the OLED display, the
+DHT11 sensor). You can search for and add them from the **Libraries** section
+of App Lab.
+
+You can also write them into `sketch/sketch.yaml` by hand:
+
+```yaml
+profiles:
+  default:
+    platforms:
+      - platform: arduino:zephyr
+    libraries:
+      - DHT sensor library (1.4.6)
+default_profile: default
+```
+
+<Callout lang="en" variant="tip">
+Pinning the version number is a good habit. If the library updates and changes
+its API, your project keeps working.
+</Callout>
+
+## There is a command line too
+
+You can connect to the board's Linux side directly. App Lab provides a
+terminal where familiar commands like `ls`, `python3` and `nano` all work.
+That becomes useful from project 5 onward, when you start inspecting the data
+you have logged.

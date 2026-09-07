@@ -1,0 +1,108 @@
+---
+guideId: bricks
+urlSlug: bricks
+order: 6
+title: Bricks — Ready-Made Capability Blocks
+summary: >-
+  Web servers, object detection, speech synthesis, databases… App Lab's 30
+  built-in bricks, and which ones these projects use.
+---
+
+A brick is a ready-made capability that App Lab hands you. You name it in
+`app.yaml` and use it from a few lines of Python.
+
+An example: recognising objects from a camera would normally mean downloading
+an AI model, setting it up and writing image-processing code. With a brick:
+
+```yaml
+bricks:
+  - arduino:object_detection
+```
+
+```python
+from arduino.app_bricks.object_detection import ObjectDetection
+
+detector = ObjectDetection()
+```
+
+That is the whole setup.
+
+## The available bricks
+
+App Lab ships with 30 bricks. Grouped by topic:
+
+### Web and interfaces
+| Brick | What it does |
+| --- | --- |
+| `web_ui` | Serves a web page and opens a WebSocket to the browser |
+| `streamlit_ui` | Quick dashboards written in Python |
+| `telegram_bot` | Sends and receives Telegram messages |
+| `arduino_cloud` | Connects to Arduino Cloud |
+
+### Vision
+| Brick | What it does |
+| --- | --- |
+| `object_detection` | Recognises objects in an image |
+| `video_object_detection` | The same, on a live video stream |
+| `image_classification` | Classifies an image |
+| `video_image_classification` | Classification on live video |
+| `camera_code_detection` | Reads QR codes and barcodes |
+| `pose_estimation` | Works out a human body's pose |
+| `gesture_recognition` | Recognises hand gestures |
+| `mood_detector` | Estimates emotion from a face |
+| `visual_anomaly_detection` | Flags anything unexpected in view |
+
+### Audio
+| Brick | What it does |
+| --- | --- |
+| `asr` | Speech to text, running on the board itself |
+| `cloud_asr` | The same via a cloud service, more accurate |
+| `tts` | Text to speech |
+| `keyword_spotting` | Listens for a specific wake word |
+| `audio_classification` | Identifies a kind of sound, such as breaking glass |
+| `sound_generator` | Generates sound |
+| `wave_generator` | Generates waveforms |
+
+### AI and language
+| Brick | What it does |
+| --- | --- |
+| `llm` | A language model running on the board |
+| `cloud_llm` | A cloud-hosted language model |
+| `vlm` | A model that understands and describes images |
+| `mcp_client` | Connects to MCP servers |
+
+### Data and sensing
+| Brick | What it does |
+| --- | --- |
+| `dbstorage_tsstore` | Stores time-series data |
+| `dbstorage_sqlstore` | An SQL database |
+| `motion_detection` | Recognises movement from accelerometer data |
+| `vibration_anomaly_detection` | Spots anomalies in vibration |
+| `weather_forecast` | Fetches weather data |
+| `air_quality_monitoring` | Fetches air-quality data |
+
+## The ones these projects use
+
+Across ten projects we use only six bricks. Learning a few tools well beats
+touching all of them briefly.
+
+| Brick | Projects |
+| --- | --- |
+| `dbstorage_tsstore` | 5, 8 |
+| `web_ui` | 6, 7, 8, 10 |
+| `telegram_bot` | 9 |
+| `weather_forecast` | 9 |
+| `object_detection` | 10 |
+| `asr` and `tts` | 10 |
+
+<Callout lang="en" variant="info" title="Bricks that reach the cloud">
+Bricks whose names start with `cloud_` connect to the internet and usually
+need an account. These projects deliberately pick the **on-board** versions so
+they keep working without a connection.
+</Callout>
+
+<Callout lang="en" variant="tip" title="You can write your own">
+App Lab 0.7 added support for custom bricks. That is beyond the scope of these
+projects, but it is worth knowing you can turn a repeated piece of work into a
+brick of your own.
+</Callout>

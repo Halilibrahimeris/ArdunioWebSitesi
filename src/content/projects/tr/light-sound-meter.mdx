@@ -1,0 +1,181 @@
+---
+projectId: light-sound-meter
+title: Işık ve Ses Ölçer
+summary: >-
+  LDR ile ortamın ışığını ölç, beş LED'lik bir çubukta göster, potansiyometreyle
+  alarm eşiği ayarla ve karanlıkta buzzer'ı öttür. Bu projede pinler artık
+  sadece açık/kapalı değil, arada sayılar okuyor.
+learn:
+  - "analogRead() ile 0-1023 arası değer okumak ve 3.3V referansın anlamı"
+  - "map() ve constrain() ile bir aralığı başka bir aralığa çevirmek"
+  - Gerilim bölücü kurarak bir direnci ölçülebilir gerilime dönüştürmek
+  - "tone() ile pasif buzzer'dan istediğin frekansta ses üretmek"
+  - Titrek sensör okumalarını yumuşatma (basit alçak geçiren filtre)
+troubleshooting:
+  - q: LED çubuğu hep dolu ya da hep boş kalıyor.
+    a: >-
+      LDR'nin bağlantı sırasını kontrol et. LDR 3V3 ile A0 arasında, 10kΩ direnç
+      ise A0 ile GND arasında olmalı. İkisini ters bağlarsan değerler tersine
+      döner. Seri monitörü açıp elini LDR'nin üzerine kapat — sayı değişmiyorsa
+      bağlantı kopuktur.
+  - q: Buzzer hiç ses çıkarmıyor.
+    a: >-
+      Muhtemelen aktif buzzer aldın. Aktif buzzer içinde kendi osilatörü olduğu
+      için sadece tek bir ton çalar ve tone() ile kontrol edilemez. Üzerinde
+      yazı olmayan, alt tarafı açık siyah olan pasif buzzer gerekiyor.
+  - q: Buzzer sürekli ötüyor, potansiyometre etkilemiyor.
+    a: >-
+      Potansiyometrenin orta bacağının A1'e gittiğinden emin ol. Uç bacaklarını
+      3V3 ve GND'ye bağlamalısın — 5V'a DEĞİL. Seri monitörde "Esik" değeri
+      potansiyometreyi çevirdikçe değişmiyorsa orta bacak bağlı değildir.
+  - q: LED'ler titriyor, sürekli açılıp kapanıyor.
+    a: >-
+      Işık seviyesi tam bir LED'in eşiğinde duruyor demektir. SMOOTHING değerini
+      0.2'den 0.05'e düşür — okumalar daha yumuşak olur ve titreme geçer.
+  - q: Seri monitörde hiçbir şey görünmüyor.
+    a: >-
+      setup() içinde Monitor.begin() çağrıldığından emin ol. App Lab'in seri
+      monitöründe hız ayarı yapman gerekmez — Monitor sınıfı bunu kendisi
+      hallediyor. Uygulamanın Run ile başlatıldığını da doğrula.
+---
+
+İlk projede pinler yalnızca iki durum biliyordu: açık ya da kapalı. Gerçek
+dünya ise böyle çalışmıyor — oda "aydınlık" veya "karanlık" değil, arada bir
+yerde.
+
+Bu projede kartın **analog girişlerini** kullanacağız. Bu pinler gerilimi
+ölçüp sana bir sayı verir.
+
+<Callout lang="tr" variant="info" title="3.3V referans ne demek?">
+`analogRead()` bir pindeki gerilimi 0 ile 1023 arası bir sayıya çevirir.
+Buradaki 1023, kartın **3.3V**'una karşılık gelir — klasik UNO'daki 5V'a değil.
+Yani 512 okuduğunda pinde yaklaşık 1.65V var demektir.
+</Callout>
+
+<Step n={1} title="Devreyi kurmadan önce gücü kes">
+
+Her projede olduğu gibi: USB-C kabloyu çıkar. Bu projede beş LED, bir buzzer
+ve iki analog sensör bağlayacağız, yani breadboard biraz kalabalıklaşacak.
+
+</Step>
+
+<Step n={2} title="LDR'yi gerilim bölücü olarak bağla">
+
+LDR (foto direnç) ışığa göre **direnci değişen** bir bileşen. Aydınlıkta
+direnci düşer, karanlıkta yükselir.
+
+Ama kart direnç ölçemez — yalnızca gerilim ölçebilir. Bu yüzden LDR'yi sabit
+bir dirençle birlikte bağlayıp direnç değişimini gerilim değişimine
+çeviriyoruz:
+
+- **3V3** → LDR → **A0**
+- **A0** → 10kΩ direnç → **GND**
+
+Aydınlıkta LDR'nin direnci düşer, A0'daki gerilim yükselir ve `analogRead()`
+büyük bir sayı döndürür. Karanlıkta tam tersi olur.
+
+<Callout lang="tr" variant="tip" title="Bu tam olarak bir gerilim bölücü">
+3.3V rehberinde HC-SR04 için anlattığımız devrenin aynısı. Fark şu: orada
+dirençler sabitti ve amacımız gerilimi düşürmekti. Burada dirençlerden biri
+sensörün kendisi ve amacımız değişimi ölçmek.
+</Callout>
+
+</Step>
+
+<Step n={3} title="Potansiyometreyi bağla">
+
+Potansiyometrenin üç bacağı var. Bağlantı sırası önemli:
+
+| Bacak | Nereye |
+| --- | --- |
+| Sol uç | 3V3 |
+| Orta (silecek) | A1 |
+| Sağ uç | GND |
+
+Düğmeyi çevirdiğinde orta bacaktaki gerilim 0V ile 3.3V arasında değişir.
+
+<Callout lang="tr" variant="warning">
+Uç bacaklarını **5V pinine bağlama**. Bağlarsan orta bacaktan A1'e 5V'a kadar
+gerilim gidebilir ve pini zarar görür. 3V3 kullan.
+</Callout>
+
+</Step>
+
+<Step n={4} title="LED çubuğunu ve buzzer'ı bağla">
+
+Beş LED'i yan yana diz. Her birinin uzun bacağı kendi 220Ω direnci üzerinden
+şu pinlere gitsin: **D2, D3, D4, D5, D6**. Kısa bacaklar breadboard'un eksi
+hattına.
+
+Pasif buzzer'ın bir ucunu **D8**'e, diğerini **GND**'ye bağla.
+
+<Callout lang="tr" variant="danger" title="Pasif buzzer şart">
+Aktif buzzer içinde kendi osilatörü olduğu için ona gerilim verdiğinde tek bir
+sabit ton çalar — frekansını değiştiremezsin. `tone()` fonksiyonunun işe
+yaraması için **pasif** buzzer gerekiyor.
+</Callout>
+
+<PhotoSlot lang="tr" caption="Kurulmuş devre: LDR, potansiyometre, LED çubuğu ve buzzer" />
+
+</Step>
+
+<Step n={5} title="Kodu yükle ve seri monitörü aç">
+
+Kodu yapıştır ve **Run** de. Sonra App Lab'in **seri monitörünü** aç.
+
+Saniyede iki kez şuna benzer satırlar akmalı:
+
+```
+Isik: 742   Esik: 400   LED: 3
+```
+
+Elini LDR'nin üzerine kapat: "Isik" değeri hızla düşer, LED sayısı azalır.
+Potansiyometreyi çevir: "Esik" değişir.
+
+</Step>
+
+<Step n={6} title="Yumuşatmanın ne yaptığını gör">
+
+Koddaki bu satır projenin en öğretici kısmı:
+
+```cpp
+smoothedLight = smoothedLight * (1.0 - SMOOTHING) + rawLight * SMOOTHING;
+```
+
+Yeni okumayı doğrudan kullanmak yerine, eskisiyle karıştırıyoruz. `SMOOTHING`
+0.2 olduğunda yeni değerin ağırlığı sadece %20 — yani ani sıçramalar
+yumuşatılıyor.
+
+Bunu kendin dene:
+
+1. `SMOOTHING` değerini **1.0** yap. Artık hiç yumuşatma yok; LED'ler ve ses
+   titreşir, çünkü ham ADC okumaları hep birkaç birim oynar.
+2. **0.02** yap. Çok yumuşak ama tepki gecikmeli — elini çektiğinde çubuk
+   yavaşça dolar.
+3. **0.2**'ye geri dön. Çoğu sensör için makul bir denge.
+
+<Callout lang="tr" variant="tip" title="Bu bir filtre">
+Yazdığın şeyin adı *üstel hareketli ortalama* ya da *birinci dereceden alçak
+geçiren filtre*. Üç satırlık haliyle profesyonel gömülü yazılımda da tam olarak
+böyle kullanılır.
+</Callout>
+
+</Step>
+
+<Step n={7} title="Geliştir">
+
+Çalışan bir devren var, şimdi oynayabilirsin:
+
+- `TONE_MIN` ve `TONE_MAX` değerlerini değiştirip ses aralığını genişlet
+- LED çubuğunu tersine çevir: karanlıkta dolsun, aydınlıkta boşalsın
+- Potansiyometreyi eşik yerine **hassasiyet** ayarı yap: `SMOOTHING` değerini
+  ondan üret
+- Buzzer yerine 1. projedeki LED matrisi kullanıp ışık seviyesini çubuk grafik
+  olarak çiz
+
+<Callout lang="tr" variant="info">
+Bu projedeki LDR ve buzzer, 3. ve 5. projelerde tekrar kullanılacak — sökmeden
+önce bir sonraki projeye göz at.
+</Callout>
+
+</Step>

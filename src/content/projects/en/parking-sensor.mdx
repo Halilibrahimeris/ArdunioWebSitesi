@@ -1,0 +1,201 @@
+---
+projectId: parking-sensor
+title: Parking Sensor
+summary: >-
+  Measure distance with an ultrasonic sensor and warn with a beep that speeds
+  up as you get closer. This project also carries the most important lesson on
+  the site: how do you safely wire a 5V sensor to a 3.3V board?
+learn:
+  - How an ultrasonic sensor measures distance using a sound wave
+  - "Timing a pulse to microsecond precision with pulseIn()"
+  - Building a voltage divider and understanding why it is essential
+  - Verifying a circuit with a multimeter before you connect it
+  - Writing a non-blocking timer whose beep interval tracks the distance
+troubleshooting:
+  - q: The distance always reads 400 cm and never changes.
+    a: >-
+      It is timing out, so the ECHO signal never reaches the board. First check
+      that the divider's midpoint connects to D9. Also make sure the sensor's
+      VCC goes to 5V rather than 3V3 — an HC-SR04 is unreliable at 3.3V.
+  - q: The distance readings jump around randomly.
+    a: >-
+      Ultrasonic sensors reflect poorly off soft, fabric or angled surfaces.
+      Point it at something flat and hard — a book, cardboard, a wall. It also
+      cannot measure anything closer than about 2 cm.
+  - q: The beeping never stops.
+    a: >-
+      The sensor is constantly reading under 30 cm. Check the real value in the
+      serial monitor. Keep the front of the sensor clear — sitting too close to
+      the edge of the breadboard, it measures your own board.
+  - q: I forgot the voltage divider. Is my board damaged?
+    a: >-
+      Often there is no immediately visible damage, but the pin can degrade
+      over time. Test D9 by wiring a simple button circuit and seeing whether
+      it reads. If it does not, stop using that pin and move PIN_ECHO in the
+      code to a free one such as D11.
+  - q: My multimeter does not read 3.0V.
+    a: >-
+      Check the resistor positions: 2.2kΩ on top (the ECHO side), 3.3kΩ at the
+      bottom (the GND side). Swapped, the output becomes 2.0V — readable, but
+      with less margin. If you read 3.4V or more, unplug immediately.
+---
+
+This project has two halves. The first is the fun one: a circuit that behaves
+like a car's parking sensor. The second is the most important technical lesson
+on this site.
+
+<Callout lang="en" variant="voltage" linkToGuide>
+The HC-SR04's **ECHO pin outputs 5V**. The UNO Q's pins tolerate 3.3V at most.
+Wire ECHO directly and you damage the pin. In this project we put a two-resistor
+circuit in between — and you will understand exactly why it works.
+</Callout>
+
+## How does an ultrasonic sensor work?
+
+An HC-SR04 behaves rather like a bat: it emits a sound too high for humans to
+hear (40 kHz) and waits for the echo to come back.
+
+Since we know how fast sound travels through air — roughly 343 metres per
+second — the time the echo takes tells us the distance.
+
+The sensor has four pins:
+
+| Pin | Purpose | Direction |
+| --- | --- | --- |
+| VCC | Power, **5V** | — |
+| TRIG | "Measure now" | Board → sensor |
+| ECHO | Duration of the echo | **Sensor → board (5V!)** |
+| GND | Ground | — |
+
+Only **ECHO** is dangerous. The board sends 3.3V to TRIG, which the sensor
+happily accepts as a "1".
+
+<Step n={1} title="Power down and place the sensor">
+
+Unplug the USB-C cable. Push the HC-SR04 into one edge of the breadboard with
+its two "eyes" facing open space, leaving at least 20-30 cm clear in front.
+
+</Step>
+
+<Step n={2} title="Wire power and TRIG">
+
+This is the safe side:
+
+- Sensor **VCC** → board **5V**
+- Sensor **GND** → board **GND**
+- Sensor **TRIG** → board **D10**
+
+<Callout lang="en" variant="tip" title="Why VCC on 5V?">
+An HC-SR04 sometimes runs at 3.3V, but its range shortens and readings get
+unreliable. Powering the sensor from 5V is not the problem — feeding its 5V
+*output* into the board is.
+</Callout>
+
+</Step>
+
+<Step n={3} title="Build the voltage divider — do not skip this">
+
+Now the critical part. **Do not connect ECHO to D9 yet.**
+
+Pick an empty row on the breadboard, then:
+
+1. Connect one end of the **2.2kΩ** resistor to the sensor's **ECHO** pin
+2. Bring its other end to the empty row — this is the **midpoint**
+3. Connect one end of the **3.3kΩ** resistor to that midpoint and the other to **GND**
+4. Run a wire from the midpoint to the board's **D9** pin
+
+<WiringDiagram file="voltage-divider.svg" caption="How the voltage divider works" />
+
+The arithmetic:
+
+```
+Vout = 5.0 V × 3300 / (2200 + 3300) = 3.0 V
+```
+
+Even when the sensor drives 5V, the voltage reaching D9 is 3.0V — safe for the
+board and comfortably high enough to read as a "1".
+
+<Callout lang="en" variant="danger" title="The resistor order matters">
+2.2kΩ goes **on top** (the ECHO side) and 3.3kΩ **underneath** (the GND side).
+Swapped, the output becomes 5.0 × 2200/5500 = 2.0V. The board still reads it,
+but with less margin against noise.
+</Callout>
+
+</Step>
+
+<Step n={4} title="Verify with a multimeter, if you have one">
+
+If you own a multimeter, do not skip this — measuring before you connect beats
+regretting it afterwards.
+
+1. Do **not** attach the wire to D9 yet
+2. Temporarily connect the input of the 2.2kΩ resistor to the **5V** pin
+3. Put the multimeter between the midpoint and GND
+4. You should read between **2.9 and 3.1 V**
+
+If the reading is right, remove the temporary wire, reconnect ECHO and attach
+the D9 wire.
+
+<PhotoSlot lang="en" caption="Measuring the divider output with a multimeter" />
+
+</Step>
+
+<Step n={5} title="Wire the buzzer and LEDs">
+
+Familiar from project 2:
+
+- Passive buzzer → **D8** and **GND**
+- Red LED + 220Ω → **D2**
+- Amber LED + 220Ω → **D3**
+- Green LED + 220Ω → **D4**
+
+</Step>
+
+<Step n={6} title="Upload the code">
+
+Paste the code in and press **Run**. Open App Lab's serial monitor.
+
+Move your hand in front of the sensor and watch the distances stream past.
+
+This is the line that turns time into distance:
+
+```cpp
+distanceCm = (echoUs * 0.0343) / 2.0;
+```
+
+`0.0343` is the speed of sound in cm per microsecond. We halve it because the
+pulse travels out **and back** — the time we measured covers twice the distance.
+
+</Step>
+
+<Step n={7} title="Try the zones">
+
+Move your hand in slowly and watch the three zones:
+
+| Distance | LED | Sound |
+| --- | --- | --- |
+| Over 100 cm | Green | Silent |
+| 50-100 cm | Green | Occasional beep |
+| 30-50 cm | Amber | Quickening beeps |
+| Under 30 cm | Red | Continuous |
+
+Notice how the beep interval is worked out: `mapFloat()` maps the distance
+straight onto a waiting time, so the transitions are smooth rather than sudden.
+
+<Callout lang="en" variant="info" title="Why our own mapFloat?">
+Arduino's built-in `map()` only handles integers. Our distance is a `float`, so
+using `map()` would throw away precision. A five-line version of our own fixes
+that.
+</Callout>
+
+</Step>
+
+<Step n={8} title="Take it further">
+
+- Lower `DIST_DANGER` to make it more sensitive
+- Draw an exclamation mark on the LED matrix in the red zone (reuse the
+  `setPixel()` helper from project 1)
+- Wire a second sensor and measure left and right separately
+- Apply the smoothing filter from project 2 to the readings for extra stability
+
+</Step>

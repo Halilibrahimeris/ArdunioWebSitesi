@@ -1,0 +1,57 @@
+---
+/**
+ * Zorluk ve kategori rozetleri / Difficulty and category badges.
+ * Tek dosyada tutuldu çünkü ikisi de aynı görsel dili paylaşıyor.
+ */
+import { useTranslations, type Lang } from '../i18n/utils';
+import type { Category, Difficulty } from '../data/projects';
+
+interface Props {
+  lang: Lang;
+  kind: 'difficulty' | 'category';
+  value: Difficulty | Category;
+  size?: 'sm' | 'md';
+}
+
+const { lang, kind, value, size = 'md' } = Astro.props;
+const t = useTranslations(lang);
+
+const difficultyStyles: Record<Difficulty, string> = {
+  beginner: 'background-color:#e7f6ec; color:#1c7a44; border-color:#bfe6cd;',
+  intermediate: 'background-color:#fdf1dd; color:#96601a; border-color:#f3ddb6;',
+  advanced: 'background-color:#fbe9e7; color:#a83a2f; border-color:#f2c9c4;',
+};
+
+const categoryStyles: Record<Category, string> = {
+  offline: 'background-color:#eeecfe; color:#4a3bbf; border-color:#d6d1fa;',
+  bridge: 'background-color:#e6f7f8; color:#00696e; border-color:#bfe9ec;',
+  wifi: 'background-color:#e5f2fc; color:#0a6296; border-color:#c2e0f5;',
+  ai: 'background-color:#fdeceb; color:#a8352c; border-color:#f6cdc9;',
+};
+
+const label =
+  kind === 'difficulty'
+    ? t(`difficulty.${value as Difficulty}` as const)
+    : t(`category.${value as Category}.short` as const);
+
+const style =
+  kind === 'difficulty'
+    ? difficultyStyles[value as Difficulty]
+    : categoryStyles[value as Category];
+
+const sizing = size === 'sm' ? 'px-2 py-0.5 text-[0.7rem]' : 'px-2.5 py-1 text-xs';
+---
+
+<span
+  class:list={['inline-flex items-center rounded-full border font-semibold whitespace-nowrap', sizing]}
+  style={style}
+>
+  {label}
+</span>
+
+<style>
+  /* Karanlık modda rozetler çok parlak kalmasın / Tone badges down in dark mode. */
+  :global(.dark) span {
+    filter: brightness(0.92) saturate(0.85);
+  }
+</style>

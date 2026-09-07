@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 470" role="img" aria-labelledby="d2-title">
+  <title id="d2-title">Işık ve ses ölçer bağlantı şeması / Light and sound meter wiring</title>
+  <style>
+    .wire  { fill: none; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+    .w-sig { stroke: #0d8ce0; }
+    .w-ana { stroke: #7c6cf5; }
+    .w-pwr { stroke: #d94a3d; }
+    .w-gnd { stroke: #6b7b80; }
+    .board { fill: var(--bg-subtle, #f6f8f9); stroke: var(--color-brand-500, #00979d); stroke-width: 2.4; }
+    .part  { fill: var(--surface, #fff); stroke: var(--border, #dde4e8); stroke-width: 1.8; }
+    .lbl   { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 12.5px; fill: var(--text, #102b2e); }
+    .lbl-b { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 13px; font-weight: 650; fill: var(--text, #102b2e); }
+    .pin   { font-family: ui-monospace, monospace; font-size: 12px; font-weight: 700; fill: var(--text, #102b2e); }
+    .muted { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 11px; fill: var(--text-faint, #83969b); }
+    .pad   { fill: var(--color-brand-500, #00979d); }
+  </style>
+
+  <!-- Kart -->
+  <rect class="board" x="30" y="55" width="175" height="360" rx="12" />
+  <text class="lbl-b" x="117" y="84" text-anchor="middle">Arduino UNO Q</text>
+  <text class="muted" x="117" y="101" text-anchor="middle">3.3V logic</text>
+
+  <!-- Pinler -->
+  <g>
+    <circle class="pad" cx="205" cy="130" r="4.5" /><text class="pin" x="188" y="134" text-anchor="end">A0</text>
+    <circle class="pad" cx="205" cy="215" r="4.5" /><text class="pin" x="188" y="219" text-anchor="end">A1</text>
+    <circle class="pad" cx="205" cy="290" r="4.5" /><text class="pin" x="188" y="294" text-anchor="end">D8</text>
+    <circle class="pad" cx="205" cy="340" r="4.5" /><text class="pin" x="188" y="344" text-anchor="end">D2-D6</text>
+    <circle class="pad" cx="205" cy="385" r="4.5" /><text class="pin" x="188" y="389" text-anchor="end">3V3</text>
+    <circle class="pad" cx="205" cy="415" r="4.5" /><text class="pin" x="188" y="419" text-anchor="end">GND</text>
+  </g>
+
+  <!-- ───── LDR bölücü ───── -->
+  <text class="lbl-b" x="300" y="76" >LDR + 10kΩ</text>
+  <text class="muted" x="300" y="92">gerilim bölücü / voltage divider</text>
+
+  <path class="wire w-pwr" d="M205 385 H240 V110 H300" />
+  <rect class="part" x="300" y="96" width="66" height="28" rx="6" />
+  <text class="lbl" x="333" y="115" text-anchor="middle">LDR</text>
+
+  <path class="wire w-ana" d="M366 110 H420" />
+  <circle cx="420" cy="110" r="4" fill="#7c6cf5" />
+  <path class="wire w-ana" d="M420 110 V130 H205" />
+
+  <path class="wire w-gnd" d="M420 110 H480" />
+  <rect class="part" x="480" y="96" width="66" height="28" rx="6" />
+  <text class="lbl" x="513" y="115" text-anchor="middle">10kΩ</text>
+  <path class="wire w-gnd" d="M546 110 H660 V415" />
+
+  <!-- ───── Potansiyometre ───── -->
+  <text class="lbl-b" x="300" y="176">Potansiyometre / Potentiometer 10kΩ</text>
+  <rect class="part" x="300" y="188" width="120" height="54" rx="8" />
+  <text class="muted" x="360" y="207" text-anchor="middle">sol / left → 3V3</text>
+  <text class="muted" x="360" y="222" text-anchor="middle">orta / mid → A1</text>
+  <text class="muted" x="360" y="237" text-anchor="middle">sağ / right → GND</text>
+
+  <path class="wire w-pwr" d="M300 198 H262 V385 H205" />
+  <path class="wire w-ana" d="M300 215 H205" />
+  <path class="wire w-gnd" d="M420 232 H660" />
+
+  <!-- ───── Buzzer ───── -->
+  <path class="wire w-sig" d="M205 290 H300" />
+  <rect class="part" x="300" y="276" width="118" height="28" rx="6" />
+  <text class="lbl" x="359" y="295" text-anchor="middle">Pasif buzzer</text>
+  <path class="wire w-gnd" d="M418 290 H660" />
+
+  <!-- ───── LED çubuğu ───── -->
+  <text class="lbl-b" x="300" y="332">LED çubuğu / LED bar — D2, D3, D4, D5, D6</text>
+  <path class="wire w-sig" d="M205 340 H288" />
+
+  <g>
+    <!-- 5 adet direnç + LED -->
+    <g transform="translate(288, 346)">
+      <rect class="part" x="0" y="0" width="52" height="22" rx="5" />
+      <text class="lbl" x="26" y="16" text-anchor="middle" font-size="11">220Ω</text>
+      <polygon points="62,0 62,22 80,11" fill="#2f9e5e" />
+      <line x1="82" y1="-2" x2="82" y2="24" stroke="#2f9e5e" stroke-width="2.4" stroke-linecap="round" />
+    </g>
+    <text class="muted" x="288" y="392">× 5 — her LED kendi pinine / one per pin</text>
+  </g>
+  <path class="wire w-gnd" d="M370 357 H660" />
+
+  <!-- GND ana hat -->
+  <path class="wire w-gnd" d="M205 415 H660" />
+  <text class="muted" x="670" y="419">GND</text>
+
+  <!-- Açıklama -->
+  <g transform="translate(30, 440)">
+    <line class="wire w-pwr" x1="0" y1="6" x2="24" y2="6" /><text class="muted" x="30" y="10">3.3V</text>
+    <line class="wire w-ana" x1="76" y1="6" x2="100" y2="6" /><text class="muted" x="106" y="10">analog</text>
+    <line class="wire w-sig" x1="166" y1="6" x2="190" y2="6" /><text class="muted" x="196" y="10">dijital / digital</text>
+    <line class="wire w-gnd" x1="288" y1="6" x2="312" y2="6" /><text class="muted" x="318" y="10">GND</text>
+  </g>
+</svg>

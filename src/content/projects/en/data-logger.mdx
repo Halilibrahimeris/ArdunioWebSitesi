@@ -1,0 +1,255 @@
+---
+projectId: data-logger
+title: Data Logger — Meet Bridge
+summary: >-
+  This project shows why the board is special. The microcontroller reads the
+  sensors while the Linux side stores the readings in a database and a CSV
+  file. The two talk over Bridge — your first project using both processors.
+learn:
+  - "Sending data from the MCU to Linux with Bridge: notify and provide"
+  - Writing an app.yaml and adding a brick
+  - "Storing time-series data with the dbstorage_tsstore brick"
+  - Validating incoming data in Python so junk never reaches storage
+  - Deciding which processor a given job belongs to
+troubleshooting:
+  - q: Nothing appears on the Python side, it just says it is waiting.
+    a: >-
+      Almost always a name mismatch. The strings in the sketch's
+      Bridge.notify("store_reading", ...) and main.py's
+      Bridge.provide("store_reading", ...) must be identical. Even one
+      character apart produces no error — simply nothing. Put them side by side
+      and compare character by character.
+  - q: The sketch prints "Sent" but Python receives nothing.
+    a: >-
+      Make sure you call Bridge.begin() inside setup(). Without it,
+      Bridge.notify silently does nothing. Also confirm you started the app
+      with Run in App Lab — uploading only the sketch is not enough, the Python
+      side has to be running too.
+  - q: 'I get: ModuleNotFoundError for arduino.app_bricks.dbstorage_tsstore'
+    a: >-
+      You forgot to add arduino:dbstorage_tsstore to the bricks list in
+      app.yaml. If a brick is not listed there, App Lab does not load it. Add
+      it, then stop and restart the app.
+  - q: I cannot find the CSV file.
+    a: >-
+      It is created inside the app's python folder. Open the terminal in App
+      Lab, go to the app folder and run "ls python/". The Python side also
+      prints the full path when it starts — check the first lines of its output.
+  - q: I get an error about the number of arguments.
+    a: >-
+      The sketch sends three values (temperature, humidity, light), so the
+      Python function must take three parameters. Check its definition. The
+      order matters too — they arrive in the order you sent them.
+  - q: Data arrives but the timestamps are wrong.
+    a: >-
+      The timestamp comes from the board's Linux clock. If the board has never
+      been online, its clock may be wrong. Check with the "date" command in the
+      App Lab terminal; connecting the board to WiFi fixes it automatically.
+---
+
+The four projects so far could all have been built with a classic Arduino UNO.
+This one can **only** be built with a UNO Q.
+
+The reason is simple: reading sensors is the microcontroller's job, but storing
+the readings needs a file system and a database. A classic Arduino has neither.
+On the UNO Q, both live on the same board.
+
+<WiringDiagram file="05-data-logger.svg" caption="The path a reading takes from sensor to database" />
+
+## Division of labour
+
+The decision this project asks you to make: which job goes on which processor?
+
+| Job | Processor | Why |
+| --- | --- | --- |
+| Reading the DHT11 | MCU | Its protocol needs precise timing |
+| Reading the LDR | MCU | The analog pins belong to the MCU |
+| Validating the data | MPU | Logic, with no timing requirement |
+| Writing to the database | MPU | The database lives on Linux |
+| Keeping a CSV file | MPU | The file system lives on Linux |
+
+<Callout lang="en" variant="tip" title="The general rule">
+The microcontroller **measures**; Linux **thinks and stores**. Keep that split
+in mind and you will know where everything belongs in every project from here on.
+</Callout>
+
+<Step n={1} title="Prepare the circuit">
+
+Good news: you need no new parts. The DHT11 wiring from project 4 and the LDR
+wiring from project 2 stay exactly as they were.
+
+If you took them apart, rebuild:
+
+- **DHT11**: VCC → 3V3, DATA → **D7**, GND → GND (+ a 10kΩ between DATA and VCC)
+- **LDR**: 3V3 → LDR → **A0**, A0 → 10kΩ → GND
+
+This project does not need the OLED, but you can leave it connected.
+
+</Step>
+
+<Step n={2} title="Create the app and add the brick">
+
+In App Lab choose **Create → New App** and name it `data-logger`.
+
+Now you edit `app.yaml` for the first time. Open it and write:
+
+```yaml
+name: Data Logger
+icon: 📈
+description: Logs DHT11 and LDR readings on the board's Linux side
+
+bricks:
+  - arduino:dbstorage_tsstore
+```
+
+Those last two lines are the important part. Adding something to the `bricks`
+list makes App Lab prepare that capability for you. Here we ask for a
+time-series database — we never install PostgreSQL or create a table; the
+brick takes care of it.
+
+<Callout lang="en" variant="warning">
+Forget to list the brick in `app.yaml` and the Python side raises
+`ModuleNotFoundError` when it starts. The library is not there because you did
+not ask for it.
+</Callout>
+
+</Step>
+
+<Step n={3} title="Write the sketch — the side that measures">
+
+Paste the sketch from the **Code** section below into `sketch/sketch.ino`.
+
+Two lines deserve attention. First, inside `setup()`:
+
+```cpp
+Bridge.begin();
+```
+
+This opens the bridge. Leave it out and `Bridge.notify` silently does nothing
+— no error either, which makes it hard to spot.
+
+Second, inside `loop()`:
+
+```cpp
+Bridge.notify("store_reading", temperature, humidity, light);
+```
+
+This calls the `store_reading` function on the Linux side and sends it three
+values.
+
+<Callout lang="en" variant="info" title="Why does notify not wait for a reply?">
+`notify()` sends the data and carries straight on. It waits for nothing.
+
+When streaming sensor readings that is exactly what you want: there is no
+reason for the microcontroller to sit idle while the Linux side is busy. It
+throws the reading over and gets back to work.
+</Callout>
+
+</Step>
+
+<Step n={4} title="Write the Python — the side that stores">
+
+Paste the Python code into `python/main.py`.
+
+The single most important line here:
+
+```python
+Bridge.provide("store_reading", store_reading)
+```
+
+It tells Python: *"I have a function called `store_reading`, and the
+microcontroller may call it."*
+
+<Callout lang="en" variant="danger" title="The most common mistake">
+The string in `Bridge.notify("store_reading", ...)` and the one in
+`Bridge.provide("store_reading", ...)` must be **exactly identical**.
+
+One character apart and you get no error message. The sketch says it sent
+something, Python receives nothing, and you are left guessing. When something
+does not work, **this is the first place to look.**
+</Callout>
+
+</Step>
+
+<Step n={5} title="Why validate the incoming data?">
+
+The Python code contains this:
+
+```python
+if not (-40 <= temperature <= 80):
+    print(f"Skipped an invalid temperature: {temperature}")
+    return
+```
+
+If a sensor wire works loose or the sensor fails, nonsense values arrive.
+Storing them is **worse** than storing nothing — because later, looking at a
+graph, you cannot tell real data from junk.
+
+<Callout lang="en" variant="tip" title="Validate at the boundary">
+This is a general rule in software: validate data from the outside world at
+the point it enters your system. Here the "outside world" is the
+microcontroller and the "boundary" is the `store_reading` function.
+</Callout>
+
+</Step>
+
+<Step n={6} title="Run it and watch the data">
+
+Press **Run**. Both sides are now running together.
+
+Every five seconds the Python output should show something like:
+
+```
+Data logger ready. Waiting for readings from the microcontroller...
+[   1] 2026-09-07 15:42:10  23.4°C  48%  light=712
+[   2] 2026-09-07 15:42:15  23.4°C  48%  light=698
+[   3] 2026-09-07 15:42:20  23.5°C  49%  light=203
+```
+
+Notice the light value dropping on the last line — that is a hand over the LDR.
+
+</Step>
+
+<Step n={7} title="Find the stored data">
+
+Your readings now live in two places.
+
+The **CSV file** is the easiest to reach. Open the terminal in App Lab and, in
+the app folder, run:
+
+```bash
+cat python/readings.csv
+```
+
+You will see something like:
+
+```
+time,temperature_C,humidity_pct,light_raw
+2026-09-07 15:42:10,23.4,48,712
+2026-09-07 15:42:15,23.4,48,698
+```
+
+Copy that file to your computer and you can open it in a spreadsheet and chart it.
+
+The **database** is for programs. It can be queried with `read_last_sample()`
+and `read_samples()` — in project 8 we plot exactly this data in a web
+interface.
+
+<PhotoSlot lang="en" caption="The CSV file's contents in the App Lab terminal" />
+
+</Step>
+
+<Step n={8} title="Take it further">
+
+- Set `SEND_INTERVAL_MS` to 60000, log overnight and look at the graph in the morning
+- Print a warning from Python when the temperature goes above 30 degrees
+- Use `read_last_sample()` to read the most recent record back and print it
+- Swap the LDR for the HC-SR04 from project 3 and log distances instead
+
+<Callout lang="en" variant="info" title="What comes next">
+You now know Bridge. The next project uses the same bridge in the opposite
+direction: text you type in a browser travels to Linux, then on to the
+microcontroller, and appears on the LED matrix.
+</Callout>
+
+</Step>

@@ -1,0 +1,226 @@
+---
+projectId: weather-station
+title: OLED Weather Station
+summary: >-
+  Read temperature and humidity from a DHT11, show them in large type on a
+  0.96-inch OLED, and draw a graph of the last 60 readings underneath. Your
+  first project with an external library, and your introduction to I2C.
+learn:
+  - Installing external libraries and pinning their versions in sketch.yaml
+  - "I2C: connecting many devices over just two wires"
+  - Drawing text, lines and graphs on an OLED display
+  - Keeping the last N readings in a ring buffer
+  - Handling sensor failures without crashing (checking for NaN)
+troubleshooting:
+  - q: The display never turns on and the serial monitor says "OLED not found".
+    a: >-
+      Two likely causes. First the I2C address: most modules use 0x3C but some
+      use 0x3D — change OLED_ADDRESS in the code and try again. Second the
+      wiring: SDA and SCL must go to the board's dedicated SDA and SCL pins,
+      not to A4/A5.
+  - q: I connected SDA/SCL and it still does not work.
+    a: >-
+      If you are using the Qwiic connector, try Wire1 instead of Wire in the
+      code. On the UNO Q the Qwiic connector sits on a separate I2C bus. If you
+      wired the display to the header pins, Wire is correct.
+  - q: Temperature reads fine but humidity is always 0 or nonsense.
+    a: >-
+      Make sure there is a 10kΩ pull-up resistor between the DHT11's DATA pin
+      and VCC. Without it the data line floats and the readings corrupt. Some
+      DHT11 modules include this resistor on the board already — if your module
+      is a small PCB with three pins and a tiny resistor, it is there.
+  - q: I occasionally see "DHT11 read failed" in the serial monitor.
+    a: >-
+      That is normal and the code tolerates it on purpose. The DHT11 is a cheap
+      sensor that drops a reading now and then. The code keeps the previous
+      value when it gets NaN, so nothing on screen breaks. If every reading
+      fails, check the wiring.
+  - q: The graph jumps around and tiny changes look enormous.
+    a: >-
+      The graph's Y axis rescales itself to the min-max range it has seen. If
+      the room temperature is steady, that range is very narrow and noise gets
+      magnified. Change the 2.0 in the "hi - lo < 2.0" line to 5.0 and the
+      graph calms down.
+  - q: Accented characters come out wrong on the display.
+    a: >-
+      The default Adafruit GFX font has no accented characters, which is why
+      the code sticks to plain ASCII. You can add a custom font to the library
+      if you need them, at the cost of some memory.
+---
+
+Everything you have written so far was a single file with no outside
+dependencies. This project introduces two new things: **using libraries** and
+**I2C**.
+
+<Callout lang="en" variant="info" title="Why an OLED rather than an LCD?">
+Most Arduino starter kits ship with a 16x2 I2C LCD, and you may well be
+wondering why we are not using it. The reason is 3.3V: the PCF8574 backpack
+behind those displays **pulls the I2C lines up to 5V** with its own resistors,
+and that voltage lands on the board's SDA/SCL pins. An SSD1306 OLED runs
+natively at 3.3V with no extra circuitry — and it looks sharper too.
+</Callout>
+
+## What is I2C?
+
+Until now every component has had its own pin: LEDs on D2-D6, the buzzer on
+D8. Pins are limited and run out fast.
+
+I2C solves that. **Two wires** are enough to connect dozens of devices:
+
+- **SDA** (Serial Data) — the data line
+- **SCL** (Serial Clock) — the clock line
+
+Every device on the bus has a unique **address**. The board says "this is for
+0x3C…" and only the device at that address answers.
+
+<Callout lang="en" variant="warning" title="SDA/SCL, not A4/A5">
+On a classic Arduino UNO the I2C pins are A4 and A5. **The UNO Q is different**
+— it has separate pins labelled SDA and SCL, and those are the ones you need.
+Following an old diagram from the internet blindly will not work here.
+</Callout>
+
+<Step n={1} title="Install the libraries">
+
+This project uses four libraries. In App Lab, open **Libraries** and add:
+
+- `Adafruit SSD1306` — the OLED driver
+- `Adafruit GFX Library` — drawing functions
+- `DHT sensor library` — reading the DHT11
+- `Adafruit Unified Sensor` — a dependency of the DHT library
+
+Alternatively use the `sketch/sketch.yaml` file from the **Code** section below
+as-is, and App Lab downloads them for you.
+
+<Callout lang="en" variant="tip" title="Pin your versions">
+We wrote a version number for every library in `sketch.yaml`. That keeps your
+project from breaking six months later when a library updates and changes its
+API. Professional projects always pin dependency versions.
+</Callout>
+
+</Step>
+
+<Step n={2} title="Power down and wire the OLED">
+
+Unplug the USB-C cable. The OLED module has four pins:
+
+| OLED pin | To the board |
+| --- | --- |
+| VCC | **3V3** |
+| GND | **GND** |
+| SCL | **SCL** |
+| SDA | **SDA** |
+
+<Callout lang="en" variant="danger" title="Do not wire VCC to 5V">
+The module usually tolerates 5V, but doing so risks 5V leaking back to the
+board over the I2C lines. Use 3V3 — the display is at full brightness on 3.3V
+anyway.
+</Callout>
+
+</Step>
+
+<Step n={3} title="Wire the DHT11">
+
+The DHT11 uses three pins (four-pin versions leave one unconnected):
+
+- **VCC** → **3V3**
+- **DATA** → **D7**
+- **GND** → **GND**
+
+Also fit a **10kΩ pull-up resistor between DATA and VCC**. It holds the data
+line high when idle and keeps the communication stable.
+
+<Callout lang="en" variant="tip" title="Your module may already have one">
+Three-pin DHT11 modules soldered onto a small PCB usually include the pull-up
+already. If you can see a tiny resistor on the module, you do not need to add
+one. With a bare four-pin sensor, the resistor is essential.
+</Callout>
+
+<PhotoSlot lang="en" caption="The circuit with OLED and DHT11 connected" />
+
+</Step>
+
+<Step n={4} title="Upload the code">
+
+Paste the code in and press **Run**. Within a few seconds you should see the
+temperature in large type, the humidity in the top right, and an empty graph
+axis along the bottom.
+
+If the display stays dark, check the serial monitor — the code tells you what
+happened:
+
+```
+OLED not found! Check the address (0x3C / 0x3D) and the wiring.
+```
+
+If you see that, change `OLED_ADDRESS` in the code to `0x3D` and try again.
+Roughly one module in five uses that address.
+
+</Step>
+
+<Step n={5} title="Understand how the graph works">
+
+The graph uses a structure called a **ring buffer**. There is an array of 60
+elements, and when we reach the end we wrap around to the beginning:
+
+```cpp
+history[historyHead] = t;
+historyHead = (historyHead + 1) % HISTORY_SIZE;
+```
+
+The `%` (modulo) operator keeps the counter between 0 and 59. That way we
+always hold the most recent 60 readings without ever shifting the array.
+
+Shifting it — moving every element one place left on each new value — would
+also work, but it would be 60 times slower. The ring buffer is a very common
+pattern in embedded systems.
+
+<Callout lang="en" variant="info" title="The Y axis rescales itself">
+The graph does not use a fixed scale; it rescales to the lowest and highest
+temperature it has seen, so even a half-degree change is visible. When the
+range is narrower than 2 degrees we widen it artificially — otherwise noise
+would look like mountains.
+</Callout>
+
+</Step>
+
+<Step n={6} title="Watch it handle sensor failures">
+
+The code contains these lines:
+
+```cpp
+if (isnan(t) || isnan(h)) {
+  sensorOk = false;
+  return;
+}
+```
+
+The DHT11 is cheap and drops a reading occasionally, returning `NaN` (Not a
+Number) when it does. Without this check the display would show "nan" and the
+graph would break.
+
+Try it: pull the sensor's DATA wire out for a second while it is running. The
+`! sensor read failed` warning appears, but the last valid value stays on
+screen — nothing crashes.
+
+<Callout lang="en" variant="tip">
+This is a habit worth applying to every piece of sensor code you write in the
+real world: **never trust the data coming from a sensor; check that it is valid
+first.**
+</Callout>
+
+</Step>
+
+<Step n={7} title="Take it further">
+
+- Split the screen and draw separate graphs for temperature and humidity
+- Sound the buzzer from project 2 when humidity goes above 70%
+- Use a button to cycle between screens (temperature / humidity / min-max)
+- Increase `HISTORY_SIZE` and `READ_INTERVAL_MS` to make an hourly graph
+
+<Callout lang="en" variant="info" title="Getting ready for what is next">
+**Do not dismantle this circuit.** The next project, the Data Logger, uses the
+same DHT11 and sends its readings to the board's Linux side to be stored
+permanently.
+</Callout>
+
+</Step>

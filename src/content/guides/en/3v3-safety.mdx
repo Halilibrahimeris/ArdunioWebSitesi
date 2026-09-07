@@ -1,0 +1,123 @@
+---
+guideId: 3v3-safety
+urlSlug: 3v3-safety
+order: 3
+title: 3.3V Safety — Read This Before You Fry Your Board
+summary: >-
+  The UNO Q's pins run at 3.3V, but most modules you will buy come from the 5V
+  world. Which ones connect directly, which need extra circuitry, and why —
+  this page underpins every project on the site.
+---
+
+The classic Arduino UNO uses 5V logic. Years of circuit diagrams, starter kits
+and Tinkercad habits are built on that assumption.
+
+**The UNO Q uses 3.3V logic.** Both of its brains — the Qualcomm chip and the
+STM32 — live in the 3.3V world. That is a natural consequence of it being a
+more modern board, but wire a module up out of old habit and you will get an
+expensive lesson.
+
+<Callout lang="en" variant="danger" title="The one-sentence version">
+If a module's **output** is 5V, you cannot connect that output straight to a
+UNO Q pin. You have to put something in between that brings the voltage down.
+</Callout>
+
+## Which direction is dangerous?
+
+Most of the confusion comes from this: the problem is not *powering* a module
+from 5V, it is a module *sending* a 5V signal back to the board.
+
+- **Board to module (output):** the board drives 3.3V. Most 5V modules happily
+  read 3.3V as a logic "1". This usually just works.
+- **Module to board (input):** the module drives 5V. The pin expects 3.3V at
+  most. **This is the dangerous direction.**
+
+The board does have a 5V pin, and using it to power modules is fine. The
+danger is a 5V *signal* reaching an input pin.
+
+## Where each module stands
+
+Every module used across the ten projects on this site:
+
+| Module | Status | What to do |
+| --- | --- | --- |
+| LED, button, buzzer, potentiometer | Safe | Connect directly |
+| LDR photoresistor | Safe | Build a divider with 10 kΩ; output never exceeds 3.3V |
+| DHT11 | Safe | **Power it from 3.3V** and its data line is 3.3V too |
+| HC-SR501 PIR | Safe | Runs on 5V but its output is already 3.3V TTL |
+| SSD1306 OLED | Safe | Natively 3.3V |
+| **HC-SR04** | **Dangerous** | A voltage divider on ECHO is **mandatory** |
+| WS2812 LED strip | Caution | 3.3V data works on short strips; long ones need a shifter |
+| Relay module | Caution | May not trigger at 3.3V — drive it with a transistor |
+| SG90 servo | Caution | The 3.3V signal is fine, but power it externally |
+
+<Callout lang="en" variant="warning" title="Watch out for I2C LCDs">
+The PCF8574 backpack behind a classic 16x2 I2C LCD **pulls the I2C lines up to
+5V** with its own resistors, putting 5V onto SDA and SCL. That is why these
+projects use an SSD1306 OLED instead: same price, natively 3.3V, no extra
+circuitry at all.
+</Callout>
+
+## The voltage divider: two resistors
+
+This is the circuit you will need most often. Two resistors bring a 5V signal
+down to a safe level.
+
+<WiringDiagram file="voltage-divider.svg" caption="Voltage divider for the HC-SR04 ECHO pin" />
+
+The idea is simple: wire two resistors in series between 5V and GND. The
+voltage at the point between them is set by the ratio of the two.
+
+```
+Vout = Vin × R2 / (R1 + R2)
+```
+
+With our values:
+
+```
+5.0 V × 3300 / (2200 + 3300) = 3.0 V
+```
+
+3.0 V sits below the board's 3.3 V limit and is comfortably high enough to
+read as a "1". The 0.3 V of headroom absorbs resistor tolerances.
+
+<Callout lang="en" variant="tip" title="Why not aim for exactly 3.3V?">
+A resistor's real value can drift up to 5% from what is printed on it. Aim for
+exactly 3.3V and an unlucky pair could give you 3.4-3.5V. Targeting 3.0V
+removes that risk entirely.
+</Callout>
+
+### Why 2.2k and 3.3k?
+
+Other pairs hit a similar ratio (1k + 2k, for instance). We picked these for
+two reasons:
+
+1. **They are standard values.** Every resistor kit contains 2.2 kΩ and 3.3 kΩ.
+2. **They are high enough.** 5.5 kΩ total draws only about 0.9 mA. Much smaller
+   resistors waste current; much larger ones slow the signal's edges down.
+
+## Verify it by measuring
+
+If you have a multimeter, measure the divider output *before* connecting it to
+the board:
+
+1. Wire the HC-SR04 to 5V and GND, and build the divider
+2. Put the multimeter between the divider's midpoint and GND
+3. Do **not** connect it to the board yet
+
+The HC-SR04 does not output continuously, so you will read a low average. To
+be certain, feed the divider's input from the 5V pin directly and measure the
+output — you should see between 2.9 and 3.1 V.
+
+<Callout lang="en" variant="info" title="This lesson comes back">
+You will build this circuit in project 3 (Parking Sensor). In project 7 (Smart
+Plug) we solve a related problem a different way, with a transistor. Once the
+pattern clicks, they are all variations on one idea.
+</Callout>
+
+## Three rules that keep the board alive
+
+1. **Power down before you wire.** Every single time.
+2. **Never join 3V3 straight to GND.** That is a short circuit.
+3. **Read the module's datasheet.** If "output voltage" or "TTL level" says 5V,
+   put a divider in between.

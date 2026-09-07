@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 330" role="img" aria-labelledby="vd-title">
+  <title id="vd-title">Gerilim bölücü devresi / Voltage divider circuit</title>
+  <style>
+    .wire  { fill: none; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+    .w-hi  { stroke: #d94a3d; }
+    .w-ok  { stroke: #2f9e5e; }
+    .w-gnd { stroke: #6b7b80; }
+    .part  { fill: var(--surface, #fff); stroke: var(--border, #dde4e8); stroke-width: 1.8; }
+    .box   { fill: var(--bg-subtle, #f6f8f9); stroke: var(--border, #dde4e8); stroke-width: 1.8; }
+    .lbl   { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 13px; fill: var(--text, #102b2e); }
+    .lbl-b { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 13px; font-weight: 700; fill: var(--text, #102b2e); }
+    .muted { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 11px; fill: var(--text-faint, #83969b); }
+    .volt  { font-family: ui-monospace, monospace; font-size: 15px; font-weight: 700; }
+  </style>
+
+  <!-- Kaynak: HC-SR04 ECHO -->
+  <rect class="box" x="20" y="60" width="130" height="56" rx="8" />
+  <text class="lbl-b" x="85" y="84" text-anchor="middle">HC-SR04</text>
+  <text class="muted" x="85" y="102" text-anchor="middle">ECHO out (5V)</text>
+
+  <!-- 5V etiketi -->
+  <path class="wire w-hi" d="M150 88 H250" />
+  <text class="volt" x="200" y="76" text-anchor="middle" fill="#d94a3d">5.0 V</text>
+  <text class="muted" x="200" y="110" text-anchor="middle">tehlikeli / unsafe</text>
+
+  <!-- R1 -->
+  <rect class="part" x="250" y="70" width="86" height="36" rx="6" />
+  <text class="lbl-b" x="293" y="87" text-anchor="middle">R1</text>
+  <text class="lbl" x="293" y="101" text-anchor="middle">2.2 kΩ</text>
+
+  <!-- Orta düğüm -->
+  <path class="wire w-ok" d="M336 88 H430" />
+  <circle cx="430" cy="88" r="5" fill="#2f9e5e" />
+
+  <!-- Karta giden dal -->
+  <path class="wire w-ok" d="M430 88 H560" />
+  <text class="volt" x="495" y="76" text-anchor="middle" fill="#2f9e5e">3.0 V</text>
+  <text class="muted" x="495" y="110" text-anchor="middle">güvenli / safe</text>
+
+  <rect class="box" x="560" y="60" width="120" height="56" rx="8" />
+  <text class="lbl-b" x="620" y="84" text-anchor="middle">UNO Q</text>
+  <text class="muted" x="620" y="102" text-anchor="middle">D9 · 3.3V input</text>
+
+  <!-- R2 aşağı -->
+  <path class="wire w-gnd" d="M430 88 V150" />
+  <rect class="part" x="387" y="150" width="86" height="36" rx="6" />
+  <text class="lbl-b" x="430" y="167" text-anchor="middle">R2</text>
+  <text class="lbl" x="430" y="181" text-anchor="middle">3.3 kΩ</text>
+
+  <!-- GND -->
+  <path class="wire w-gnd" d="M430 186 V226" />
+  <line class="wire w-gnd" x1="404" y1="226" x2="456" y2="226" />
+  <line class="wire w-gnd" x1="412" y1="234" x2="448" y2="234" />
+  <line class="wire w-gnd" x1="420" y1="242" x2="440" y2="242" />
+  <text class="muted" x="466" y="232">GND</text>
+
+  <!-- Formül -->
+  <g transform="translate(20, 262)">
+    <rect class="box" x="0" y="0" width="660" height="52" rx="8" />
+    <text class="lbl" x="18" y="22">
+      V<tspan font-size="10" dy="3">çıkış</tspan><tspan dy="-3"> = V</tspan><tspan font-size="10" dy="3">giriş</tspan><tspan dy="-3"> × R2 / (R1 + R2)</tspan>
+    </text>
+    <text class="lbl-b" x="18" y="41">
+      5.0 V × 3300 / (2200 + 3300) = 3.0 V
+      <tspan class="muted"> — 3.3 V sınırının altında / below the 3.3 V limit</tspan>
+    </text>
+  </g>
+</svg>

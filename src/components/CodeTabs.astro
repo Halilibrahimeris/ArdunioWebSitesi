@@ -1,0 +1,188 @@
+---
+/**
+ * Sekmeli kod görüntüleyici / Tabbed code viewer.
+ *
+ * Kod dosyaları src/code/<proje-id>/<dil>/ altında GERÇEK dosyalar olarak durur.
+ * Böylece düzenlenebilir, biçimlendirilebilir ve Markdown içine gömülmek zorunda kalmaz.
+ * Code lives as REAL files under src/code/<project-id>/<lang>/ so it stays editable
+ * and never has to be pasted into Markdown.
+ */
+import { Code } from 'astro:components';
+import { useTranslations, type Lang } from '../i18n/utils';
+
+interface Props {
+  lang: Lang;
+  projectId: string;
+  files: string[];
+  /** Donanımda test edilmediği uyarısını göster / Show the "untested" note. */
+  untested?: boolean;
+}
+
+const { lang, projectId, files, untested = true } = Astro.props;
+const t = useTranslations(lang);
+
+// Tüm kod dosyalarını ham metin olarak derleme zamanında topla.
+const modules = import.meta.glob('../code/**/*', { query: '?raw', import: 'default', eager: true }) as Record<string, string>;
+
+type ShikiLang = 'cpp' | 'python' | 'yaml' | 'javascript' | 'html' | 'text';
+
+function langFor(file: string): ShikiLang {
+  if (file.endsWith('.ino') || file.endsWith('.cpp') || file.endsWith('.h')) return 'cpp';
+  if (file.endsWith('.py')) return 'python';
+  if (file.endsWith('.yaml') || file.endsWith('.yml')) return 'yaml';
+  if (file.endsWith('.js')) return 'javascript';
+  if (file.endsWith('.html')) return 'html';
+  return 'text';
+}
+
+/** Dosyanın App Lab uygulaması içindeki yeri / Where the file sits inside an App Lab app. */
+function locationFor(file: string): string {
+  if (file === 'app.yaml') return 'app.yaml';
+  if (file === 'sketch.yaml') return 'sketch/sketch.yaml';
+  if (file.endsWith('.py')) return `python/${file}`;
+  if (file.endsWith('.ino')) return `sketch/${file}`;
+  if (file.endsWith('.html') || file.endsWith('.js') || file.endsWith('.css')) return `assets/${file}`;
+  return file;
+}
+
+const tabs = files
+  .map((file) => {
+    const key = `../code/${projectId}/${lang}/${file}`;
+    const source = modules[key];
+    return source === undefined ? null : { file, source: source.trimEnd(), shiki: langFor(file), location: locationFor(file) };
+  })
+  .filter((x): x is NonNullable<typeof x> => x !== null);
+
+const groupId = `code-${projectId}`;
+---
+
+{
+  tabs.length > 0 && (
+    <div class="code-tabs my-6 overflow-hidden rounded-xl border" style="border-color: var(--border);" data-group={groupId}>
+      {/* Sekme başlıkları */}
+      <div
+        class="scroll-x flex items-center gap-1 border-b px-2 py-1.5"
+        style="border-color: var(--border); background-color: var(--bg-subtle);"
+        role="tablist"
+        aria-label={t('project.code')}
+      >
+        {tabs.map((tab, i) => (
+          <button
+            type="button"
+            role="tab"
+            id={`${groupId}-tab-${i}`}
+            aria-controls={`${groupId}-panel-${i}`}
+            aria-selected={i === 0 ? 'true' : 'false'}
+            tabindex={i === 0 ? 0 : -1}
+            data-index={i}
+            class="code-tab shrink-0 rounded-lg px-3 py-1.5 font-mono text-xs font-medium transition-colors"
+          >
+            {tab.location}
+          </button>
+        ))}
+
+        <button
+          type="button"
+          class="copy-btn ml-auto shrink-0 rounded-lg border px-2.5 py-1.5 text-xs font-medium transition-colors"
+          style="border-color: var(--border); color: var(--text-muted);"
+          data-copied={t('code.copied')}
+          data-failed={t('code.copyFailed')}
+          data-idle={t('code.copy')}
+        >
+          {t('code.copy')}
+        </button>
+      </div>
+
+      {/* Kod panelleri */}
+      {tabs.map((tab, i) => (
+        <div
+          role="tabpanel"
+          id={`${groupId}-panel-${i}`}
+          aria-labelledby={`${groupId}-tab-${i}`}
+          hidden={i !== 0}
+          class="code-panel"
+          data-source={tab.source}
+        >
+          <Code code={tab.source} lang={tab.shiki} themes={{ light: 'github-light', dark: 'github-dark' }} />
+        </div>
+      ))}
+
+      {untested && (
+        <p
+          class="border-t px-3 py-2 text-xs"
+          style="border-color: var(--border); background-color: var(--bg-subtle); color: var(--text-faint);"
+        >
+          {t('code.untested')}
+        </p>
+      )}
+    </div>
+  )
+}
+
+<style>
+  .code-tab { color: var(--text-faint); }
+  .code-tab[aria-selected='true'] {
+    background-color: var(--bg);
+    color: var(--color-brand-600);
+    box-shadow: inset 0 0 0 1px var(--border);
+  }
+  :global(.dark) .code-tab[aria-selected='true'] { color: var(--color-brand-300); }
+  .code-tab:hover:not([aria-selected='true']) { color: var(--text-muted); }
+
+  .code-panel :global(pre) {
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+    max-height: 34rem;
+  }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLElement>('.code-tabs').forEach((root) => {
+    const tabs = Array.from(root.querySelectorAll<HTMLButtonElement>('.code-tab'));
+    const panels = Array.from(root.querySelectorAll<HTMLElement>('.code-panel'));
+    const copyBtn = root.querySelector<HTMLButtonElement>('.copy-btn');
+
+    function select(index: number) {
+      tabs.forEach((tab, i) => {
+        const active = i === index;
+        tab.setAttribute('aria-selected', String(active));
+        tab.tabIndex = active ? 0 : -1;
+      });
+      panels.forEach((panel, i) => {
+        panel.hidden = i !== index;
+      });
+    }
+
+    tabs.forEach((tab, i) => {
+      tab.addEventListener('click', () => select(i));
+      // Klavyeyle sekmeler arasında gezinme / Keyboard tab navigation.
+      tab.addEventListener('keydown', (event) => {
+        if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') return;
+        event.preventDefault();
+        const delta = event.key === 'ArrowRight' ? 1 : -1;
+        const next = (i + delta + tabs.length) % tabs.length;
+        select(next);
+        tabs[next].focus();
+      });
+    });
+
+    copyBtn?.addEventListener('click', async () => {
+      const visible = panels.find((p) => !p.hidden);
+      const source = visible?.dataset.source;
+      if (!source) return;
+
+      const idle = copyBtn.dataset.idle ?? 'Copy';
+      try {
+        await navigator.clipboard.writeText(source);
+        copyBtn.textContent = copyBtn.dataset.copied ?? 'Copied';
+      } catch {
+        // Pano izni yoksa (http, eski tarayıcı) kullanıcıyı bilgilendir.
+        copyBtn.textContent = copyBtn.dataset.failed ?? 'Copy failed';
+      }
+      window.setTimeout(() => {
+        copyBtn.textContent = idle;
+      }, 1800);
+    });
+  });
+</script>

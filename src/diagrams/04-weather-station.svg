@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 400" role="img" aria-labelledby="d4-title">
+  <title id="d4-title">OLED hava istasyonu bağlantı şeması / OLED weather station wiring</title>
+  <style>
+    .wire  { fill: none; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+    .w-sig { stroke: #0d8ce0; }
+    .w-i2c { stroke: #7c6cf5; }
+    .w-pwr { stroke: #d94a3d; }
+    .w-gnd { stroke: #6b7b80; }
+    .board { fill: var(--bg-subtle, #f6f8f9); stroke: var(--color-brand-500, #00979d); stroke-width: 2.4; }
+    .part  { fill: var(--surface, #fff); stroke: var(--border, #dde4e8); stroke-width: 1.8; }
+    .screen{ fill: #0b1416; stroke: var(--border, #dde4e8); stroke-width: 1.8; }
+    .lbl   { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 12.5px; fill: var(--text, #102b2e); }
+    .lbl-b { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 13px; font-weight: 650; fill: var(--text, #102b2e); }
+    .pin   { font-family: ui-monospace, monospace; font-size: 12px; font-weight: 700; fill: var(--text, #102b2e); }
+    .muted { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 11px; fill: var(--text-faint, #83969b); }
+    .pad   { fill: var(--color-brand-500, #00979d); }
+  </style>
+
+  <!-- Kart -->
+  <rect class="board" x="30" y="60" width="175" height="280" rx="12" />
+  <text class="lbl-b" x="117" y="88" text-anchor="middle">Arduino UNO Q</text>
+  <text class="muted" x="117" y="105" text-anchor="middle">3.3V logic</text>
+
+  <g>
+    <circle class="pad" cx="205" cy="140" r="4.5" /><text class="pin" x="188" y="144" text-anchor="end">SDA</text>
+    <circle class="pad" cx="205" cy="170" r="4.5" /><text class="pin" x="188" y="174" text-anchor="end">SCL</text>
+    <circle class="pad" cx="205" cy="240" r="4.5" /><text class="pin" x="188" y="244" text-anchor="end">D7</text>
+    <circle class="pad" cx="205" cy="300" r="4.5" /><text class="pin" x="188" y="304" text-anchor="end">3V3</text>
+    <circle class="pad" cx="205" cy="332" r="4.5" /><text class="pin" x="188" y="336" text-anchor="end">GND</text>
+  </g>
+
+  <text class="muted" x="117" y="330" text-anchor="middle">A4/A5 DEĞİL</text>
+  <text class="muted" x="117" y="345" text-anchor="middle">not A4/A5</text>
+
+  <!-- ───── OLED ekran ───── -->
+  <rect class="part" x="470" y="76" width="220" height="128" rx="10" />
+  <text class="lbl-b" x="580" y="100" text-anchor="middle">SSD1306 OLED 0.96"</text>
+  <rect class="screen" x="496" y="110" width="168" height="80" rx="4" />
+  <text x="510" y="146" font-family="ui-monospace, monospace" font-size="22" font-weight="700" fill="#7fe3e8">23.4°C</text>
+  <text x="618" y="132" font-family="ui-monospace, monospace" font-size="12" fill="#7fe3e8">48%</text>
+  <polyline points="506,180 526,172 546,176 566,166 586,170 606,160 626,164 646,156"
+            fill="none" stroke="#7fe3e8" stroke-width="2" stroke-linejoin="round" />
+
+  <text class="muted" x="580" y="222" text-anchor="middle">VCC · GND · SCL · SDA — doğal 3.3V / natively 3.3V</text>
+
+  <!-- OLED baglantilari -->
+  <path class="wire w-i2c" d="M205 140 H300 V116 H470" />
+  <text class="muted" x="330" y="110">SDA</text>
+  <path class="wire w-i2c" d="M205 170 H330 V132 H470" />
+  <text class="muted" x="360" y="128">SCL</text>
+  <path class="wire w-pwr" d="M205 300 H262 V92 H470" />
+  <text class="muted" x="400" y="86">VCC → 3V3</text>
+  <path class="wire w-gnd" d="M470 160 H430 V370 H205 V332" />
+
+  <!-- ───── DHT11 ───── -->
+  <rect class="part" x="300" y="230" width="150" height="80" rx="10" />
+  <text class="lbl-b" x="375" y="254" text-anchor="middle">DHT11</text>
+  <text class="muted" x="375" y="272" text-anchor="middle">VCC · DATA · GND</text>
+  <text class="muted" x="375" y="292" text-anchor="middle">3V3 ile besle / power at 3V3</text>
+
+  <path class="wire w-sig" d="M205 240 H300" />
+  <text class="muted" x="240" y="232">DATA</text>
+  <path class="wire w-pwr" d="M300 300 H278 V300 H205" />
+  <path class="wire w-gnd" d="M450 290 H500 V370" />
+
+  <!-- Pull-up -->
+  <rect class="part" x="300" y="176" width="66" height="26" rx="5" />
+  <text class="lbl" x="333" y="194" text-anchor="middle">10kΩ</text>
+  <text class="muted" x="376" y="194">DATA ↔ VCC pull-up</text>
+  <path class="wire w-sig" d="M258 240 V189 H300" />
+  <path class="wire w-pwr" d="M366 189 H400 V150" />
+
+  <!-- GND ana hat -->
+  <path class="wire w-gnd" d="M205 332 H700" />
+  <text class="muted" x="710" y="336">GND</text>
+
+  <!-- Açıklama -->
+  <g transform="translate(30, 380)">
+    <line class="wire w-pwr" x1="0" y1="6" x2="24" y2="6" /><text class="muted" x="30" y="10">3.3V</text>
+    <line class="wire w-i2c" x1="76" y1="6" x2="100" y2="6" /><text class="muted" x="106" y="10">I2C (SDA/SCL)</text>
+    <line class="wire w-sig" x1="216" y1="6" x2="240" y2="6" /><text class="muted" x="246" y="10">dijital / digital</text>
+    <line class="wire w-gnd" x1="338" y1="6" x2="362" y2="6" /><text class="muted" x="368" y="10">GND</text>
+  </g>
+</svg>

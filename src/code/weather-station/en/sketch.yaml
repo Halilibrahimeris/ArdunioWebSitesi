@@ -1,0 +1,19 @@
+# Project 4 — OLED Weather Station
+# This file tells App Lab which libraries the sketch needs.
+# They are downloaded automatically at compile time.
+#
+# Pinning version numbers is a good habit: your project keeps working
+# even if a library updates and changes its API.
+
+profiles:
+  default:
+    platforms:
+      - platform: arduino:zephyr
+    libraries:
+      - Adafruit SSD1306 (2.5.13)
+      - Adafruit GFX Library (1.11.11)
+      - Adafruit BusIO (1.16.2)
+      - DHT sensor library (1.4.6)
+      - Adafruit Unified Sensor (1.1.14)
+
+default_profile: default

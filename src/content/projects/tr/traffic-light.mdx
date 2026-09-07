@@ -1,0 +1,191 @@
+---
+projectId: traffic-light
+title: Trafik Lambası ve LED Matris
+summary: >-
+  Üç LED'i gerçek bir trafik lambası gibi sırayla yakıp söndüren, butona basınca
+  yayaya yol veren ilk projen. Bu arada kartın üzerindeki 8x13 LED matris
+  breadboard'daki lambanın küçük bir kopyasını çizecek.
+learn:
+  - Dijital çıkışları pinMode ve digitalWrite ile kontrol etmek
+  - "delay() kullanmadan, millis() ile aynı anda birden çok işi yürütmek"
+  - Buton okumak ve kontak sıçramasını (debounce) yazılımla temizlemek
+  - Pull-down direncin ne işe yaradığını ve neden gerektiğini anlamak
+  - Kartın yerleşik 8x13 LED matrisine piksel çizmek
+troubleshooting:
+  - q: LED'lerin hiçbiri yanmıyor.
+    a: >-
+      Önce LED'lerin yönünü kontrol et. LED'in uzun bacağı (anot) dirence,
+      kısa bacağı (katot) GND hattına gitmeli. Ters takılı bir LED hiç yanmaz
+      ama bozulmaz da — çevirip tekrar dene.
+  - q: LED'ler çok sönük yanıyor.
+    a: >-
+      Bu normal. Kart 5V değil 3.3V verdiği için LED'ler klasik Arduino UNO'ya
+      göre daha sönük görünür. Daha parlak istiyorsan 220Ω yerine 150Ω
+      kullanabilirsin; 100Ω'un altına inme.
+  - q: Butona basmadığım halde yaya isteği tetikleniyor.
+    a: >-
+      Neredeyse her zaman pull-down direncinin eksik ya da kopuk olmasındandır.
+      Direnç yoksa D7 pini boşta kalır ve havadaki elektriksel gürültüyü okur.
+      10kΩ direncin bir ucunun D7'ye, diğer ucunun GND'ye bağlı olduğunu doğrula.
+  - q: Matriste hiçbir şey görünmüyor.
+    a: >-
+      App Lab'de Arduino_LED_Matrix kütüphanesinin kurulu olduğundan emin ol.
+      Kurulu değilse Libraries bölümünden arayıp ekle, sonra sketch'i yeniden
+      derle. Ayrıca setup() içinde matrix.begin() çağrıldığını doğrula.
+  - q: Butona bastığımda ışık hemen kırmızıya dönmüyor.
+    a: >-
+      Öyle olması gerekiyor. Gerçek trafik lambaları gibi, yeşil ışık önce
+      1,5 saniye daha yanıp sonra sarıya geçiyor. Ani geçiş tehlikeli olurdu.
+---
+
+Bu ilk projede kartı tanıyacak ve Arduino'nun en temel iki işini yapacaksın:
+bir pini yakıp söndürmek ve bir düğmeyi okumak. Basit görünüyor — ama içine
+gerçek gömülü sistemlerde her gün kullanılan bir fikri saklayacağız:
+**hiçbir şeyi beklemeden, aynı anda birden çok işi yürütmek.**
+
+<Callout lang="tr" variant="info" title="Önce rehberleri oku">
+Kartı ilk kez kullanıyorsan, App Lab kurulumunu ve kartın pin düzenini anlatan
+rehberleri okumadan başlama. Bu proje kurulumun tamam olduğunu varsayıyor.
+</Callout>
+
+<Step n={1} title="App Lab'de yeni bir uygulama oluştur">
+
+App Lab'i aç, **Create → New App** de ve adını `trafik-lambasi` koy.
+
+App Lab senin için üç parçalı bir klasör hazırlar. Bu projede yalnızca
+`sketch/` klasörünü kullanacağız, çünkü işin tamamı mikrodenetleyicide
+(STM32) geçiyor — Linux tarafına hiç ihtiyacımız yok.
+
+<PhotoSlot lang="tr" caption="App Lab'de yeni uygulama oluşturma ekranı" />
+
+</Step>
+
+<Step n={2} title="Kartın gücünü kes">
+
+Kabloları takmadan önce USB-C kablosunu **çıkar**. Kart açıkken kablo takmak,
+yanlışlıkla iki pini birbirine değdirdiğinde kalıcı hasara yol açabilir.
+
+<Callout lang="tr" variant="warning">
+Bu, her donanım projesinde uyacağın kural: **önce güç kesilir, sonra kablo takılır.**
+</Callout>
+
+</Step>
+
+<Step n={3} title="Üç LED'i breadboard'a yerleştir">
+
+LED'leri breadboard'a, aralarında birer sıra boşluk kalacak şekilde tak.
+Her LED'in iki bacağı **farklı** sıralara gelmeli — aynı sıraya takarsan
+LED'i kısa devre etmiş olursun ve hiç yanmaz.
+
+LED'in bacaklarını ayırt etmek kolay:
+
+- **Uzun bacak** = anot (+), dirence gider
+- **Kısa bacak** = katot (−), GND hattına gider
+
+Şimdi her LED'in uzun bacağına bir 220Ω direnç bağla ve direncin diğer ucunu
+şu pinlere götür:
+
+| LED | Pin |
+| --- | --- |
+| Kırmızı | D2 |
+| Sarı | D3 |
+| Yeşil | D4 |
+
+Üç LED'in de kısa bacağını breadboard'un eksi (−) hattına, o hattı da kartın
+**GND** pinine bağla.
+
+<Callout lang="tr" variant="danger" title="Direnci asla atlama">
+LED'i doğrudan pine bağlarsan LED sınırsız akım çeker. Bu hem LED'i hem de
+kartın çıkış katını yakar. 220Ω direnç, 3.3V'ta akımı yaklaşık 6 mA'de tutar —
+LED için de pin için de güvenli bir değer.
+</Callout>
+
+</Step>
+
+<Step n={4} title="Butonu ve pull-down direnci bağla">
+
+Buton bağlantısı ilk bakışta gereğinden karmaşık görünür, ama sebebi var.
+
+Butonun bir bacağını **3V3** pinine bağla. Karşı bacağını hem **D7** pinine
+hem de bir **10kΩ** direnç üzerinden **GND**'ye bağla.
+
+Bu 10kΩ direnç *pull-down* direnci. Görevi şu: buton basılı değilken D7 pinini
+sıfıra (GND'ye) çeker. Direnci koymazsan buton bırakıldığında D7 hiçbir yere
+bağlı olmaz — havada kalır. Havada kalan bir pin, etrafındaki elektriksel
+gürültüyü anten gibi toplar ve rastgele 0/1 okur. Kod hatasız olduğu halde
+lamba kendi kendine yaya moduna geçer.
+
+<Callout lang="tr" variant="tip">
+Basılınca 3.3V okunur (1), bırakılınca direnç üzerinden GND okunur (0).
+Direnç 10kΩ olduğu için basılıyken 3V3'ten GND'ye akan akım yalnızca
+0,33 mA — boşa giden enerji yok denecek kadar az.
+</Callout>
+
+</Step>
+
+<Step n={5} title="Bağlantıları şemayla karşılaştır">
+
+Kabloları taktıktan sonra güç vermeden önce bir kez daha kontrol et.
+Özellikle şu ikisine bak:
+
+- Hiçbir LED ters takılı değil (uzun bacak dirence gidiyor)
+- 3V3 ile GND arasında doğrudan bir kablo **yok**
+
+<Callout lang="tr" variant="danger">
+3V3 ve GND pinlerini doğrudan birbirine bağlarsan kısa devre yaparsın.
+Kart en iyi ihtimalle kendini korumaya alıp kapanır. Kabloyu takmadan önce
+iki kez bak.
+</Callout>
+
+<PhotoSlot lang="tr" caption="Tamamlanmış breadboard bağlantısı" />
+
+</Step>
+
+<Step n={6} title="Kodu yaz ve karta yükle">
+
+`sketch/sketch.ino` dosyasını aç ve aşağıdaki **Kodlar** bölümündeki içeriği
+yapıştır. Sonra USB-C kabloyu tak ve **Run** düğmesine bas.
+
+Kodun kalbi `loop()` içindeki üç satır:
+
+```cpp
+void loop() {
+  readButton();      // Butonu her turda oku
+  updatePhase();     // Süresi dolan evreyi ilerlet
+  drawMatrix();      // Matrisi tazele
+}
+```
+
+Bu üç iş de "beklemez". Her biri saniyede binlerce kez çağrılır, her seferinde
+saatine bakar ve *"benim sıram geldi mi?"* diye sorar. Sırası gelmediyse hemen
+geri döner.
+
+Klasik `delay(6000)` yaklaşımıyla bunu yapamazdın: kart altı saniye boyunca
+donar, o sırada butona basılsa bile fark etmezdi.
+
+<Callout lang="tr" variant="tip" title="Bu kalıbı aklında tut">
+`millis()` ile "şu kadar zaman geçti mi?" diye sormak, gömülü yazılımın en
+sık kullanılan kalıplarından biri. Bundan sonraki her projede tekrar karşına
+çıkacak.
+</Callout>
+
+</Step>
+
+<Step n={7} title="Çalıştır ve dene">
+
+Işıklar dönmeye başlamalı. İzlerken şunları dene:
+
+1. **Matrise bak.** Breadboard'daki lambanın aynısı orada da çiziliyor.
+   Sağ kenardaki dikey çubuk, o evrenin ne kadarının kaldığını gösteriyor.
+2. **Yeşilken butona bas.** Sol üstte küçük bir nokta yanıp sönmeye başlar —
+   yaya isteği kaydedildi. Yeşil ışık 1,5 saniye içinde sarıya döner.
+3. **Kırmızıyken butona bas.** Hiçbir şey olmaz, çünkü zaten geçiş sırası
+   yayada.
+
+<Callout lang="tr" variant="info" title="Kendin dene">
+`PHASE_MS` dizisindeki sayıları değiştirip süreleri kısalt ya da uzat.
+`GREEN_CUTOFF_MS` değerini 0 yaparsan yaya butonu ışığı anında sarıya çevirir —
+gerçek hayatta neden böyle yapılmadığını düşün.
+</Callout>
+
+</Step>

@@ -1,0 +1,264 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import Badges from '../../../components/Badges.astro';
+import BOMTable from '../../../components/BOMTable.astro';
+import CodeTabs from '../../../components/CodeTabs.astro';
+import Callout from '../../../components/Callout.astro';
+import PhotoSlot from '../../../components/PhotoSlot.astro';
+import WiringDiagram from '../../../components/WiringDiagram.astro';
+import Step from '../../../components/Step.astro';
+import { useTranslations, path, type Lang } from '../../../i18n/utils';
+import { locales } from '../../../i18n/ui';
+import { getProjectPages } from '../../../lib/content';
+import { getNeighbours } from '../../../data/projects';
+import { render } from 'astro:content';
+
+export async function getStaticPaths() {
+  const routes = [];
+  for (const lang of locales) {
+    const pages = await getProjectPages(lang);
+    for (const page of pages) {
+      routes.push({
+        params: { lang, slug: page.project.slug[lang] },
+        props: page,
+      });
+    }
+  }
+  return routes;
+}
+
+const lang = Astro.params.lang as Lang;
+const t = useTranslations(lang);
+const { project, entry } = Astro.props;
+
+const { Content } = await render(entry);
+const { prev, next } = getNeighbours(project.number);
+
+// Dil değiştirici: aynı projenin diğer dildeki slug'ına gitsin, ana sayfaya düşmesin.
+const otherLang: Lang = lang === 'tr' ? 'en' : 'tr';
+const alternateHref = path(otherLang, 'projects', project.slug[otherLang]);
+
+// MDX içinde import yazmadan kullanılabilecek bileşenler.
+const mdxComponents = { Callout, PhotoSlot, WiringDiagram, Step, CodeTabs };
+---
+
+<BaseLayout
+  lang={lang}
+  title={entry.data.title}
+  description={entry.data.summary}
+  alternateHref={alternateHref}
+>
+  <article class="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:py-14">
+    <!-- ───────── Başlık ───────── -->
+    <header>
+      <a
+        href={path(lang, 'projects')}
+        class="inline-flex items-center gap-1.5 text-sm font-medium hover:underline"
+        style="color: var(--text-muted);"
+      >
+        <span aria-hidden="true">←</span> {t('project.backToList')}
+      </a>
+
+      <div class="mt-5 flex flex-wrap items-center gap-2">
+        <span
+          class="rounded-lg px-2.5 py-1 text-xs font-bold tabular-nums"
+          style="background-color: var(--bg-inset); color: var(--text-muted);"
+        >
+          {t('project.number')} {project.number}
+        </span>
+        <Badges lang={lang} kind="category" value={project.category} />
+        <Badges lang={lang} kind="difficulty" value={project.difficulty} />
+      </div>
+
+      <h1 class="mt-4 text-3xl font-bold leading-tight tracking-tight sm:text-4xl" style="color: var(--text);">
+        {entry.data.title}
+      </h1>
+
+      <p class="mt-4 text-lg leading-relaxed" style="color: var(--text-muted);">
+        {entry.data.summary}
+      </p>
+
+      <!-- Künye -->
+      <dl
+        class="mt-6 flex flex-wrap gap-x-8 gap-y-3 rounded-xl border px-4 py-3.5 text-sm"
+        style="border-color: var(--border); background-color: var(--bg-subtle);"
+      >
+        <div>
+          <dt class="text-xs" style="color: var(--text-faint);">{t('project.duration')}</dt>
+          <dd class="mt-0.5 font-semibold" style="color: var(--text);">
+            {project.durationMin} {t('time.minutes')}
+          </dd>
+        </div>
+        <div>
+          <dt class="text-xs" style="color: var(--text-faint);">{t('project.category')}</dt>
+          <dd class="mt-0.5 font-semibold" style="color: var(--text);">
+            {t(`category.${project.category}` as const)}
+          </dd>
+        </div>
+        {
+          project.bricks.length > 0 && (
+            <div class="min-w-0">
+              <dt class="text-xs" style="color: var(--text-faint);">
+                {t('project.bricks')}
+              </dt>
+              <dd class="mt-0.5 flex flex-wrap gap-1.5">
+                {project.bricks.map((brick) => (
+                  <code
+                    class="rounded px-1.5 py-0.5 font-mono text-xs"
+                    style="background-color: var(--bg-inset); color: var(--color-brand-600);"
+                  >
+                    {brick.replace('arduino:', '')}
+                  </code>
+                ))}
+              </dd>
+            </div>
+          )
+        }
+      </dl>
+    </header>
+
+    <!-- ───────── Öğrenecekleriniz ───────── -->
+    <section class="mt-10">
+      <h2 class="text-xl font-bold tracking-tight" style="color: var(--text);">{t('project.learn')}</h2>
+      <ul class="mt-3 space-y-2">
+        {
+          entry.data.learn.map((item) => (
+            <li class="flex gap-2.5 text-sm leading-relaxed" style="color: var(--text-muted);">
+              <svg viewBox="0 0 24 24" fill="none" class="mt-0.5 h-4 w-4 shrink-0" style="color: var(--color-brand-500);" aria-hidden="true">
+                <path d="m4.5 12.5 5 5 10-11" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+              <span>{item}</span>
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+
+    <!-- ───────── 3.3V uyarısı ───────── -->
+    {
+      project.voltageWarning && (
+        <Callout lang={lang} variant="voltage" linkToGuide>
+          <p>
+            {lang === 'tr'
+              ? 'Bu projede 5V sinyal üreten bir modül kullanıyoruz. Kartın pinleri 3.3V ile çalışır — aşağıdaki adımlardaki gerilim düşürme devresini ATLAMA, aksi halde kartın girişi kalıcı olarak zarar görebilir.'
+              : 'This project uses a module that outputs 5V signals. The board runs at 3.3V — do NOT skip the voltage-reduction circuit in the steps below, or you can permanently damage the input.'}
+          </p>
+        </Callout>
+      )
+    }
+
+    <!-- ───────── Malzeme ───────── -->
+    <section class="mt-10">
+      <h2 class="text-xl font-bold tracking-tight" style="color: var(--text);">{t('project.bom')}</h2>
+      <BOMTable lang={lang} bom={project.bom} />
+    </section>
+
+    <!-- ───────── Bağlantı şeması ───────── -->
+    {
+      project.diagram && (
+        <section class="mt-10">
+          <h2 class="text-xl font-bold tracking-tight" style="color: var(--text);">
+            {t('project.wiring')}
+          </h2>
+          <WiringDiagram file={project.diagram} title={entry.data.title} />
+        </section>
+      )
+    }
+
+    <!-- ───────── Adımlar (MDX gövdesi) ───────── -->
+    <section class="mt-10">
+      <h2 class="text-xl font-bold tracking-tight" style="color: var(--text);">{t('project.steps')}</h2>
+      <div class="prose-doc mt-4">
+        <Content components={mdxComponents} />
+      </div>
+    </section>
+
+    <!-- ───────── Tam kod ───────── -->
+    {
+      project.codeFiles.length > 0 && (
+        <section class="mt-12">
+          <h2 class="text-xl font-bold tracking-tight" style="color: var(--text);">
+            {t('project.code')}
+          </h2>
+          <CodeTabs lang={lang} projectId={project.id} files={project.codeFiles} />
+        </section>
+      )
+    }
+
+    <!-- ───────── Sorun giderme ───────── -->
+    {
+      entry.data.troubleshooting.length > 0 && (
+        <section class="mt-12">
+          <h2 class="text-xl font-bold tracking-tight" style="color: var(--text);">
+            {t('project.troubleshooting')}
+          </h2>
+          <div class="mt-4 space-y-2">
+            {entry.data.troubleshooting.map((item) => (
+              <details
+                class="group rounded-xl border px-4 py-3"
+                style="border-color: var(--border); background-color: var(--surface);"
+              >
+                <summary
+                  class="cursor-pointer list-none text-sm font-semibold marker:hidden"
+                  style="color: var(--text);"
+                >
+                  <span class="inline-flex w-full items-center justify-between gap-3">
+                    {item.q}
+                    <span
+                      class="shrink-0 transition-transform group-open:rotate-45"
+                      style="color: var(--text-faint);"
+                      aria-hidden="true"
+                    >
+                      +
+                    </span>
+                  </span>
+                </summary>
+                <p class="mt-2.5 text-sm leading-relaxed" style="color: var(--text-muted);">
+                  {item.a}
+                </p>
+              </details>
+            ))}
+          </div>
+        </section>
+      )
+    }
+
+    <!-- ───────── Önceki / sonraki ───────── -->
+    <nav class="mt-14 grid gap-3 border-t pt-6 sm:grid-cols-2" style="border-color: var(--border);">
+      {
+        prev ? (
+          <a
+            href={path(lang, 'projects', prev.slug[lang])}
+            class="rounded-xl border p-4 transition-colors hover:border-brand-400"
+            style="border-color: var(--border);"
+          >
+            <span class="text-xs" style="color: var(--text-faint);">
+              ← {t('project.prev')}
+            </span>
+            <span class="mt-1 block text-sm font-semibold" style="color: var(--text);">
+              {t('project.number')} {prev.number}
+            </span>
+          </a>
+        ) : (
+          <span />
+        )
+      }
+      {
+        next && (
+          <a
+            href={path(lang, 'projects', next.slug[lang])}
+            class="rounded-xl border p-4 text-right transition-colors hover:border-brand-400 sm:col-start-2"
+            style="border-color: var(--border);"
+          >
+            <span class="text-xs" style="color: var(--text-faint);">
+              {t('project.next')} →
+            </span>
+            <span class="mt-1 block text-sm font-semibold" style="color: var(--text);">
+              {t('project.number')} {next.number}
+            </span>
+          </a>
+        )
+      }
+    </nav>
+  </article>
+</BaseLayout>

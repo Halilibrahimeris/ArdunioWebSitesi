@@ -1,0 +1,200 @@
+---
+projectId: parking-sensor
+title: Park Sensörü
+summary: >-
+  Ultrasonik sensörle mesafe ölç, yaklaştıkça hızlanan bip sesiyle uyar. Bu
+  proje aynı zamanda kitabın en önemli dersini içeriyor: 5V veren bir sensörü
+  3.3V'luk bir karta nasıl güvenle bağlarsın?
+learn:
+  - Ultrasonik sensörün ses dalgasıyla mesafeyi nasıl ölçtüğü
+  - "pulseIn() ile bir darbenin süresini mikrosaniye hassasiyetinde ölçmek"
+  - Gerilim bölücü kurmak ve neden hayati olduğunu anlamak
+  - Multimetreyle devreyi bağlamadan önce doğrulamak
+  - Bip aralığını mesafeye göre değiştiren bloklamayan zamanlayıcı yazmak
+troubleshooting:
+  - q: Mesafe hep 400 cm okuyor, hiç değişmiyor.
+    a: >-
+      Zaman aşımı oluyor, yani ECHO sinyali karta hiç ulaşmıyor. Önce gerilim
+      bölücünün orta noktasının D9'a bağlı olduğunu kontrol et. Sensörün VCC
+      pininin 3V3'e değil 5V'a bağlı olduğundan da emin ol — HC-SR04 3.3V ile
+      güvenilir çalışmaz.
+  - q: Mesafe değerleri rastgele zıplıyor.
+    a: >-
+      Ultrasonik sensörler yumuşak, kumaş veya eğimli yüzeylerden iyi yansıma
+      alamaz. Düz ve sert bir yüzeye (kitap, karton, duvar) doğrult. Ayrıca
+      sensörün önünde 2 cm'den yakın bir engel varsa ölçemez.
+  - q: Bip sesi hiç durmuyor.
+    a: >-
+      Sensör sürekli 30 cm'nin altını okuyor demektir. Seri monitörden gerçek
+      değeri kontrol et. Sensörün önü açık olmalı — breadboard'un kenarına çok
+      yakın durursa kendi kartını ölçer.
+  - q: Gerilim bölücüyü kurmayı unuttum, kartım bozuldu mu?
+    a: >-
+      Muhtemelen hemen fark edilir bir hasar olmaz ama pin zamanla bozulabilir.
+      D9'u test et: basit bir buton devresi kurup okuyabiliyor musun bak.
+      Okumuyorsa o pini kullanmayı bırak, koddaki PIN_ECHO değerini boştaki
+      başka bir pine (örneğin D11) taşı.
+  - q: Multimetrede ölçtüğüm değer 3.0V değil.
+    a: >-
+      Dirençlerin yerini kontrol et: 2.2kΩ üstte (ECHO tarafında), 3.3kΩ altta
+      (GND tarafında) olmalı. Yer değiştirirlerse çıkış 2.0V olur — kart bunu
+      okuyabilir ama sınıra yaklaşır. 3.4V ve üstü okuyorsan hemen kabloyu çek.
+---
+
+Bu proje ikiye ayrılıyor. Birincisi eğlenceli kısım: arabanın park sensörü
+gibi çalışan bir devre. İkincisi ise bu sitedeki en önemli teknik ders.
+
+<Callout lang="tr" variant="voltage" linkToGuide>
+HC-SR04'ün **ECHO pini 5V** verir. UNO Q'nun pinleri en fazla 3.3V kaldırır.
+ECHO'yu doğrudan bağlarsan pini bozarsın. Bu projede araya iki dirençlik bir
+devre koyacağız — ve neden işe yaradığını anlayacaksın.
+</Callout>
+
+## Ultrasonik sensör nasıl çalışır?
+
+HC-SR04 aslında bir yarasa gibi davranır: insanın duyamayacağı kadar yüksek
+frekansta (40 kHz) bir ses gönderir ve yankının dönmesini bekler.
+
+Sesin havadaki hızını bildiğimize göre — saniyede yaklaşık 343 metre —
+yankının dönme süresinden mesafeyi hesaplayabiliriz.
+
+Sensörün dört pini var:
+
+| Pin | İşlevi | Yön |
+| --- | --- | --- |
+| VCC | Besleme, **5V** | — |
+| TRIG | "Şimdi ölç" komutu | Kart → sensör |
+| ECHO | Yankının süresi | **Sensör → kart (5V!)** |
+| GND | Toprak | — |
+
+Tehlikeli olan yalnızca **ECHO**. TRIG'e kart 3.3V gönderir; sensör bunu
+sorunsuz "1" olarak kabul eder.
+
+<Step n={1} title="Gücü kes ve sensörü yerleştir">
+
+USB-C kabloyu çıkar. HC-SR04'ü breadboard'un bir kenarına, iki "gözü" boşluğa
+bakacak şekilde tak. Sensörün önünde en az 20-30 cm açık alan olsun.
+
+</Step>
+
+<Step n={2} title="Besleme ve TRIG bağlantılarını yap">
+
+Bunlar tehlikesiz taraf:
+
+- Sensörün **VCC** pini → kartın **5V** pini
+- Sensörün **GND** pini → kartın **GND** pini
+- Sensörün **TRIG** pini → kartın **D10** pini
+
+<Callout lang="tr" variant="tip" title="Neden VCC 5V?">
+HC-SR04 3.3V ile de bazen çalışır ama menzili kısalır ve okumalar
+güvenilmezleşir. Sensörü 5V ile beslemek sorun değil — sorun onun 5V'luk
+*çıkışını* karta vermek.
+</Callout>
+
+</Step>
+
+<Step n={3} title="Gerilim bölücüyü kur — bu adımı atlama">
+
+Şimdi kritik kısım. **ECHO'yu henüz D9'a bağlama.**
+
+Breadboard'da boş bir sıra seç. Buraya:
+
+1. **2.2kΩ** direncin bir ucunu sensörün **ECHO** pinine bağla
+2. Aynı direncin diğer ucunu boş sıraya getir — burası **orta nokta**
+3. **3.3kΩ** direncin bir ucunu bu orta noktaya, diğer ucunu **GND**'ye bağla
+4. Orta noktadan bir kablo çıkar, kartın **D9** pinine götür
+
+<WiringDiagram file="voltage-divider.svg" caption="Gerilim bölücünün mantığı" />
+
+Hesap şöyle işliyor:
+
+```
+Vçıkış = 5.0 V × 3300 / (2200 + 3300) = 3.0 V
+```
+
+Sensör 5V gönderse bile, D9'a ulaşan gerilim 3.0V oluyor. Bu hem kart için
+güvenli hem de "1" olarak okunmaya fazlasıyla yeterli.
+
+<Callout lang="tr" variant="danger" title="Dirençlerin sırası önemli">
+2.2kΩ **üstte** (ECHO tarafında), 3.3kΩ **altta** (GND tarafında) olmalı.
+Yer değiştirirlerse çıkış 5.0 × 2200/5500 = 2.0V olur. Kart bunu hâlâ okur ama
+gürültüye karşı payın azalır.
+</Callout>
+
+</Step>
+
+<Step n={4} title="Multimetreyle doğrula (varsa)">
+
+Multimetren varsa bu adımı atlama — kart bağlamadan önce ölçmek, sonradan
+pişman olmaktan iyidir.
+
+1. D9'a giden kabloyu **henüz takma**
+2. Sensörün ECHO ucundaki 2.2kΩ direncin girişini geçici olarak **5V** pinine bağla
+3. Multimetreyi orta nokta ile GND arasına koy
+4. **2.9 - 3.1 V** arası okumalısın
+
+Okuduğun değer doğruysa geçici kabloyu çıkar, ECHO'yu geri bağla ve D9
+kablosunu tak.
+
+<PhotoSlot lang="tr" caption="Multimetreyle gerilim bölücü çıkışını ölçmek" />
+
+</Step>
+
+<Step n={5} title="Buzzer ve LED'leri bağla">
+
+2. projeden tanıdık:
+
+- Pasif buzzer → **D8** ve **GND**
+- Kırmızı LED + 220Ω → **D2**
+- Sarı LED + 220Ω → **D3**
+- Yeşil LED + 220Ω → **D4**
+
+</Step>
+
+<Step n={6} title="Kodu yükle">
+
+Kodu yapıştır ve **Run** de. App Lab'in seri monitörünü aç.
+
+Elini sensörün önünde gezdir; mesafe değerlerinin aktığını göreceksin.
+
+Kodun mesafeyi hesapladığı satır şu:
+
+```cpp
+distanceCm = (echoUs * 0.0343) / 2.0;
+```
+
+`0.0343`, sesin cm/mikrosaniye cinsinden hızı. İkiye bölüyoruz çünkü sinyal
+gidip **geri** geliyor — yani ölçtüğümüz süre yolun iki katına ait.
+
+</Step>
+
+<Step n={7} title="Bölgeleri dene">
+
+Elini yavaşça yaklaştır ve üç bölgeyi gözlemle:
+
+| Mesafe | LED | Ses |
+| --- | --- | --- |
+| 100 cm üstü | Yeşil | Sessiz |
+| 50-100 cm | Yeşil | Seyrek bip |
+| 30-50 cm | Sarı | Sıklaşan bip |
+| 30 cm altı | Kırmızı | Kesintisiz |
+
+Bip aralığının nasıl hesaplandığına dikkat et: `mapFloat()` mesafeyi doğrudan
+bekleme süresine çeviriyor, yani geçişler yumuşak oluyor — ani sıçrama yok.
+
+<Callout lang="tr" variant="info" title="Neden kendi mapFloat fonksiyonumuz var?">
+Arduino'nun hazır `map()` fonksiyonu yalnızca tam sayılarla çalışır.
+Mesafemiz ondalıklı (`float`) olduğu için `map()` kullanırsak hassasiyeti
+kaybederiz. Beş satırlık kendi sürümümüz bunu çözüyor.
+</Callout>
+
+</Step>
+
+<Step n={8} title="Geliştir">
+
+- `DIST_DANGER` değerini düşürüp hassasiyeti artır
+- Kırmızı bölgede LED matrise ünlem işareti çizdir (1. projedeki `setPixel()`)
+- İki sensör bağlayıp sağ ve sol tarafı ayrı ayrı ölç
+- Ölçümlere 2. projedeki yumuşatma filtresini uygula — okumalar daha kararlı olur
+
+</Step>
