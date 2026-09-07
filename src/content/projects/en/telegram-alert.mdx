@@ -1,0 +1,268 @@
+---
+projectId: telegram-alert
+title: Telegram Bot — Query Your Room from Anywhere
+summary: >-
+  Message your board on Telegram and have it answer. Find out whether there has
+  been movement in your room, and what the weather is doing, from anywhere in
+  the world. This project is also about keeping API keys safe.
+learn:
+  - Creating a Telegram bot and responding to its commands
+  - Keeping an API key out of your code, in an environment variable
+  - Closing your bot to strangers with a whitelist
+  - Detecting motion with a PIR sensor and catching the rising edge
+  - Handling failures from an internet service without crashing
+troubleshooting:
+  - q: The bot never replies to my messages.
+    a: >-
+      First check that the TELEGRAM_BOT_TOKEN environment variable is set in
+      App Lab. Then make sure your own user ID is in the whitelist — if it is
+      not, the bot ignores you. Message @userinfobot on Telegram to find your ID.
+  - q: How do I find my own user ID?
+    a: >-
+      Find @userinfobot on Telegram and send it any message. It replies with
+      your user ID, a long number. Put that number into the ALLOWED_USERS list
+      in the code.
+  - q: The PIR sensor detects motion constantly.
+    a: >-
+      Three possible causes. First, the warm-up: an HC-SR501 is unstable for
+      30-60 seconds after power-up, so wait. Second, the sensitivity
+      potentiometer on the sensor may be turned up too high. Third, you may
+      have pointed it at a window or a radiator — both produce the temperature
+      changes it looks for.
+  - q: It never detects anything.
+    a: >-
+      There are two small potentiometers on the sensor: sensitivity and delay.
+      Try increasing the sensitivity. Also make sure the sensor's VCC goes to
+      5V — most HC-SR501s will not run on 3.3V.
+  - q: The /weather command returns an error.
+    a: >-
+      That command needs the internet. Make sure the WiFi network the board
+      joined actually reaches the outside world. Also try the city name in
+      English, as the service may not recognise accented spellings.
+  - q: The bot answers me, but could a stranger query it too?
+    a: >-
+      Not if you filled the whitelist in properly. When someone not on the list
+      messages the bot, it does nothing. Leave the list empty, though, and the
+      bot is open to everyone — anyone who guesses its name can query your room.
+---
+
+In the WiFi projects so far you had to be **on the same network** to reach your
+board. Here the board goes out to the internet: you can message it on Telegram
+from anywhere in the world and ask about your room.
+
+<WiringDiagram file="09-telegram-alert.svg" caption="The path from the PIR sensor to Telegram" />
+
+<Callout lang="en" variant="info" title="This bot answers questions">
+The bot is built to reply when you ask. It does not message you the instant
+motion happens; instead it accumulates events and summarises them when you type
+`/status`.
+
+That has an advantage: you are not drowned in dozens of notifications through
+the day. You ask when you want to know.
+</Callout>
+
+<Step n={1} title="Create a bot on Telegram">
+
+Open Telegram and find **@BotFather** — Telegram's own official bot for making
+bots.
+
+1. Type `/newbot`
+2. Give your bot a name (for example "Room Watcher")
+3. Give it a username, which must end in `bot` (for example `roomwatcher_bot`)
+
+BotFather replies with a long **token**, something like:
+
+```
+7123456789:AAExampleTokenDoNotUseThisOne_abcdefg
+```
+
+<Callout lang="en" variant="danger" title="That token is a password">
+Anyone holding this token has complete control of your bot. Do not screenshot
+it, do not send it to anyone, do not put it in your code.
+
+The next step stores it safely.
+</Callout>
+
+</Step>
+
+<Step n={2} title="Store the token as an environment variable">
+
+We do **not** write the token into the code. Instead we put it into App Lab's
+environment variable settings:
+
+| Variable name | Value |
+| --- | --- |
+| `TELEGRAM_BOT_TOKEN` | The token BotFather gave you |
+
+The `telegram_bot` brick reads the token from there. It appears nowhere in your
+code.
+
+<Callout lang="en" variant="warning" title="Why does this matter so much?">
+Imagine sending your code to a friend, pushing it to GitHub or pasting it into
+a forum. With the token in the code, everyone who sees it owns your bot.
+
+Kept in an environment variable, you can share the code freely — the token
+stays behind. The rule applies to every API key: weather services, cloud
+providers, payment systems.
+</Callout>
+
+</Step>
+
+<Step n={3} title="Find your user ID and add it to the whitelist">
+
+Find **@userinfobot** on Telegram and send it any message. It replies with your
+user ID — a long number.
+
+Put that number into the list in `python/main.py`:
+
+```python
+ALLOWED_USERS = [
+    123456789,   # ← your own ID
+]
+```
+
+<Callout lang="en" variant="danger" title="Do not leave this list empty">
+Your bot's username is guessable. Without a whitelist, **anyone** who finds it
+can type `/status` and learn whether there is movement in your room.
+
+You would have built a system that tells strangers whether you are at home.
+
+The line `TelegramBot(whitelist_user_ids=ALLOWED_USERS)` solves this on its own
+— everyone not on the list is ignored.
+</Callout>
+
+</Step>
+
+<Step n={4} title="Wire the PIR sensor">
+
+The HC-SR501 has three pins:
+
+| Sensor | To the board |
+| --- | --- |
+| VCC | **5V** |
+| OUT | **D2** |
+| GND | **GND** |
+
+<Callout lang="en" variant="tip" title="No voltage divider this time">
+In project 3 the HC-SR04's ECHO pin drove 5V and a divider was mandatory.
+
+The HC-SR501 is different: it runs on 5V but its **output is 3.3V TTL**. You
+can connect it straight to D2.
+
+This is exactly why "it runs on 5V so its output must be 5V" is a bad
+assumption. Every module needs its datasheet checked separately.
+</Callout>
+
+There are two orange potentiometers on the sensor:
+
+- **Sensitivity** — how far it detects (3-7 metres)
+- **Delay** — how long its output stays HIGH after triggering
+
+Start with both in the middle.
+
+<PhotoSlot lang="en" caption="The circuit with the PIR sensor connected" />
+
+</Step>
+
+<Step n={5} title="The sketch: catch the rising edge">
+
+The sketch's job is simple, but there is a subtlety. A PIR sensor holds its
+output HIGH for several seconds after triggering. If we asked "is it HIGH?"
+every pass and reported, one movement would produce hundreds of reports.
+
+Instead we catch the **rising edge** — the moment it goes from LOW to HIGH:
+
+```cpp
+if (motion && !lastMotion) {
+  // Only movement that has just started
+}
+```
+
+On top of that there is a cooldown:
+
+```cpp
+if (millis() - lastReportAt >= COOLDOWN_MS) {
+```
+
+Someone walking around a room triggers the sensor continuously. A five-second
+cooldown counts that as one "there was movement" event.
+
+</Step>
+
+<Step n={6} title="The Python: define the commands">
+
+`bot.add_command()` binds each command to its own function:
+
+```python
+bot.add_command("status", command_status, "Show the motion status")
+```
+
+The third parameter is the description Telegram shows in its command menu.
+
+One thing deserves attention in the `/weather` command — it reaches out to the
+internet, and the internet does not always work:
+
+```python
+try:
+    forecast = weather.get_forecast_by_city(city)
+    sender.reply(f"{city}: {forecast.category}")
+except Exception as error:
+    sender.reply("Could not get the forecast...")
+```
+
+<Callout lang="en" variant="tip" title="Wrap every network call">
+A request to the internet can fail for many reasons: the network drops, the
+service goes down, the city is not found. Without `try/except` that failure
+crashes the whole app, and your `/status` command stops working too.
+
+Telling the user "that did not work" beats crashing silently.
+</Callout>
+
+</Step>
+
+<Step n={7} title="Run it and start talking">
+
+Press **Run**. The App Lab output should show:
+
+```
+Telegram bot ready.
+Authorised users: 1
+```
+
+Now find your bot on Telegram (search for the username BotFather gave you) and:
+
+1. Type **`/start`** — the bot greets you by name
+2. Wave your hand in front of the sensor — an exclamation mark blinks on the matrix
+3. Type **`/status`** — you get something like "Last motion: 5 seconds ago"
+4. Type **`/weather`** — the forecast for your city arrives
+5. Type **`/weather Berlin`** — you can ask about any city
+
+<Callout lang="en" variant="info" title="It really does work remotely">
+Switching your phone to mobile data changes nothing. The message reaches your
+board through Telegram's servers. You can leave the house and ask from the
+other side of the city.
+
+That is the fundamental difference from the earlier WiFi projects: those only
+worked within the same network.
+</Callout>
+
+</Step>
+
+<Step n={8} title="Take it further">
+
+- Add a `/history` command that lists the times of the last 10 movements
+- Attach the DHT11 from project 4 and add a `/temperature` command
+- Store the motion history in the database from project 5 so it survives a restart
+- Send a daily summary with `bot.schedule_message()` — the details are in App
+  Lab's brick reference
+- Add a few family members to the whitelist
+
+<Callout lang="en" variant="tip" title="Sending notifications on your own">
+In this project the bot only answers when you ask. If you want it to message
+you the moment motion happens, check the `telegram_bot` brick reference in App
+Lab — depending on your version it may offer a direct send function. The
+`schedule_message()` seen in the examples can also send messages at regular
+intervals.
+</Callout>
+
+</Step>

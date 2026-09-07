@@ -24,7 +24,7 @@ const t = useTranslations(lang);
 // Tüm kod dosyalarını ham metin olarak derleme zamanında topla.
 const modules = import.meta.glob('../code/**/*', { query: '?raw', import: 'default', eager: true }) as Record<string, string>;
 
-type ShikiLang = 'cpp' | 'python' | 'yaml' | 'javascript' | 'html' | 'text';
+type ShikiLang = 'cpp' | 'python' | 'yaml' | 'javascript' | 'html' | 'css' | 'text';
 
 function langFor(file: string): ShikiLang {
   if (file.endsWith('.ino') || file.endsWith('.cpp') || file.endsWith('.h')) return 'cpp';
@@ -32,6 +32,7 @@ function langFor(file: string): ShikiLang {
   if (file.endsWith('.yaml') || file.endsWith('.yml')) return 'yaml';
   if (file.endsWith('.js')) return 'javascript';
   if (file.endsWith('.html')) return 'html';
+  if (file.endsWith('.css')) return 'css';
   return 'text';
 }
 

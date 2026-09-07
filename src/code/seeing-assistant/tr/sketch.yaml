@@ -1,0 +1,11 @@
+# Proje 10 — Gören ve Konuşan Asistan
+# Servo motoru sürmek için Servo kütüphanesi gerekiyor.
+
+profiles:
+  default:
+    platforms:
+      - platform: arduino:zephyr
+    libraries:
+      - Servo (1.2.2)
+
+default_profile: default

@@ -1,0 +1,233 @@
+/*
+  Web interface styles — Projects 6, 7, 8 and 10
+  Arduino UNO Q · assets/style.css
+
+  The same file is used in all four projects. A dark theme and generous touch
+  targets keep it readable on a phone.
+*/
+
+:root {
+  --bg:          #0b1416;
+  --surface:     #101d20;
+  --surface-2:   #16272b;
+  --border:      #23393e;
+  --text:        #e6f1f2;
+  --text-muted:  #9ab2b6;
+  --accent:      #26b5ba;
+  --temperature: #e0533f;
+  --humidity:    #0d8ce0;
+  --light:       #e0a91a;
+  --on:          #2f9e5e;
+  --off:         #6b7b80;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 1rem;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+main { max-width: 720px; margin: 0 auto; }
+
+h1 { font-size: 1.5rem; margin: 0 0 0.75rem; letter-spacing: -0.01em; }
+h2 { font-size: 1rem; margin: 0 0 0.75rem; color: var(--text-muted); font-weight: 600; }
+
+.hint { font-size: 0.8rem; color: var(--text-muted); margin: 0.5rem 0 0; }
+
+/* ───────── Connection status ───────── */
+.status {
+  display: inline-block;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  margin: 0 0 1rem;
+}
+.status.waiting   { background: #3a3222; color: #e0a91a; }
+.status.connected { background: #12332a; color: #4cc98a; }
+.status.error     { background: #3a2020; color: #e0705f; }
+
+/* ───────── Cards ───────── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+/* ───────── Forms ───────── */
+label {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin: 0.9rem 0 0.35rem;
+}
+
+input[type="text"],
+input[type="color"] {
+  width: 100%;
+  padding: 0.65rem 0.8rem;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  font-size: 1rem;
+  font-family: inherit;
+}
+input[type="color"] { height: 46px; padding: 0.25rem; cursor: pointer; }
+
+input[type="range"] {
+  width: 100%;
+  accent-color: var(--accent);
+  margin: 0.25rem 0;
+}
+
+button {
+  padding: 0.65rem 1.1rem;
+  background: var(--accent);
+  border: 0;
+  border-radius: 10px;
+  color: #05191b;
+  font-size: 0.9rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+}
+button:hover  { filter: brightness(1.1); }
+button:active { transform: translateY(1px); }
+
+/* An input and a button side by side */
+.row { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.row input[type="text"] { flex: 1 1 12rem; }
+
+/* ───────── Relay button (project 7) ───────── */
+.big-button {
+  width: 100%;
+  padding: 1.4rem;
+  font-size: 1.3rem;
+  letter-spacing: 0.06em;
+}
+.big-button.on  { background: var(--on);  color: #04170d; }
+.big-button.off { background: var(--off); color: #0b1416; }
+
+.preset        { background: var(--surface-2); color: var(--text); font-weight: 600; }
+.preset.cancel { background: #3a2020; color: #e0705f; }
+.swatch        { background: var(--surface-2); color: var(--text); font-weight: 600; }
+
+/* ───────── Reading cards (project 8) ───────── */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+}
+.reading-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 0.8rem;
+  text-align: center;
+}
+.reading-card .label {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.reading-card .value {
+  display: block;
+  margin-top: 0.3rem;
+  font-size: 1.6rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.reading-card .value small { font-size: 0.85rem; opacity: 0.6; margin-left: 0.1rem; }
+.reading-card.temperature .value { color: var(--temperature); }
+.reading-card.humidity    .value { color: var(--humidity); }
+.reading-card.light       .value { color: var(--light); }
+
+/* Chart */
+.chart-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.legend { font-size: 0.75rem; color: var(--text-muted); }
+.dot {
+  display: inline-block;
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  margin: 0 0.2rem 0 0.6rem;
+}
+.dot.temperature { background: var(--temperature); }
+.dot.humidity    { background: var(--humidity); }
+.dot.light       { background: var(--light); }
+
+canvas {
+  width: 100%;
+  height: 260px;
+  margin-top: 0.6rem;
+  display: block;
+}
+
+/* ───────── Object list (project 10) ───────── */
+.object-list { list-style: none; margin: 0; padding: 0; }
+.object-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.35rem 0;
+}
+.object-list .name { flex: 0 0 9rem; font-weight: 600; }
+.object-list .confidence {
+  height: 10px;
+  border-radius: 999px;
+  background: var(--accent);
+  min-width: 4px;
+}
+.object-list .empty { color: var(--text-muted); font-style: italic; }
+
+/* Event log */
+.log {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 18rem;
+  overflow-y: auto;
+  font-size: 0.85rem;
+}
+.log li {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.35rem 0;
+  border-bottom: 1px solid var(--border);
+}
+.log li:last-child { border-bottom: 0; }
+.log .icon { flex: 0 0 1.2rem; }
+.log .time {
+  flex: 0 0 4.5rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.log .text { flex: 1; min-width: 0; word-break: break-word; }
+.log li.answer .text { color: var(--accent); }
+.log li.person .text { color: var(--light); }
+
+.current { font-size: 0.85rem; color: var(--text-muted); }
+
+/* ───────── Narrow screens ───────── */
+@media (max-width: 480px) {
+  .cards { grid-template-columns: 1fr; }
+  .object-list .name { flex-basis: 6rem; }
+  canvas { height: 200px; }
+}

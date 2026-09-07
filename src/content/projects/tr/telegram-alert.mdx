@@ -1,0 +1,269 @@
+---
+projectId: telegram-alert
+title: Telegram Botu — Odanı Uzaktan Sorgula
+summary: >-
+  Kartına Telegram'dan mesaj at, o da sana cevap versin. Odanda hareket olup
+  olmadığını ve hava durumunu istediğin yerden öğren. Bu projede API
+  anahtarlarını güvenli tutmayı öğreneceksin.
+learn:
+  - Telegram botu oluşturmak ve komutlarına cevap vermek
+  - "API anahtarını koda gömmeden, ortam değişkeninde saklamak"
+  - "Beyaz liste ile botunu yetkisiz kişilere kapatmak"
+  - "PIR sensörüyle hareket algılamak ve yükselen kenarı yakalamak"
+  - İnternete çıkan bir servisin hatasını çökmeden yönetmek
+troubleshooting:
+  - q: Bot mesajlarıma hiç cevap vermiyor.
+    a: >-
+      Önce TELEGRAM_BOT_TOKEN ortam değişkeninin App Lab'de tanımlı olduğunu
+      kontrol et. Sonra beyaz listeye kendi kullanıcı kimliğini eklediğinden
+      emin ol — listede yoksan bot seni görmezden gelir. Kimliğini Telegram'da
+      @userinfobot ile öğrenebilirsin.
+  - q: Kendi kullanıcı kimliğimi nasıl bulacağım?
+    a: >-
+      Telegram'da @userinfobot hesabını bul ve ona herhangi bir mesaj at.
+      Sana kullanıcı kimliğini (uzun bir sayı) söyleyecek. Bu sayıyı koddaki
+      IZINLI_KULLANICILAR listesine yaz.
+  - q: PIR sensörü sürekli hareket algılıyor.
+    a: >-
+      Üç sebebi olabilir. Birincisi ısınma süresi: HC-SR501 açıldıktan sonra
+      30-60 saniye boyunca kararsızdır, bekle. İkincisi sensörün üzerindeki
+      hassasiyet potansiyometresi çok yüksek olabilir. Üçüncüsü sensörü
+      pencereye veya kalorifere doğrultmuş olabilirsin — ikisi de sıcaklık
+      değişimi üretir.
+  - q: Hiç hareket algılamıyor.
+    a: >-
+      Sensörün üzerinde iki küçük potansiyometre var; biri hassasiyet, diğeri
+      gecikme süresi. Hassasiyeti artırmayı dene. Ayrıca sensörün VCC pininin
+      5V'a bağlı olduğundan emin ol — 3.3V ile çoğu HC-SR501 çalışmaz.
+  - q: /hava komutu hata veriyor.
+    a: >-
+      Bu komut internet gerektiriyor. Kartın bağlı olduğu WiFi ağının internete
+      çıktığından emin ol. Şehir adını İngilizce yazmayı da dene (Istanbul,
+      Ankara gibi) — servis Türkçe karakterleri tanımayabilir.
+  - q: Bot bana cevap veriyor ama başkası da sorgulayabilir mi?
+    a: >-
+      Beyaz listeyi doğru doldurduysan hayır. Listede olmayan biri mesaj
+      attığında bot hiçbir şey yapmaz. Ama listeyi boş bırakırsan bot herkese
+      açık olur — botunun adını tahmin eden herkes odanı sorgulayabilir.
+---
+
+Şimdiye kadarki WiFi projelerinde kartına ulaşmak için **aynı ağda** olman
+gerekiyordu. Bu projede kart internete çıkıyor: dünyanın herhangi bir yerinden
+Telegram'dan mesaj atıp odanı sorgulayabilirsin.
+
+<WiringDiagram file="09-telegram-alert.svg" caption="PIR sensöründen Telegram'a giden yol" />
+
+<Callout lang="tr" variant="info" title="Bu bot sorulara cevap verir">
+Bot, sen sorduğunda cevap veren bir yapıda. Hareket olduğunda kendiliğinden
+sana mesaj atmıyor; bunun yerine hareketleri biriktiriyor ve `/durum` yazınca
+özetliyor.
+
+Bunun bir avantajı var: gün içinde onlarca bildirimle boğulmuyorsun. Merak
+ettiğinde soruyorsun.
+</Callout>
+
+<Step n={1} title="Telegram'da bot oluştur">
+
+Telegram'ı aç ve **@BotFather** hesabını bul. Bu, Telegram'ın kendi resmî bot
+oluşturma botu.
+
+1. `/newbot` yaz
+2. Botuna bir isim ver (ör. "Oda Bekçim")
+3. Bir kullanıcı adı ver — `bot` ile bitmeli (ör. `odabekcim_bot`)
+
+BotFather sana uzun bir **token** verecek. Şuna benzer bir şey:
+
+```
+7123456789:AAExampleTokenDoNotUseThisOne_abcdefg
+```
+
+<Callout lang="tr" variant="danger" title="Bu token bir paroladır">
+Bu token'a sahip olan herkes botunu tamamen kontrol edebilir. Ekran görüntüsü
+alma, kimseye gönderme, koda yazma.
+
+Bir sonraki adımda bunu güvenli şekilde saklayacağız.
+</Callout>
+
+</Step>
+
+<Step n={2} title="Token'ı ortam değişkeni olarak kaydet">
+
+Token'ı **koda yazmıyoruz**. Bunun yerine App Lab'in ortam değişkeni
+ayarlarına giriyoruz:
+
+| Değişken adı | Değer |
+| --- | --- |
+| `TELEGRAM_BOT_TOKEN` | BotFather'ın verdiği token |
+
+`telegram_bot` brick'i token'ı buradan okuyor. Kodunda hiçbir yerde geçmiyor.
+
+<Callout lang="tr" variant="warning" title="Neden bu kadar önemli?">
+Kodunu bir arkadaşına gönderdiğini, GitHub'a yüklediğini ya da bir foruma
+yapıştırdığını düşün. Token koddaysa, onu gören herkes botunu ele geçirir.
+
+Ortam değişkeninde tutarsan kodu istediğin gibi paylaşabilirsin — token
+paylaşılmaz. Bu kural her API anahtarı için geçerli: hava durumu servisleri,
+bulut sağlayıcıları, ödeme sistemleri…
+</Callout>
+
+</Step>
+
+<Step n={3} title="Kendi kullanıcı kimliğini öğren ve beyaz listeye ekle">
+
+Telegram'da **@userinfobot** hesabını bul ve ona herhangi bir mesaj at. Sana
+kullanıcı kimliğini söyleyecek — uzun bir sayı.
+
+Bu sayıyı `python/main.py` dosyasındaki listeye yaz:
+
+```python
+IZINLI_KULLANICILAR = [
+    123456789,   # ← kendi kimliğin
+]
+```
+
+<Callout lang="tr" variant="danger" title="Bu listeyi boş bırakma">
+Botunun kullanıcı adı tahmin edilebilir. Beyaz liste olmadan, botunun adını
+bulan **herkes** `/durum` yazıp odanda hareket olup olmadığını öğrenebilir.
+
+Evde olup olmadığını yabancılara söyleyen bir sistem kurmuş olursun.
+
+`TelegramBot(whitelist_user_ids=IZINLI_KULLANICILAR)` satırı bunu tek başına
+çözüyor — listede olmayan herkes görmezden gelinir.
+</Callout>
+
+</Step>
+
+<Step n={4} title="PIR sensörünü bağla">
+
+HC-SR501'in üç pini var:
+
+| Sensör | Karta |
+| --- | --- |
+| VCC | **5V** |
+| OUT | **D2** |
+| GND | **GND** |
+
+<Callout lang="tr" variant="tip" title="Bu sefer gerilim bölücü yok">
+3. projedeki HC-SR04'ün ECHO pini 5V veriyordu ve bölücü şarttı.
+
+HC-SR501 farklı: 5V ile besleniyor ama **çıkışı 3.3V TTL**. Doğrudan D2'ye
+bağlayabilirsin.
+
+Bu, "5V ile besleniyorsa çıkışı da 5V'dur" varsayımının neden yanlış olduğunu
+gösteriyor. Her modülün veri sayfasına ayrı bakman gerekiyor.
+</Callout>
+
+Sensörün üzerinde iki turuncu potansiyometre var:
+
+- **Hassasiyet** — ne kadar uzağı algılayacağı (3-7 metre)
+- **Gecikme** — tetiklendikten sonra ne kadar süre HIGH kalacağı
+
+İkisini de ortada bırakarak başla.
+
+<PhotoSlot lang="tr" caption="PIR sensörü bağlanmış devre" />
+
+</Step>
+
+<Step n={5} title="Sketch: yükselen kenarı yakala">
+
+Sketch'in işi basit ama bir incelik var. PIR sensörü tetiklendiğinde çıkışını
+birkaç saniye HIGH tutuyor. Eğer her turda "HIGH mi?" diye sorup bildirsek,
+tek bir hareket için yüzlerce bildirim gönderirdik.
+
+Bunun yerine **yükselen kenarı** yakalıyoruz — yani LOW'dan HIGH'a geçtiği anı:
+
+```cpp
+if (motion && !lastMotion) {
+  // Sadece YENİ başlayan hareket
+}
+```
+
+Üstüne bir de bekleme süresi koyuyoruz:
+
+```cpp
+if (millis() - lastReportAt >= COOLDOWN_MS) {
+```
+
+Odada dolaşan biri sensörü sürekli tetikler. 5 saniyelik bekleme, bunu tek bir
+"hareket var" olayı olarak sayıyor.
+
+</Step>
+
+<Step n={6} title="Python: komutları tanımla">
+
+`bot.add_command()` her komutu ayrı bir fonksiyona bağlıyor:
+
+```python
+bot.add_command("durum", komut_durum, "Hareket durumunu göster")
+```
+
+Üçüncü parametre Telegram'ın komut menüsünde görünen açıklama.
+
+`/hava` komutunda dikkat edilecek bir nokta var — bu komut internete çıkıyor
+ve internet her zaman çalışmaz:
+
+```python
+try:
+    tahmin = hava.get_forecast_by_city(sehir)
+    sender.reply(f"{sehir}: {tahmin.category}")
+except Exception as hata:
+    sender.reply("Hava durumu alinamadi...")
+```
+
+<Callout lang="tr" variant="tip" title="Ağa çıkan her çağrıyı sarmala">
+İnternete giden bir istek çok sebeple başarısız olabilir: ağ kopar, servis
+kapanır, şehir adı bulunamaz. `try/except` olmadan bu hata tüm uygulamayı
+çökertir ve `/durum` komutun da çalışmaz olur.
+
+Kullanıcıya "olmadı" demek, sessizce çökmekten çok daha iyidir.
+</Callout>
+
+</Step>
+
+<Step n={7} title="Çalıştır ve konuş">
+
+**Run** de. App Lab çıktısında şunu görmelisin:
+
+```
+Telegram bot hazir.
+Izinli kullanici sayisi: 1
+```
+
+Şimdi Telegram'da botunu bul (BotFather'ın verdiği kullanıcı adıyla ara) ve:
+
+1. **`/start`** yaz — bot seni adınla karşılar
+2. Elini sensörün önünde salla — kartın matrisinde ünlem işareti yanıp söner
+3. **`/durum`** yaz — "Son hareket: 5 saniye önce" gibi bir cevap gelir
+4. **`/hava`** yaz — şehrin için hava durumu gelir
+5. **`/hava Ankara`** yaz — başka bir şehir sorabilirsin
+
+<Callout lang="tr" variant="info" title="Uzaktan gerçekten çalışıyor">
+Telefonunun mobil veriye geçmesi hiçbir şeyi değiştirmiyor. Mesaj Telegram'ın
+sunucuları üzerinden kartına ulaşıyor. Evden çıkıp şehrin öbür ucundan da
+sorabilirsin.
+
+Bu, önceki WiFi projelerinden temel farkı: onlar yalnızca aynı ağ içinde
+çalışıyordu.
+</Callout>
+
+</Step>
+
+<Step n={8} title="Geliştir">
+
+- `/gecmis` komutu ekle: son 10 hareketin saatlerini listele
+- 4. projedeki DHT11'i bağlayıp `/sicaklik` komutu ekle
+- Hareket geçmişini 5. projedeki veritabanına kaydet, kart yeniden başlasa
+  bile kaybolmasın
+- `bot.schedule_message()` ile günlük özet gönder — App Lab'in brick
+  referansında bu fonksiyonun ayrıntıları var
+- Beyaz listeye ailenden birkaç kişi daha ekle
+
+<Callout lang="tr" variant="tip" title="Kendiliğinden bildirim göndermek">
+Bu projede bot yalnızca sen sorduğunda cevap veriyor. Hareket anında
+kendiliğinden mesaj göndermek istersen, App Lab'deki `telegram_bot` brick
+referansına bak — sürümüne göre doğrudan mesaj gönderen bir fonksiyon
+sunuyor olabilir. Örneklerdeki `schedule_message()` de düzenli aralıklarla
+mesaj göndermek için kullanılabilir.
+</Callout>
+
+</Step>

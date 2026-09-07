@@ -201,7 +201,7 @@ export const projects: Project[] = [
     needsCamera: false,
     needsMic: false,
     bricks: ['arduino:web_ui'],
-    codeFiles: ['app.yaml', 'main.py', 'sketch.ino', 'index.html', 'app.js'],
+    codeFiles: ['app.yaml', 'main.py', 'sketch.ino', 'index.html', 'app.js', 'style.css'],
     diagram: '06-web-matrix.svg',
     bom: [
       { part: 'uno-q', qty: 1, reusedFrom: 1 },
@@ -219,7 +219,7 @@ export const projects: Project[] = [
     needsCamera: false,
     needsMic: false,
     bricks: ['arduino:web_ui'],
-    codeFiles: ['app.yaml', 'main.py', 'sketch.ino', 'sketch.yaml', 'index.html', 'app.js'],
+    codeFiles: ['app.yaml', 'main.py', 'sketch.ino', 'sketch.yaml', 'index.html', 'app.js', 'style.css'],
     diagram: '07-smart-plug.svg',
     voltageWarning: true,
     bom: [
@@ -244,7 +244,7 @@ export const projects: Project[] = [
     needsCamera: false,
     needsMic: false,
     bricks: ['arduino:web_ui', 'arduino:dbstorage_tsstore'],
-    codeFiles: ['app.yaml', 'main.py', 'sketch.ino', 'sketch.yaml', 'index.html', 'app.js'],
+    codeFiles: ['app.yaml', 'main.py', 'sketch.ino', 'sketch.yaml', 'index.html', 'app.js', 'style.css'],
     diagram: '08-live-dashboard.svg',
     bom: [
       { part: 'uno-q', qty: 1, reusedFrom: 1 },
@@ -286,12 +286,12 @@ export const projects: Project[] = [
     needsCamera: true,
     needsMic: true,
     bricks: [
-      'arduino:object_detection',
+      'arduino:video_object_detection',
       'arduino:asr',
       'arduino:tts',
       'arduino:web_ui',
     ],
-    codeFiles: ['app.yaml', 'main.py', 'sketch.ino', 'index.html', 'app.js'],
+    codeFiles: ['app.yaml', 'main.py', 'sketch.ino', 'sketch.yaml', 'index.html', 'app.js', 'style.css'],
     diagram: '10-seeing-assistant.svg',
     bom: [
       { part: 'uno-q', qty: 1, reusedFrom: 1 },

@@ -1,0 +1,19 @@
+# Proje 10 — Gören ve Konuşan Asistan
+#
+# Dört brick bir arada:
+#   video_object_detection → kameradan nesne tanıma
+#   asr                    → konuşmayı yazıya çevirme (kartın kendisinde)
+#   tts                    → yazıyı sese çevirme
+#   web_ui                 → kontrol paneli
+#
+# asr ve tts kartın üzerinde çalışıyor — bulut servisi ve internet gerekmiyor.
+
+name: Goren ve Konusan Asistan
+icon: 👁️
+description: Kamerayla nesne tanir, sesli soruya sesli cevap verir
+
+bricks:
+  - arduino:video_object_detection
+  - arduino:asr
+  - arduino:tts
+  - arduino:web_ui

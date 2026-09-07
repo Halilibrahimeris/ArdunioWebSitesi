@@ -1,0 +1,292 @@
+---
+projectId: seeing-assistant
+title: Gören ve Konuşan Asistan
+summary: >-
+  Kamera odayı izliyor, mikrofon seni dinliyor, hoparlör cevap veriyor. "Ne
+  görüyorsun?" diye sor, kart sana ne gördüğünü söylesin. Dört brick'i tek bir
+  uygulamada birleştiren son proje.
+learn:
+  - Kameradan canlı nesne tanıma yapmak
+  - "Konuşmayı yazıya (asr) ve yazıyı sese (tts) çevirmek"
+  - Dört brick'i paylaşılan bir durum etrafında birleştirmek
+  - "App.run(user_loop=...) ile sürekli çalışan bir döngü kurmak"
+  - Yapay zekâ modellerinin güven değerini anlamak ve eşik seçmek
+troubleshooting:
+  - q: Kamera hiçbir şey tanımıyor.
+    a: >-
+      Önce kameranın Linux tarafından görüldüğünü doğrula: App Lab terminalinde
+      "ls /dev/video*" yaz. Hiçbir şey listelenmiyorsa kamera UVC uyumlu
+      olmayabilir ya da hub yeterli güç vermiyordur. Görünüyorsa GUVEN_ESIGI
+      değerini 0.4'ten 0.25'e düşürüp dene.
+  - q: Kamera, mikrofon ve hoparlörü aynı anda bağlayamıyorum.
+    a: >-
+      Kartta tek bir USB-C portu var ve o da güç taşıyor. Üç cihazı birden
+      bağlamak için kendi adaptörü olan (harici beslemeli) bir USB-C hub
+      gerekiyor. Beslemesiz hub'lar yeterli akımı veremez ve cihazlar rastgele
+      kopar.
+  - q: Mikrofon beni duyuyor ama yanlış anlıyor.
+    a: >-
+      Bu normal; konuşma tanıma mükemmel değil. Kod da bunu varsayarak
+      yazılmış: tam cümle aramak yerine "gör", "bak" gibi anahtar kelimeler
+      arıyor. Mikrofona yakın ve net konuş. Arka plan gürültüsü varsa
+      DINLEME_SURESI değerini artırmak işe yarayabilir.
+  - q: Hoparlörden hiç ses çıkmıyor.
+    a: >-
+      Linux'un sesi doğru cihaza gönderdiğinden emin ol. App Lab terminalinde
+      "aplay -l" komutuyla ses çıkışlarını listeleyebilirsin. USB hoparlör
+      görünmüyorsa hub'ı kontrol et. Ses seviyesi kısık da olabilir.
+  - q: Servo titriyor ve düzgün hareket etmiyor.
+    a: >-
+      Neredeyse her zaman besleme sorunudur. Servoyu kartın 5V pininden
+      besliyorsan harici adaptöre geç — servo kalkarken 700 mA'ya kadar çeker.
+      Harici beslemenin GND'sini kartın GND'sine bağlamayı unutma.
+  - q: Uygulama bir süre sonra donuyor gibi.
+    a: >-
+      Donmuyor, dinliyor. Mikrofon her turda 5 saniye kayıt alıyor ve bu sırada
+      user_loop bekliyor. Kamera ve web arayüzü arka planda çalışmaya devam
+      eder. DINLEME_SURESI değerini düşürürsen daha canlı hissettirir.
+  - q: Nesne adları İngilizce geliyor.
+    a: >-
+      Model İngilizce etiketler üretiyor. Kodda TURKCE_ADLAR sözlüğü ile en sık
+      görülenleri çeviriyoruz. Listede olmayan bir nesne İngilizce kalır —
+      sözlüğe yeni satır ekleyerek genişletebilirsin.
+---
+
+Son proje. Şimdiye kadar öğrendiğin her şey burada bir araya geliyor: Bridge,
+web arayüzü, brickler, harici besleme, 3.3V dikkatleri.
+
+Üstüne de kartın en etkileyici yeteneğini ekliyoruz: **görmek, duymak ve
+konuşmak.**
+
+<WiringDiagram file="10-seeing-assistant.svg" caption="Dört brick, paylaşılan durum ve donanım" />
+
+<Callout lang="tr" variant="info" title="Buluta hiçbir şey gitmiyor">
+Nesne tanıma, konuşma tanıma ve ses sentezi — üçü de **kartın kendi üzerinde**
+çalışıyor. Ne bir API anahtarı gerekiyor ne de internet.
+
+Bu, 4 GB RAM'in ve dört çekirdekli işlemcinin ne işe yaradığının en net cevabı.
+Klasik bir Arduino'da bunların hiçbiri mümkün değil.
+</Callout>
+
+## Donanım: tek USB-C portu sorunu
+
+Kartta **tek bir USB-C portu** var ve o da hem güç hem veri taşıyor. Bu projede
+üç USB cihazı birden bağlamamız gerekiyor: kamera, mikrofon, hoparlör.
+
+Çözüm: **harici beslemeli bir USB-C hub.**
+
+<Callout lang="tr" variant="warning" title="Hub'ın kendi adaptörü olmalı">
+Beslemesiz (passive) hub'lar kartın verdiği akımı üç cihaz arasında paylaştırır.
+Kamera tek başına 500 mA çekebilir. Sonuç: cihazlar rastgele kopar, kamera
+donar, uygulama çöker.
+
+Kendi adaptörü olan bir hub al. Bu proje için en kritik malzeme bu.
+</Callout>
+
+<Step n={1} title="USB cihazları bağla ve tanındığını doğrula">
+
+Hub'ı kendi adaptörüne tak, sonra karta bağla. Kamera, mikrofon ve hoparlörü
+hub'a tak.
+
+App Lab'de terminali aç ve cihazların görüldüğünü kontrol et:
+
+```bash
+ls /dev/video*
+```
+
+Kamera bağlıysa `/dev/video0` gibi bir sonuç görmelisin. Ses cihazları için:
+
+```bash
+aplay -l
+```
+
+<Callout lang="tr" variant="danger" title="Kamera UVC uyumlu olmalı">
+`ls /dev/video*` hiçbir şey döndürmüyorsa kameran büyük ihtimalle UVC
+standardına uygun değil. Linux o kamerayı sürücüsüz tanıyamaz.
+
+Satın alırken "UVC" veya "driver-free / sürücüsüz" yazan modelleri seç.
+</Callout>
+
+</Step>
+
+<Step n={2} title="Servoyu bağla (opsiyonel)">
+
+Servo bu projede zorunlu değil ama sistemi çok daha canlı yapıyor: kamera
+boştayken sağa sola geziniyor, insan görünce ortaya dönüp "dikkat kesiliyor".
+
+- Servo **sinyal** ucu (turuncu/sarı) → **D9**
+- Servo **VCC** (kırmızı) → **harici 5V**
+- Servo **GND** (kahverengi/siyah) → **ortak GND**
+
+<Callout lang="tr" variant="warning" title="Servoyu kartın 5V pininden besleme">
+SG90 hareket ederken 200-300 mA, kalkarken 700 mA'ya kadar çekebilir. Kartın
+5V pini bunu karşılayamaz; gerilim düşer ve kart yeniden başlayabilir.
+
+7. projedeki harici adaptörü kullan. GND'yi kartla ortaklamayı unutma.
+</Callout>
+
+</Step>
+
+<Step n={3} title="Uygulamayı oluştur ve dört brick ekle">
+
+Yeni bir uygulama aç, adını `goren-asistan` koy. `app.yaml` dosyasına dördünü
+birden yaz:
+
+```yaml
+bricks:
+  - arduino:video_object_detection
+  - arduino:asr
+  - arduino:tts
+  - arduino:web_ui
+```
+
+İlk çalıştırmada App Lab yapay zekâ modellerini indirecek. Bu birkaç dakika
+sürebilir ve **bu adım için internet gerekiyor**. Modeller indikten sonra
+uygulama internetsiz çalışır.
+
+<Callout lang="tr" variant="tip" title="Import adına dikkat">
+`app.yaml` içindeki brick adı ile Python modül adı **birebir aynı değil**.
+Alt çizgiler farklı yerde:
+
+```yaml
+bricks:
+  - arduino:video_object_detection     # app.yaml'daki ad
+```
+
+```python
+from arduino.app_bricks.video_objectdetection import VideoObjectDetection
+```
+
+Bu tutarsızlık ilk seferde herkesi yanıltır. Kodu olduğu gibi kopyalarsan sorun
+yaşamazsın.
+</Callout>
+
+</Step>
+
+<Step n={4} title="Dört brick nasıl bir arada çalışıyor?">
+
+Bu projenin asıl öğrettiği şey mimari. Dört brick birbirini hiç tanımıyor;
+hepsi yalnızca **paylaşılan bir durum sözlüğüne** dokunuyor:
+
+```python
+durum = {
+    "son_nesneler": {},      # kamera buraya yazar
+    "son_gorme": 0.0,
+    "son_duyulan": "",       # mikrofon buraya yazar
+    "dinliyor": False,
+}
+```
+
+- **Kamera** bir şey tanıyınca `son_nesneler` alanını günceller
+- **Mikrofon** bir soru duyunca `son_nesneler` alanını *okur* ve cevap üretir
+- **Web arayüzü** her ikisini de gösterir
+
+Kamerayla mikrofon birbirini hiç çağırmıyor. Aralarındaki tek bağ bu sözlük.
+
+<Callout lang="tr" variant="tip" title="Neden böyle daha iyi?">
+Mikrofon kodunu değiştirdiğinde kamera koduna dokunmuyorsun. Yeni bir brick
+eklemek istersen (mesela QR kod okuma), o da sadece aynı sözlüğe yazar.
+
+Bileşenleri birbirine doğrudan bağlamak yerine ortak bir durum üzerinden
+konuşturmak, büyüyen sistemlerde işi çok kolaylaştırır.
+</Callout>
+
+</Step>
+
+<Step n={5} title="Güven eşiği nedir?">
+
+Kamerayı kurarken bir sayı veriyoruz:
+
+```python
+kamera = VideoObjectDetection(confidence=0.4, debounce_sec=1.5)
+```
+
+`confidence=0.4` şu demek: *"En az %40 emin olmadığın hiçbir şeyi bana
+söyleme."*
+
+Model hiçbir zaman "bu kesinlikle bir kedi" demez. "Bunun kedi olma ihtimali
+%73" der. Eşiği sen belirlersin:
+
+| Eşik | Sonuç |
+| --- | --- |
+| 0.2 | Çok şey bulur, çoğu yanlış |
+| 0.4 | Dengeli — bizim seçimimiz |
+| 0.8 | Yalnızca çok emin olduklarını söyler, çoğu şeyi kaçırır |
+
+`debounce_sec=1.5` ise aynı nesneyi saniyede onlarca kez bildirmesini
+engelliyor — 3. projedeki bip bekleme süresiyle aynı fikir.
+
+</Step>
+
+<Step n={6} title="Mikrofon döngüsü ve user_loop">
+
+Şimdiye kadar `App.run()` yazıyorduk. Bu projede farklı:
+
+```python
+App.run(user_loop=dinle)
+```
+
+`user_loop` verildiğinde App Lab o fonksiyonu **sürekli tekrar çağırır**.
+Bizim `dinle()` fonksiyonumuz her turda 5 saniye kayıt alıp duyduğunu
+değerlendiriyor.
+
+Kamera ve web arayüzü bu sırada durmuyor — onlar kendi geri çağrılarıyla arka
+planda çalışmaya devam ediyor.
+
+Soruyu tanıma kısmı bilerek gevşek yazıldı:
+
+```python
+GORME_KELIMELERI = ["gör", "gor", "ne var", "bak", "see"]
+
+if any(kelime in kucuk for kelime in GORME_KELIMELERI):
+    konus(gordugunu_anlat())
+```
+
+<Callout lang="tr" variant="info" title="Neden tam cümle aramıyoruz?">
+Konuşma tanıma mükemmel değil. "Ne görüyorsun?" dediğinde model bunu
+"ne goruyorsun", "ne görüyor sun" ya da "ne goruyor sunuz" olarak yazabilir.
+
+Tam eşleşme ararsan sistem çoğu zaman çalışmaz. Anahtar kelime aramak çok daha
+dayanıklı. Sesli arayüzlerde bu standart bir yaklaşımdır.
+</Callout>
+
+</Step>
+
+<Step n={7} title="Çalıştır ve konuş">
+
+Harici adaptörü ve hub'ı takıp **Run** de. İlk açılış model indirmeleri
+yüzünden uzun sürebilir.
+
+Web arayüzünü aç ve şunları dene:
+
+1. **Kameranın önüne geç.** Panelde "insan" belirir, güven çubuğu dolar.
+   Servo ortaya döner, matriste bir göz açılır.
+2. **Panelde "Ne görüyorsun?" düğmesine bas.** Hoparlörden cevap gelir.
+3. **Mikrofona "ne görüyorsun" de.** Aynı cevabı sesli soruyla al.
+4. **Kameraya bir bardak göster.** Panelde iki nesne birden listelenir.
+5. **"Kartı konuştur" kutusuna bir cümle yaz.** Kart onu söyler.
+
+<PhotoSlot lang="tr" caption="Kamera, mikrofon ve hoparlör bağlı çalışan sistem" />
+
+</Step>
+
+<Step n={8} title="Geliştir">
+
+- Panelde canlı kamera görüntüsünü göster
+- `keyword_spotting` brick'i ekleyip bir uyandırma kelimesi kur ("Hey Arduino")
+- Gördüğü nesneleri 5. projedeki veritabanına kaydet, gün sonunda özet çıkar
+- 9. projedeki Telegram botunu ekleyip "kim geldi?" sorusuna uzaktan cevap ver
+- Nesne tanıma yerine `pose_estimation` brick'ini dene — vücut duruşundan
+  hareket tanıyan bir sistem kurabilirsin
+
+<Callout lang="tr" variant="tip" title="Buraya kadar geldiysen">
+On projede şunları öğrendin: dijital ve analog giriş/çıkış, bloklamayan
+zamanlama, gerilim bölücü ve transistörle seviye çevirme, I2C, kütüphane
+yönetimi, iki işlemcili mimari ve Bridge, web sunucusu ve WebSocket, veritabanı,
+API anahtarı güvenliği ve dört ayrı yapay zekâ brick'i.
+
+Bunlar bir hobi listesi değil; gerçek gömülü sistem projelerinde her gün
+kullanılan konular.
+</Callout>
+
+</Step>

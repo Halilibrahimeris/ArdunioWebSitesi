@@ -1,0 +1,68 @@
+<!--
+  Project 10 — Seeing, Speaking Assistant panel
+  Arduino UNO Q · assets/index.html
+-->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Seeing, Speaking Assistant</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+
+  <body>
+    <main>
+      <h1>Seeing, Speaking Assistant</h1>
+      <p id="connection" class="status waiting">Connecting&hellip;</p>
+
+      <!-- What the camera sees -->
+      <section class="card">
+        <h2>What does the camera see?</h2>
+        <ul id="objects" class="object-list">
+          <li class="empty">Nothing recognised yet</li>
+        </ul>
+        <button id="ask">What do you see? (spoken answer)</button>
+      </section>
+
+      <!-- Microphone -->
+      <section class="card">
+        <h2>Microphone</h2>
+        <p>
+          Status: <strong id="listening-status">&mdash;</strong>
+        </p>
+        <p class="hint">
+          Last heard: <em id="last-heard">&mdash;</em>
+        </p>
+        <p class="hint">
+          Ask the board &ldquo;what do you see&rdquo; and it answers through the speaker.
+        </p>
+      </section>
+
+      <!-- Make it speak -->
+      <section class="card">
+        <h2>Make the board speak</h2>
+        <div class="row">
+          <input
+            id="text"
+            type="text"
+            maxlength="200"
+            placeholder="A sentence for it to say"
+            autocomplete="off"
+          />
+          <button id="say">Say it</button>
+        </div>
+      </section>
+
+      <!-- Event log -->
+      <section class="card">
+        <h2>What has been happening</h2>
+        <ul id="log" class="log"></ul>
+      </section>
+    </main>
+
+    <script src="libs/socket.io.min.js"></script>
+    <script src="libs/arduino.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>

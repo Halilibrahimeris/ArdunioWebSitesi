@@ -1,0 +1,233 @@
+/*
+  Web arayüzü stilleri — Projeler 6, 7, 8 ve 10
+  Arduino UNO Q · assets/style.css
+
+  Aynı dosya dört projede de kullanılıyor. Telefonda okunabilir olması için
+  koyu tema ve büyük dokunma alanları tercih edildi.
+*/
+
+:root {
+  --bg:        #0b1416;
+  --yuzey:     #101d20;
+  --yuzey-2:   #16272b;
+  --kenar:     #23393e;
+  --metin:     #e6f1f2;
+  --metin-sol: #9ab2b6;
+  --vurgu:     #26b5ba;
+  --sicaklik:  #e0533f;
+  --nem:       #0d8ce0;
+  --isik:      #e0a91a;
+  --acik:      #2f9e5e;
+  --kapali:    #6b7b80;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 1rem;
+  background: var(--bg);
+  color: var(--metin);
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+main { max-width: 720px; margin: 0 auto; }
+
+h1 { font-size: 1.5rem; margin: 0 0 0.75rem; letter-spacing: -0.01em; }
+h2 { font-size: 1rem; margin: 0 0 0.75rem; color: var(--metin-sol); font-weight: 600; }
+
+.hint { font-size: 0.8rem; color: var(--metin-sol); margin: 0.5rem 0 0; }
+
+/* ───────── Bağlantı durumu ───────── */
+.durum {
+  display: inline-block;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  margin: 0 0 1rem;
+}
+.durum.bekliyor { background: #3a3222; color: #e0a91a; }
+.durum.bagli    { background: #12332a; color: #4cc98a; }
+.durum.hata     { background: #3a2020; color: #e0705f; }
+
+/* ───────── Kartlar ───────── */
+.kart {
+  background: var(--yuzey);
+  border: 1px solid var(--kenar);
+  border-radius: 14px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+/* ───────── Formlar ───────── */
+label {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--metin-sol);
+  margin: 0.9rem 0 0.35rem;
+}
+
+input[type="text"],
+input[type="color"] {
+  width: 100%;
+  padding: 0.65rem 0.8rem;
+  background: var(--yuzey-2);
+  border: 1px solid var(--kenar);
+  border-radius: 10px;
+  color: var(--metin);
+  font-size: 1rem;
+  font-family: inherit;
+}
+input[type="color"] { height: 46px; padding: 0.25rem; cursor: pointer; }
+
+input[type="range"] {
+  width: 100%;
+  accent-color: var(--vurgu);
+  margin: 0.25rem 0;
+}
+
+button {
+  padding: 0.65rem 1.1rem;
+  background: var(--vurgu);
+  border: 0;
+  border-radius: 10px;
+  color: #05191b;
+  font-size: 0.9rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+}
+button:hover  { filter: brightness(1.1); }
+button:active { transform: translateY(1px); }
+
+/* Yan yana giriş + düğme */
+.satir { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.satir input[type="text"] { flex: 1 1 12rem; }
+
+/* ───────── Röle düğmesi (Proje 7) ───────── */
+.buyuk-buton {
+  width: 100%;
+  padding: 1.4rem;
+  font-size: 1.3rem;
+  letter-spacing: 0.06em;
+}
+.buyuk-buton.acik   { background: var(--acik);   color: #04170d; }
+.buyuk-buton.kapali { background: var(--kapali); color: #0b1416; }
+
+.sure       { background: var(--yuzey-2); color: var(--metin); font-weight: 600; }
+.sure.iptal { background: #3a2020; color: #e0705f; }
+.hazir-renk { background: var(--yuzey-2); color: var(--metin); font-weight: 600; }
+
+/* ───────── Ölçüm kartları (Proje 8) ───────── */
+.kartlar {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+}
+.olcum-kart {
+  background: var(--yuzey);
+  border: 1px solid var(--kenar);
+  border-radius: 12px;
+  padding: 0.8rem;
+  text-align: center;
+}
+.olcum-kart .etiket {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--metin-sol);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.olcum-kart .deger {
+  display: block;
+  margin-top: 0.3rem;
+  font-size: 1.6rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.olcum-kart .deger small { font-size: 0.85rem; opacity: 0.6; margin-left: 0.1rem; }
+.olcum-kart.sicaklik .deger { color: var(--sicaklik); }
+.olcum-kart.nem      .deger { color: var(--nem); }
+.olcum-kart.isik     .deger { color: var(--isik); }
+
+/* Grafik */
+.grafik-baslik {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.gosterge { font-size: 0.75rem; color: var(--metin-sol); }
+.nokta {
+  display: inline-block;
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  margin: 0 0.2rem 0 0.6rem;
+}
+.nokta.sicaklik { background: var(--sicaklik); }
+.nokta.nem      { background: var(--nem); }
+.nokta.isik     { background: var(--isik); }
+
+canvas {
+  width: 100%;
+  height: 260px;
+  margin-top: 0.6rem;
+  display: block;
+}
+
+/* ───────── Nesne listesi (Proje 10) ───────── */
+.nesne-listesi { list-style: none; margin: 0; padding: 0; }
+.nesne-listesi li {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.35rem 0;
+}
+.nesne-listesi .ad { flex: 0 0 9rem; font-weight: 600; }
+.nesne-listesi .guven {
+  height: 10px;
+  border-radius: 999px;
+  background: var(--vurgu);
+  min-width: 4px;
+}
+.nesne-listesi .bos { color: var(--metin-sol); font-style: italic; }
+
+/* Olay günlüğü */
+.gunluk {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 18rem;
+  overflow-y: auto;
+  font-size: 0.85rem;
+}
+.gunluk li {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.35rem 0;
+  border-bottom: 1px solid var(--kenar);
+}
+.gunluk li:last-child { border-bottom: 0; }
+.gunluk .simge { flex: 0 0 1.2rem; }
+.gunluk .zaman {
+  flex: 0 0 4.5rem;
+  color: var(--metin-sol);
+  font-variant-numeric: tabular-nums;
+}
+.gunluk .metin { flex: 1; min-width: 0; word-break: break-word; }
+.gunluk li.cevap .metin { color: var(--vurgu); }
+.gunluk li.insan .metin { color: var(--isik); }
+
+.simdiki { font-size: 0.85rem; color: var(--metin-sol); }
+
+/* ───────── Dar ekran ───────── */
+@media (max-width: 480px) {
+  .kartlar { grid-template-columns: 1fr; }
+  .nesne-listesi .ad { flex-basis: 6rem; }
+  canvas { height: 200px; }
+}

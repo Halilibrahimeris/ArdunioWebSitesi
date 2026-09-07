@@ -1,0 +1,68 @@
+<!--
+  Proje 10 — Gören ve Konuşan Asistan paneli
+  Arduino UNO Q · assets/index.html
+-->
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gören ve Konuşan Asistan</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+
+  <body>
+    <main>
+      <h1>Gören ve Konuşan Asistan</h1>
+      <p id="baglanti" class="durum bekliyor">Bağlanıyor&hellip;</p>
+
+      <!-- Kameranın gördüğü -->
+      <section class="kart">
+        <h2>Kamera ne görüyor?</h2>
+        <ul id="nesneler" class="nesne-listesi">
+          <li class="bos">Henüz bir şey tanımadı</li>
+        </ul>
+        <button id="sor">Ne görüyorsun? (sesli cevap)</button>
+      </section>
+
+      <!-- Mikrofon -->
+      <section class="kart">
+        <h2>Mikrofon</h2>
+        <p>
+          Durum: <strong id="dinleme-durumu">—</strong>
+        </p>
+        <p class="hint">
+          Son duyulan: <em id="son-duyulan">—</em>
+        </p>
+        <p class="hint">
+          Karta &ldquo;ne görüyorsun&rdquo; diye sor; hoparlörden cevap verir.
+        </p>
+      </section>
+
+      <!-- Konuşturma -->
+      <section class="kart">
+        <h2>Kartı konuştur</h2>
+        <div class="satir">
+          <input
+            id="metin"
+            type="text"
+            maxlength="200"
+            placeholder="Söylemesini istediğin cümle"
+            autocomplete="off"
+          />
+          <button id="soylet">Söylet</button>
+        </div>
+      </section>
+
+      <!-- Olay günlüğü -->
+      <section class="kart">
+        <h2>Olan bitenler</h2>
+        <ul id="gunluk" class="gunluk"></ul>
+      </section>
+    </main>
+
+    <script src="libs/socket.io.min.js"></script>
+    <script src="libs/arduino.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>

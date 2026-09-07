@@ -1,0 +1,129 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 460" role="img" aria-labelledby="d10-title">
+  <title id="d10-title">Gören ve konuşan asistan mimarisi / Seeing, speaking assistant architecture</title>
+  <style>
+    .wire  { fill: none; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+    .w-sig { stroke: #0d8ce0; }
+    .w-5v  { stroke: #d94a3d; }
+    .w-gnd { stroke: #6b7b80; }
+    .flow  { fill: none; stroke: var(--color-brand-500, #00979d); stroke-width: 2.6; marker-end: url(#a10); }
+    .board { fill: var(--bg-subtle, #f6f8f9); stroke: var(--color-brand-500, #00979d); stroke-width: 2.4; }
+    .mcu   { fill: var(--bg-subtle, #f6f8f9); stroke: #0d8ce0; stroke-width: 2.2; }
+    .box   { fill: var(--surface, #fff); stroke: var(--border, #dde4e8); stroke-width: 1.8; }
+    .brick { fill: var(--surface, #fff); stroke: var(--color-brand-400, #26b5ba); stroke-width: 1.8; }
+    .lbl-b { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 12.5px; font-weight: 650; fill: var(--text, #102b2e); }
+    .lbl   { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 12px; fill: var(--text, #102b2e); }
+    .mono  { font-family: ui-monospace, monospace; font-size: 10.5px; font-weight: 700; fill: var(--color-brand-600, #007d83); }
+    .muted { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 10px; fill: var(--text-faint, #83969b); }
+    .tag   { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 10px; font-weight: 700; }
+    .pad   { fill: var(--color-brand-500, #00979d); }
+  </style>
+
+  <defs>
+    <marker id="a10" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="var(--color-brand-500, #00979d)" />
+    </marker>
+  </defs>
+
+  <!-- ───── USB cihazlar ───── -->
+  <rect class="box" x="16" y="74" width="112" height="34" rx="7" />
+  <text class="lbl" x="72" y="96" text-anchor="middle">USB kamera</text>
+
+  <rect class="box" x="16" y="120" width="112" height="34" rx="7" />
+  <text class="lbl" x="72" y="142" text-anchor="middle">USB mikrofon</text>
+
+  <rect class="box" x="16" y="166" width="112" height="34" rx="7" />
+  <text class="lbl" x="72" y="188" text-anchor="middle">Hoparlör</text>
+
+  <!-- USB hub -->
+  <rect class="box" x="150" y="74" width="80" height="126" rx="10" />
+  <text class="lbl-b" x="190" y="122" text-anchor="middle">USB-C</text>
+  <text class="lbl-b" x="190" y="138" text-anchor="middle">hub</text>
+  <text class="muted" x="190" y="158" text-anchor="middle">harici</text>
+  <text class="muted" x="190" y="170" text-anchor="middle">beslemeli</text>
+
+  <path class="wire w-sig" d="M128 91 H150" />
+  <path class="wire w-sig" d="M128 137 H150" />
+  <path class="wire w-sig" d="M128 183 H150" />
+
+  <!-- Tek USB-C uyarısı -->
+  <rect x="16" y="214" width="214" height="46" rx="8" fill="#fdf1dd" stroke="#e8bd76" stroke-width="1.6" />
+  <text x="28" y="233" font-family="ui-sans-serif, system-ui" font-size="10.5" font-weight="700" fill="#8a5714">
+    Kartta tek USB-C portu var
+  </text>
+  <text x="28" y="249" font-family="ui-sans-serif, system-ui" font-size="10" fill="#8a5714">
+    Üç cihaz için hub şart / a hub is required
+  </text>
+
+  <path class="wire w-sig" d="M230 137 H262" />
+
+  <!-- ───── Kart ───── -->
+  <rect class="board" x="262" y="46" width="300" height="286" rx="12" />
+  <text class="tag" x="276" y="66" fill="var(--color-brand-600, #007d83)">MPU · Debian Linux</text>
+
+  <!-- Brickler -->
+  <rect class="brick" x="276" y="78" width="128" height="40" rx="7" />
+  <text class="mono" x="340" y="95" text-anchor="middle">video_object</text>
+  <text class="mono" x="340" y="108" text-anchor="middle">_detection</text>
+
+  <rect class="brick" x="420" y="78" width="128" height="40" rx="7" />
+  <text class="mono" x="484" y="102" text-anchor="middle">asr</text>
+
+  <rect class="brick" x="276" y="128" width="128" height="40" rx="7" />
+  <text class="mono" x="340" y="152" text-anchor="middle">tts</text>
+
+  <rect class="brick" x="420" y="128" width="128" height="40" rx="7" />
+  <text class="mono" x="484" y="152" text-anchor="middle">web_ui</text>
+
+  <!-- Paylasilan durum -->
+  <path class="flow" d="M340 118 V186" />
+  <path class="flow" d="M484 118 V186" />
+  <path class="flow" d="M340 186 V168" />
+  <path class="flow" d="M484 186 V168" />
+
+  <rect class="box" x="276" y="186" width="272" height="56" rx="8" />
+  <text class="lbl-b" x="412" y="207" text-anchor="middle">paylaşılan durum / shared state</text>
+  <text class="muted" x="412" y="224" text-anchor="middle">son görülen nesneler · son duyulan cümle</text>
+  <text class="muted" x="412" y="236" text-anchor="middle">the four bricks meet only here</text>
+
+  <path class="flow" d="M412 242 V262" />
+
+  <!-- MCU -->
+  <rect class="mcu" x="276" y="262" width="272" height="56" rx="10" />
+  <text class="tag" x="290" y="280" fill="#0d8ce0">MCU · sketch/</text>
+  <text class="mono" x="412" y="298" text-anchor="middle">Bridge.provide("servo_merkez", …)</text>
+  <text class="muted" x="412" y="312" text-anchor="middle">servoyu ortaya alır / centres the servo</text>
+
+  <!-- ───── Servo ───── -->
+  <path class="wire w-sig" d="M562 290 H612" />
+  <text class="muted" x="580" y="282">D9</text>
+
+  <rect class="box" x="612" y="262" width="132" height="56" rx="10" />
+  <text class="lbl-b" x="678" y="284" text-anchor="middle">SG90 servo</text>
+  <text class="muted" x="678" y="300" text-anchor="middle">harici 5V ile beslenir</text>
+  <text class="muted" x="678" y="312" text-anchor="middle">externally powered</text>
+
+  <!-- ───── Tarayıcı ───── -->
+  <path class="flow" d="M562 148 H612" />
+  <text class="muted" x="586" y="140" text-anchor="middle">WiFi</text>
+
+  <rect class="box" x="612" y="74" width="132" height="150" rx="12" />
+  <text class="lbl-b" x="678" y="96" text-anchor="middle">Tarayıcı / Browser</text>
+  <rect x="626" y="110" width="104" height="98" rx="6" fill="#0b1416" stroke="var(--border, #dde4e8)" stroke-width="1.4" />
+  <text x="634" y="128" font-family="ui-sans-serif, system-ui" font-size="8" fill="#7fe3e8">Kamera ne görüyor?</text>
+  <rect x="634" y="136" width="60" height="8" rx="2" fill="#26b5ba" />
+  <text x="698" y="143" font-family="ui-monospace, monospace" font-size="7" fill="#5aa8ac">insan</text>
+  <rect x="634" y="150" width="38" height="8" rx="2" fill="#26b5ba" />
+  <text x="676" y="157" font-family="ui-monospace, monospace" font-size="7" fill="#5aa8ac">bardak</text>
+  <text x="634" y="176" font-family="ui-sans-serif, system-ui" font-size="7" fill="#7fe3e8">🎤 ne görüyorsun</text>
+  <text x="634" y="190" font-family="ui-sans-serif, system-ui" font-size="7" fill="#7fe3e8">🔈 Bir insan ve</text>
+  <text x="634" y="200" font-family="ui-sans-serif, system-ui" font-size="7" fill="#7fe3e8">   bardak görüyorum</text>
+
+  <!-- Alt not -->
+  <g transform="translate(16, 348)">
+    <rect class="box" x="0" y="0" width="728" height="94" rx="10" />
+    <text class="lbl-b" x="18" y="24">Her şey kartın üzerinde / Everything runs on the board</text>
+    <text class="lbl" x="18" y="46">Nesne tanıma, konuşma tanıma ve ses sentezi buluta gitmiyor.</text>
+    <text class="lbl" x="18" y="64">Kart internetten koptuğunda bile çalışmaya devam eder.</text>
+    <text class="muted" x="18" y="82">Object detection, speech recognition and speech synthesis never leave the board — it keeps working offline.</text>
+  </g>
+</svg>

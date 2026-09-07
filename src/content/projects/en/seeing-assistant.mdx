@@ -1,0 +1,295 @@
+---
+projectId: seeing-assistant
+title: Seeing, Speaking Assistant
+summary: >-
+  The camera watches the room, the microphone listens to you, the speaker
+  answers. Ask "what do you see?" and the board tells you. The final project,
+  combining four bricks into one application.
+learn:
+  - Recognising objects live from a camera
+  - "Converting speech to text (asr) and text to speech (tts)"
+  - Combining four bricks around one piece of shared state
+  - "Running a continuous loop with App.run(user_loop=...)"
+  - Understanding an AI model's confidence score and choosing a threshold
+troubleshooting:
+  - q: The camera recognises nothing.
+    a: >-
+      First confirm Linux can see the camera: type "ls /dev/video*" in the App
+      Lab terminal. If nothing is listed, the camera may not be UVC compliant,
+      or the hub is not supplying enough power. If it does appear, try lowering
+      CONFIDENCE from 0.4 to 0.25.
+  - q: I cannot connect the camera, microphone and speaker at once.
+    a: >-
+      The board has a single USB-C port and it also carries power. Attaching
+      three devices needs a USB-C hub with its own adapter. Unpowered hubs
+      cannot supply enough current and the devices drop out at random.
+  - q: The microphone hears me but gets the words wrong.
+    a: >-
+      That is normal; speech recognition is not perfect. The code assumes it:
+      instead of matching a whole sentence it looks for keywords like "see" and
+      "look". Speak clearly and close to the microphone. With background noise,
+      raising LISTEN_SECONDS can help.
+  - q: No sound comes out of the speaker.
+    a: >-
+      Make sure Linux is sending audio to the right device. List the outputs
+      with "aplay -l" in the App Lab terminal. If the USB speaker is missing,
+      check the hub. The volume may also simply be down.
+  - q: The servo jitters and moves erratically.
+    a: >-
+      Almost always a power problem. If you are running the servo from the
+      board's 5V pin, switch to the external adapter — a servo can draw up to
+      700 mA on startup. Remember to tie the external supply's GND to the board's.
+  - q: The app seems to freeze after a while.
+    a: >-
+      It is not frozen, it is listening. The microphone records for five seconds
+      on each pass and the user_loop waits during that time. The camera and web
+      interface keep running in the background. Lowering LISTEN_SECONDS makes it
+      feel more responsive.
+  - q: Can I get the object names in another language?
+    a: >-
+      The model produces English labels. You can add a translation dictionary in
+      the Python code and map the labels before speaking them — the Turkish
+      version of this project does exactly that.
+---
+
+The final project. Everything you have learned comes together here: Bridge, web
+interfaces, bricks, external power, the 3.3V care.
+
+On top of that we add the board's most striking capability: **seeing, hearing
+and speaking.**
+
+<WiringDiagram file="10-seeing-assistant.svg" caption="Four bricks, shared state and the hardware" />
+
+<Callout lang="en" variant="info" title="Nothing goes to the cloud">
+Object detection, speech recognition and speech synthesis all run **on the board
+itself**. No API key and no internet connection are needed.
+
+This is the clearest answer to what the 4 GB of RAM and the quad-core processor
+are for. None of it is possible on a classic Arduino.
+</Callout>
+
+## The hardware problem: one USB-C port
+
+The board has **a single USB-C port**, and it carries both power and data. This
+project needs three USB devices at once: a camera, a microphone and a speaker.
+
+The solution: **a USB-C hub with its own power supply.**
+
+<Callout lang="en" variant="warning" title="The hub must have its own adapter">
+A passive hub divides the current the board provides between three devices. A
+camera alone can draw 500 mA. The result: devices drop out at random, the
+camera freezes, the app crashes.
+
+Buy a hub with its own adapter. It is the most critical part for this project.
+</Callout>
+
+<Step n={1} title="Connect the USB devices and confirm they are seen">
+
+Plug the hub into its own adapter, then into the board. Connect the camera,
+microphone and speaker to the hub.
+
+Open the terminal in App Lab and check the devices appear:
+
+```bash
+ls /dev/video*
+```
+
+With the camera attached you should see something like `/dev/video0`. For the
+audio devices:
+
+```bash
+aplay -l
+```
+
+<Callout lang="en" variant="danger" title="The camera must be UVC compliant">
+If `ls /dev/video*` returns nothing, your camera is most likely not UVC
+compliant, and Linux cannot recognise it without a driver.
+
+When buying, choose a model that says "UVC" or "driver-free".
+</Callout>
+
+</Step>
+
+<Step n={2} title="Wire the servo (optional)">
+
+The servo is not required, but it makes the system feel far more alive: the
+camera sweeps left and right while idle, then turns to centre and "pays
+attention" when it sees a person.
+
+- Servo **signal** (orange/yellow) → **D9**
+- Servo **VCC** (red) → **external 5V**
+- Servo **GND** (brown/black) → **shared GND**
+
+<Callout lang="en" variant="warning" title="Do not power the servo from the board's 5V pin">
+An SG90 draws 200-300 mA while moving and up to 700 mA on startup. The board's
+5V pin cannot supply that; the voltage sags and the board may reboot.
+
+Use the external adapter from project 7, and remember to share the GND.
+</Callout>
+
+</Step>
+
+<Step n={3} title="Create the app and add four bricks">
+
+Create a new app and name it `seeing-assistant`. Put all four bricks into
+`app.yaml`:
+
+```yaml
+bricks:
+  - arduino:video_object_detection
+  - arduino:asr
+  - arduino:tts
+  - arduino:web_ui
+```
+
+On the first run App Lab downloads the AI models. That can take a few minutes
+and **this step needs the internet**. Once the models are downloaded, the app
+runs offline.
+
+<Callout lang="en" variant="tip" title="Watch the import name">
+The brick name in `app.yaml` and the Python module name are **not identical** —
+the underscores sit in different places:
+
+```yaml
+bricks:
+  - arduino:video_object_detection     # the name in app.yaml
+```
+
+```python
+from arduino.app_bricks.video_objectdetection import VideoObjectDetection
+```
+
+This inconsistency catches everyone the first time. Copying the code as-is
+avoids the problem.
+</Callout>
+
+</Step>
+
+<Step n={4} title="How do four bricks work together?">
+
+The real lesson of this project is architectural. None of the four bricks knows
+about the others; they all touch just one **shared state dictionary**:
+
+```python
+state = {
+    "objects": {},          # the camera writes here
+    "last_seen": 0.0,
+    "last_heard": "",       # the microphone writes here
+    "listening": False,
+}
+```
+
+- The **camera** updates `objects` whenever it recognises something
+- The **microphone** *reads* `objects` when it hears a question and builds an answer
+- The **web interface** displays both
+
+The camera and the microphone never call each other. This dictionary is the
+only thing between them.
+
+<Callout lang="en" variant="tip" title="Why is that better?">
+Changing the microphone code does not mean touching the camera code. If you add
+another brick — QR code reading, say — it too simply writes to the same
+dictionary.
+
+Letting components talk through shared state, rather than wiring them directly
+to each other, makes growing systems far easier to work with.
+</Callout>
+
+</Step>
+
+<Step n={5} title="What is the confidence threshold?">
+
+We give the camera a number when creating it:
+
+```python
+camera = VideoObjectDetection(confidence=0.4, debounce_sec=1.5)
+```
+
+`confidence=0.4` means: *"do not tell me about anything you are less than 40%
+sure of."*
+
+A model never says "that is definitely a cat". It says "there is a 73% chance
+that is a cat". You decide where to draw the line:
+
+| Threshold | Result |
+| --- | --- |
+| 0.2 | Finds a lot, much of it wrong |
+| 0.4 | Balanced — our choice |
+| 0.8 | Only reports what it is very sure of, misses a lot |
+
+`debounce_sec=1.5` stops it reporting the same object dozens of times a second
+— the same idea as the beep cooldown in project 3.
+
+</Step>
+
+<Step n={6} title="The microphone loop and user_loop">
+
+Until now we have written `App.run()`. This project is different:
+
+```python
+App.run(user_loop=listen)
+```
+
+Given a `user_loop`, App Lab **calls that function over and over**. Our
+`listen()` records for five seconds on each pass and evaluates what it heard.
+
+The camera and web interface do not stop meanwhile — they keep running in the
+background through their own callbacks.
+
+The question matching is deliberately loose:
+
+```python
+SEEING_WORDS = ["see", "seeing", "what is there", "look"]
+
+if any(word in lowered for word in SEEING_WORDS):
+    speak(describe_view())
+```
+
+<Callout lang="en" variant="info" title="Why not match the whole sentence?">
+Speech recognition is not perfect. Asking "what do you see?" might come back as
+"what do you see", "what you see" or "what do yousee".
+
+Matching exactly means the system usually fails. Looking for keywords is far
+more robust, and it is the standard approach in voice interfaces.
+</Callout>
+
+</Step>
+
+<Step n={7} title="Run it and start talking">
+
+Plug in the external adapter and the hub, then press **Run**. The first start
+can be slow while the models download.
+
+Open the web interface and try these:
+
+1. **Step in front of the camera.** "person" appears in the panel and its
+   confidence bar fills. The servo turns to centre and an eye opens on the matrix.
+2. **Press "What do you see?" in the panel.** The answer comes from the speaker.
+3. **Say "what do you see" into the microphone.** The same answer, asked aloud.
+4. **Hold up a cup.** Two objects are now listed in the panel.
+5. **Type a sentence into "Make the board speak".** It says it.
+
+<PhotoSlot lang="en" caption="The system running with camera, microphone and speaker attached" />
+
+</Step>
+
+<Step n={8} title="Take it further">
+
+- Show the live camera feed in the panel
+- Add the `keyword_spotting` brick and set up a wake word ("Hey Arduino")
+- Log recognised objects into the database from project 5 and produce a daily summary
+- Add the Telegram bot from project 9 so you can ask "who came by?" remotely
+- Swap object detection for the `pose_estimation` brick and build something that
+  recognises gestures from body posture
+
+<Callout lang="en" variant="tip" title="If you got this far">
+Across ten projects you have learned: digital and analog I/O, non-blocking
+timing, level shifting with a voltage divider and with a transistor, I2C,
+library management, dual-processor architecture and Bridge, web servers and
+WebSockets, databases, API key security, and four separate AI bricks.
+
+That is not a hobby list; those are the topics real embedded projects use every
+day.
+</Callout>
+
+</Step>

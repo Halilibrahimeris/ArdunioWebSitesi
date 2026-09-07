@@ -1,0 +1,11 @@
+# Project 10 — Seeing, Speaking Assistant
+# The Servo library is needed to drive the servo motor.
+
+profiles:
+  default:
+    platforms:
+      - platform: arduino:zephyr
+    libraries:
+      - Servo (1.2.2)
+
+default_profile: default

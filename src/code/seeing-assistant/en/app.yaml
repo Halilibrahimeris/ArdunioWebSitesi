@@ -1,0 +1,19 @@
+# Project 10 — Seeing, Speaking Assistant
+#
+# Four bricks together:
+#   video_object_detection → recognises objects from the camera
+#   asr                    → speech to text, on the board itself
+#   tts                    → text to speech
+#   web_ui                 → a control panel
+#
+# asr and tts run on the board — no cloud service and no internet required.
+
+name: Seeing Speaking Assistant
+icon: 👁️
+description: Recognises objects with a camera and answers spoken questions aloud
+
+bricks:
+  - arduino:video_object_detection
+  - arduino:asr
+  - arduino:tts
+  - arduino:web_ui

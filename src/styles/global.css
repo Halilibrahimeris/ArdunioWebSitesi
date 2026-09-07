@@ -119,7 +119,9 @@
     border: 1px solid var(--border-soft);
     padding: 0.1em 0.38em;
     border-radius: 5px;
-    white-space: nowrap;
+    /* Uzun satır içi kod parçaları dar ekranda sarmalı, yoksa sayfayı taşırır.
+       Long inline code must wrap on narrow screens or it overflows the page. */
+    overflow-wrap: anywhere;
   }
 
   /* Kod blokları yatayda kendi içinde kaysın / Code blocks scroll internally */
