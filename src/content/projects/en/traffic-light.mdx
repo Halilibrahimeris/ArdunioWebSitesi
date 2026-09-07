@@ -47,6 +47,52 @@ use every day: **doing several things at once without ever waiting.**
 <Callout lang="en" variant="info" title="Read the guides first">
 If this is your first time with the board, work through the App Lab setup and
 board tour guides before starting. This project assumes your setup is done.
+
+**If you do not know which breadboard holes connect to which**, read
+[How Does a Breadboard Work?](/en/guides/how-a-breadboard-works/) first. It
+takes five minutes and makes every step below make sense.
+</Callout>
+
+## Connection table
+
+Every connection in the diagram above, listed one by one. `a11` means **lower
+block, row `a`, column 11**. Row letters are printed down both sides of the
+board and column numbers along the top.
+
+### Wires from the board to the breadboard
+
+| On the board | On the breadboard | Wire colour |
+| --- | --- | --- |
+| `D2` | `d9` | blue |
+| `D3` | `d15` | blue |
+| `D4` | `d21` | blue |
+| `D7` | `c3` | blue |
+| `3V3` | `a5` | red |
+| `GND` | `-2` (bottom minus rail) | black |
+
+### Parts on the breadboard
+
+| Part | One end | Other end |
+| --- | --- | --- |
+| 220 Ω resistor | `c9` | `c11` |
+| 220 Ω resistor | `c15` | `c17` |
+| 220 Ω resistor | `c21` | `c23` |
+| Red LED | long leg `a11` | short leg `a12` |
+| Amber LED | long leg `a17` | short leg `a18` |
+| Green LED | long leg `a23` | short leg `a24` |
+| Jumper (cathode to GND) | `b12` | `-12` |
+| Jumper (cathode to GND) | `b18` | `-18` |
+| Jumper (cathode to GND) | `b24` | `-24` |
+| Button | columns 3 and 5, **straddling the centre channel** | |
+| 10 kΩ resistor | `b3` | `-3` |
+
+<Callout lang="en" variant="tip" title="Why these columns?">
+The column numbers are arbitrary — you could shift the whole thing five columns
+to the right. What matters is **which parts share a column.**
+
+The red LED's long leg is in `a11` and the 220 Ω resistor's end is in `c11`.
+Both are in column 11, so they are connected — no wire between them, but
+electrically the same point.
 </Callout>
 
 <Step n={1} title="Create a new app in App Lab">
@@ -76,26 +122,39 @@ This is the rule for every hardware project you will ever build:
 
 <Step n={3} title="Place the three LEDs on the breadboard">
 
-Push the LEDs into the breadboard leaving a spare row between each one. The
-two legs of each LED must sit in **different** rows — put them in the same row
-and you short the LED out, so it never lights.
+All three LEDs follow the same pattern; only the column number shifts. Build
+the red one first and the other two become easy.
 
-Telling the legs apart is easy:
+**Tell the legs apart:**
 
 - **Long leg** = anode (+), goes to the resistor
-- **Short leg** = cathode (−), goes to the GND rail
+- **Short leg** = cathode (−), goes to GND
 
-Now connect a 220Ω resistor to each LED's long leg and run the other end of
-the resistor to these pins:
+<Callout lang="en" variant="warning" title="The two legs go in different columns">
+An LED's legs must go into **different columns**, such as `a11` and `a12`. Put
+them in the same column (`a11` and `b11`) and you short the LED out — it will
+never light.
+</Callout>
 
-| LED | Pin |
-| --- | --- |
-| Red | D2 |
-| Amber | D3 |
-| Green | D4 |
+**The red LED — four steps:**
 
-Connect all three short legs to the breadboard's negative (−) rail, and that
-rail to the board's **GND** pin.
+1. **Resistor:** put one leg of a 220 Ω resistor in `c9` and the other in `c11`
+2. **LED:** put the red LED's **long** leg in `a11` and its **short** leg in `a12`
+3. **Signal wire:** run a blue wire from the board's **D2** pin to `d9`
+4. **Ground wire:** run a black wire from `b12` to `-12` on the bottom minus rail
+
+Why it works: `c9` and `d9` share a column, so the resistor's left end is now on
+D2. `c11` and `a11` share a column, so its right end is on the LED's long leg.
+`a12` and `b12` share a column, so the LED's short leg reaches the minus rail.
+
+**The amber LED** is the same thing six columns right: `c15`-`c17`, LED
+`a17`/`a18`, wire **D3** → `d15`, jumper `b18` → `-18`.
+
+**The green LED** is six columns further: `c21`-`c23`, LED `a23`/`a24`,
+wire **D4** → `d21`, jumper `b24` → `-24`.
+
+Finally run a black wire from the board's **GND** pin to `-2` on the bottom
+minus rail. All three LEDs reach ground through that rail.
 
 <Callout lang="en" variant="danger" title="Never skip the resistor">
 Wire an LED straight to a pin and it draws unlimited current, destroying both
@@ -110,8 +169,22 @@ roughly 6 mA at 3.3V — safe for the LED and for the pin.
 The button wiring looks more complicated than it needs to be, but there is a
 reason for it.
 
-Connect one leg of the button to the **3V3** pin. Connect the opposite leg to
-both the **D7** pin and, through a **10kΩ** resistor, to **GND**.
+**Place the button.** A tactile button has four legs and sits **straddling the
+centre channel**: two legs in the upper block (row `f`) and two in the lower
+block (row `e`). Put its left legs in column 3 and its right legs in column 5.
+
+<Callout lang="en" variant="tip" title="How is the button wired inside?">
+The two legs on the same side (either side of the channel) are already
+connected internally. **Pressing** the button joins the left side to the right.
+
+So column 3 and column 5 connect only while the button is held down.
+</Callout>
+
+Now three more connections:
+
+1. **Voltage:** run a red wire from the board's **3V3** pin to `a5`
+2. **Signal:** run a blue wire from the board's **D7** pin to `c3`
+3. **Pull-down resistor:** put one leg of the 10 kΩ resistor in `b3` and the other in `-3`
 
 That 10kΩ resistor is a *pull-down*. Its job is to hold D7 at zero (at GND)
 while the button is not pressed. Leave it out and D7 connects to nothing at
@@ -129,15 +202,28 @@ the button is held — a negligible amount of wasted energy.
 
 <Step n={5} title="Check your wiring against the diagram">
 
-Once everything is wired, check it again before applying power. Look
-especially for these two:
+Once everything is wired, tick off the **connection table** above line by line
+before applying power. Then check these five things:
 
-- No LED is in backwards (long leg goes to the resistor)
-- There is **no** direct wire between 3V3 and GND
+1. **LED orientation** — long leg in the left hole (`a11`, `a17`, `a23`)
+2. **Each LED's legs are in different columns** — same column and it will not light
+3. **The GND wire is on the minus rail** — the one with the **blue** line, not
+   the red plus rail
+4. **No direct wire between 3V3 and GND**
+5. **The pin numbers are right** — red D2, amber D3, green D4, button D7
 
 <Callout lang="en" variant="danger">
 Connecting 3V3 straight to GND is a short circuit. At best the board protects
 itself and shuts down. Look twice before you plug in.
+</Callout>
+
+<Callout lang="en" variant="info" title="If you are trying it in Tinkercad">
+Tinkercad has no Arduino UNO Q, only the classic **Arduino UNO**. Practising the
+logic there is a good idea — the circuit is identical.
+
+The one difference: on a classic UNO you wire the button to the **5V** pin,
+because that board's logic is 5V. **On a real UNO Q it must go to 3V3** — 5V
+would damage the D7 pin.
 </Callout>
 
 <PhotoSlot lang="en" caption="The finished breadboard wiring" />

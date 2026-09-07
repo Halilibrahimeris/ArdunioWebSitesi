@@ -59,7 +59,7 @@ export const projects: Project[] = [
     needsMic: false,
     bricks: [],
     codeFiles: ['sketch.ino'],
-    diagram: '01-traffic-light.svg',
+    diagram: '01-traffic-light-breadboard.svg',
     bom: [
       { part: 'uno-q', qty: 1 },
       { part: 'usb-c-cable', qty: 1 },
