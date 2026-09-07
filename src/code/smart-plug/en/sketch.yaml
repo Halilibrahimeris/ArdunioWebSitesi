@@ -1,0 +1,11 @@
+# Project 7 — Smart Plug
+# Driving the WS2812 strip needs the NeoPixel library.
+
+profiles:
+  default:
+    platforms:
+      - platform: arduino:zephyr
+    libraries:
+      - Adafruit NeoPixel (1.12.3)
+
+default_profile: default

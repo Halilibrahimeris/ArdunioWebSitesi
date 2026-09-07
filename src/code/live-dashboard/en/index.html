@@ -1,0 +1,78 @@
+<!--
+  Project 8 — Live Sensor Dashboard
+  Arduino UNO Q · assets/index.html
+
+  Note: no charting library is used. Something like Chart.js would have to be
+  downloaded from the internet, and we want this dashboard to work on the
+  board's own network with no connection at all. The chart is drawn onto a
+  canvas in app.js.
+-->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Live Sensor Dashboard</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+
+  <body>
+    <main>
+      <h1>Live Sensor Dashboard</h1>
+      <p id="connection" class="status waiting">Connecting&hellip;</p>
+
+      <!-- Current values -->
+      <section class="cards">
+        <div class="reading-card temperature">
+          <span class="label">Temperature</span>
+          <span class="value"><span id="v-temperature">--</span><small>&deg;C</small></span>
+        </div>
+        <div class="reading-card humidity">
+          <span class="label">Humidity</span>
+          <span class="value"><span id="v-humidity">--</span><small>%</small></span>
+        </div>
+        <div class="reading-card light">
+          <span class="label">Light</span>
+          <span class="value"><span id="v-light">--</span><small>%</small></span>
+        </div>
+      </section>
+
+      <!-- Chart -->
+      <section class="card">
+        <div class="chart-header">
+          <h2>The last 5 minutes</h2>
+          <div class="legend">
+            <span class="dot temperature"></span> Temperature
+            <span class="dot humidity"></span> Humidity
+            <span class="dot light"></span> Light
+          </div>
+        </div>
+
+        <!--
+          A canvas's CSS size and its pixel size can differ. app.js sets the
+          pixel size from the screen's density, otherwise the chart looks blurry.
+        -->
+        <canvas id="chart" width="900" height="320"></canvas>
+
+        <p class="hint">
+          All three series are plotted on a 0-100 scale. Temperature is in
+          Celsius; humidity and light are percentages.
+        </p>
+      </section>
+
+      <!-- Data -->
+      <section class="card">
+        <h2>Data</h2>
+        <p class="hint">
+          <span id="record-count">0</span> readings are held in memory. The full
+          history is also stored in the board's database.
+        </p>
+        <button id="download-csv">Download as CSV</button>
+      </section>
+    </main>
+
+    <script src="libs/socket.io.min.js"></script>
+    <script src="libs/arduino.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>

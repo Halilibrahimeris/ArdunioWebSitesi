@@ -1,0 +1,102 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 470" role="img" aria-labelledby="d7-title">
+  <title id="d7-title">Akıllı priz bağlantı şeması / Smart plug wiring</title>
+  <style>
+    .wire  { fill: none; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+    .w-sig { stroke: #0d8ce0; }
+    .w-5v  { stroke: #d94a3d; }
+    .w-gnd { stroke: #6b7b80; }
+    .board { fill: var(--bg-subtle, #f6f8f9); stroke: var(--color-brand-500, #00979d); stroke-width: 2.4; }
+    .part  { fill: var(--surface, #fff); stroke: var(--border, #dde4e8); stroke-width: 1.8; }
+    .warnbox { fill: #fdecea; stroke: #e09a90; stroke-width: 2; }
+    .lbl   { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 12.5px; fill: var(--text, #102b2e); }
+    .lbl-b { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 13px; font-weight: 650; fill: var(--text, #102b2e); }
+    .pin   { font-family: ui-monospace, monospace; font-size: 12px; font-weight: 700; fill: var(--text, #102b2e); }
+    .muted { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 10.5px; fill: var(--text-faint, #83969b); }
+    .warn  { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 11.5px; font-weight: 700; fill: #9d2f24; }
+    .pad   { fill: var(--color-brand-500, #00979d); }
+  </style>
+
+  <!-- Kart -->
+  <rect class="board" x="24" y="70" width="160" height="250" rx="12" />
+  <text class="lbl-b" x="104" y="98" text-anchor="middle">Arduino UNO Q</text>
+  <text class="muted" x="104" y="114" text-anchor="middle">3.3V logic</text>
+
+  <g>
+    <circle class="pad" cx="184" cy="160" r="4.5" /><text class="pin" x="168" y="164" text-anchor="end">D5</text>
+    <circle class="pad" cx="184" cy="250" r="4.5" /><text class="pin" x="168" y="254" text-anchor="end">D6</text>
+    <circle class="pad" cx="184" cy="310" r="4.5" /><text class="pin" x="168" y="314" text-anchor="end">GND</text>
+  </g>
+
+  <!-- ───────── Transistör sürücü (3.3V dersi) ───────── -->
+  <rect class="part" x="212" y="118" width="266" height="112" rx="10" />
+  <text class="lbl-b" x="228" y="138">3.3V → 5V sürücü / driver</text>
+
+  <!-- D5 -> 10k -> baz -->
+  <path class="wire w-sig" d="M184 160 H236" />
+  <rect class="part" x="236" y="148" width="58" height="24" rx="5" />
+  <text class="lbl" x="265" y="165" text-anchor="middle">10kΩ</text>
+  <path class="wire w-sig" d="M294 160 H330" />
+
+  <!-- 2N2222 sembolu -->
+  <line x1="330" y1="136" x2="330" y2="184" stroke="var(--text, #102b2e)" stroke-width="2.6" />
+  <line x1="330" y1="146" x2="360" y2="130" stroke="var(--text, #102b2e)" stroke-width="2.6" />
+  <line x1="330" y1="174" x2="360" y2="190" stroke="var(--text, #102b2e)" stroke-width="2.6" />
+  <polygon points="348,178 358,187 346,190" fill="var(--text, #102b2e)" />
+  <text class="lbl-b" x="372" y="162">2N2222</text>
+  <text class="muted" x="228" y="196">baz / base</text>
+  <text class="muted" x="366" y="128">kollektör → röle IN</text>
+  <text class="muted" x="366" y="204">emiter → GND</text>
+
+  <!-- kollektor -> role IN -->
+  <path class="wire w-sig" d="M360 130 H520" />
+  <!-- emiter -> GND -->
+  <path class="wire w-gnd" d="M360 190 V212 H198 V310 H184" />
+
+  <!-- ───────── Röle modülü ───────── -->
+  <rect class="part" x="520" y="96" width="180" height="94" rx="10" />
+  <text class="lbl-b" x="610" y="120" text-anchor="middle">Röle modülü / Relay</text>
+  <text class="muted" x="610" y="138" text-anchor="middle">optokuplörlü · aktif-DÜŞÜK</text>
+  <text class="muted" x="610" y="153" text-anchor="middle">opto-isolated · active-LOW</text>
+  <text class="muted" x="610" y="176" text-anchor="middle">IN · VCC(5V) · GND</text>
+
+  <!-- ───────── WS2812 ───────── -->
+  <path class="wire w-sig" d="M184 250 H300" />
+  <text class="muted" x="230" y="242">DIN</text>
+
+  <rect class="part" x="300" y="230" width="220" height="60" rx="10" />
+  <text class="lbl-b" x="410" y="252" text-anchor="middle">WS2812B — 8 LED</text>
+  <text class="muted" x="410" y="270" text-anchor="middle">kısa şeritte 3.3V veri yeter</text>
+  <text class="muted" x="410" y="284" text-anchor="middle">3.3V data is fine on a short strip</text>
+
+  <!-- ───────── Harici 5V besleme ───────── -->
+  <rect class="part" x="560" y="230" width="160" height="76" rx="10" />
+  <text class="lbl-b" x="640" y="254" text-anchor="middle">Harici 5V 2A</text>
+  <text class="muted" x="640" y="271" text-anchor="middle">External supply</text>
+  <text class="muted" x="640" y="290" text-anchor="middle">röle + LED şerit için</text>
+
+  <path class="wire w-5v" d="M560 250 H520 V190" />
+  <path class="wire w-5v" d="M560 262 H540 V262 H520 V262" />
+  <path class="wire w-5v" d="M520 262 H410 V290" />
+
+  <!-- Ortak GND -->
+  <path class="wire w-gnd" d="M640 306 V360 H184 V310" />
+  <path class="wire w-gnd" d="M610 190 V360" />
+  <path class="wire w-gnd" d="M410 290 V360" />
+
+  <!-- Ortak GND vurgusu -->
+  <rect class="warnbox" x="24" y="378" width="712" height="72" rx="10" />
+  <text class="warn" x="42" y="400">Ortak GND şart / A shared GND is essential</text>
+  <text class="lbl" x="42" y="420">
+    Harici beslemenin GND'si kartın GND'sine bağlanmalı, yoksa sinyaller referanssız kalır.
+  </text>
+  <text class="muted" x="42" y="438">
+    The external supply's GND must join the board's GND, otherwise the signals have no common reference.
+  </text>
+
+  <!-- Açıklama -->
+  <g transform="translate(24, 340)">
+    <line class="wire w-5v" x1="0" y1="6" x2="24" y2="6" /><text class="muted" x="30" y="10">harici 5V / external 5V</text>
+    <line class="wire w-sig" x1="164" y1="6" x2="188" y2="6" /><text class="muted" x="194" y="10">3.3V sinyal / signal</text>
+    <line class="wire w-gnd" x1="324" y1="6" x2="348" y2="6" /><text class="muted" x="354" y="10">ortak GND / shared GND</text>
+  </g>
+</svg>

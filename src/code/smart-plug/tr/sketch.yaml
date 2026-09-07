@@ -1,0 +1,11 @@
+# Proje 7 — Akıllı Priz
+# WS2812 LED şeridi sürmek için NeoPixel kütüphanesi gerekiyor.
+
+profiles:
+  default:
+    platforms:
+      - platform: arduino:zephyr
+    libraries:
+      - Adafruit NeoPixel (1.12.3)
+
+default_profile: default

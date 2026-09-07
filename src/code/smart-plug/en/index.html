@@ -1,0 +1,68 @@
+<!--
+  Project 7 — Smart Plug web interface
+  Arduino UNO Q · assets/index.html
+-->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Smart Plug</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+
+  <body>
+    <main>
+      <h1>Smart Plug</h1>
+      <p id="connection" class="status waiting">Connecting&hellip;</p>
+
+      <!-- Relay -->
+      <section class="card">
+        <h2>Relay</h2>
+        <button id="relay-btn" class="big-button off">OFF</button>
+        <p class="hint">
+          Do not wire mains voltage to the relay. Test it only with low-voltage
+          loads such as a battery lamp or a small motor.
+        </p>
+      </section>
+
+      <!-- Timer -->
+      <section class="card">
+        <h2>Timer</h2>
+        <div class="row">
+          <button class="preset" data-minutes="5">5 min</button>
+          <button class="preset" data-minutes="15">15 min</button>
+          <button class="preset" data-minutes="30">30 min</button>
+          <button class="preset" data-minutes="60">1 hour</button>
+          <button class="preset cancel" data-minutes="0">Cancel</button>
+        </div>
+        <p id="timer-status" class="hint">No timer set</p>
+      </section>
+
+      <!-- RGB strip -->
+      <section class="card">
+        <h2>RGB LED Strip</h2>
+
+        <label for="colour">Colour</label>
+        <input id="colour" type="color" value="#0078ff" />
+
+        <label for="brightness">
+          Brightness: <span id="brightness-value">60</span>
+        </label>
+        <input id="brightness" type="range" min="0" max="255" step="5" value="60" />
+
+        <div class="row">
+          <button class="swatch" data-colour="#ff0000">Red</button>
+          <button class="swatch" data-colour="#00ff00">Green</button>
+          <button class="swatch" data-colour="#0000ff">Blue</button>
+          <button class="swatch" data-colour="#ffaa00">Warm</button>
+          <button class="swatch" data-colour="#000000">Off</button>
+        </div>
+      </section>
+    </main>
+
+    <script src="libs/socket.io.min.js"></script>
+    <script src="libs/arduino.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>

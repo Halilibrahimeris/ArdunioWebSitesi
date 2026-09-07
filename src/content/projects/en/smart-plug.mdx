@@ -1,0 +1,260 @@
+---
+projectId: smart-plug
+title: Smart Plug — Relay and RGB Control from the Web
+summary: >-
+  Press a button on your phone and hear the relay click; pick a colour and watch
+  the LED strip follow. Set a timer and the board switches itself off. Here we
+  solve the 3.3V problem a second way — with a transistor.
+learn:
+  - Driving a 5V load from a 3.3V signal with a transistor
+  - Why relay modules are active-LOW and what that means for you
+  - Controlling a WS2812 addressable strip's colour and brightness
+  - Using an external supply, and why a shared GND is mandatory
+  - Using Bridge in both directions — the board notifies the web interface too
+troubleshooting:
+  - q: The relay never clicks.
+    a: >-
+      First check that the relay module is powered from 5V; most relay coils
+      will not pull in at 3.3V. Then check the transistor: with its flat face
+      towards you, the legs read emitter, base, collector from left to right.
+      Fitted the wrong way round it simply will not work.
+  - q: The relay stays on and never switches off.
+    a: >-
+      The module's IN input is almost certainly active-LOW and wired without
+      the transistor. The board's 3.3V is not high enough to switch it off.
+      This project does not work properly until the 2N2222 from the diagram is
+      in the circuit.
+  - q: The LED strip does not light at all.
+    a: >-
+      Check the strip's data direction. WS2812 strips have arrows printed on
+      them; the DIN (data input) end is the one that connects to the board.
+      Connected backwards, no LED lights. Also confirm the strip's 5V supply is
+      connected.
+  - q: Only the first few LEDs on the strip light up.
+    a: >-
+      Usually a power problem. Eight LEDs at full white draw about 0.5 A, which
+      the board's 5V pin cannot supply. Use the external adapter and tie its
+      GND to the board's.
+  - q: The colours are wrong — I ask for red and get green.
+    a: >-
+      Your strip uses a different colour order. The code says NEO_GRB; if your
+      strip is RGB-ordered, change it to NEO_RGB and try again. On cheap strips
+      this varies by manufacturer.
+  - q: The timer expired but the web interface still shows "ON".
+    a: >-
+      Check that both Bridge.notify("relay_changed", 0) in the sketch and
+      Bridge.provide("relay_changed", ...) in main.py are present. That pair is
+      what lets the board tell the web interface what happened.
+  - q: What can I actually connect to the relay contacts?
+    a: >-
+      A battery-powered lamp, a small DC motor, a doorbell, or any low-voltage
+      device on its own supply. Never mains voltage — that needs electrical
+      competence and a proper enclosure.
+---
+
+In project 6 you sent text from a web interface to the board. This project uses
+the same technique to switch **something real** on and off.
+
+<Callout lang="en" variant="danger" title="Do not use mains voltage in this project">
+Relay modules can switch 230V, but this project is not designed for that. Mains
+voltage kills, and doing it safely requires a proper enclosure, fusing and
+insulation.
+
+Test the relay only with **a battery-powered lamp, a small DC motor, or a
+low-voltage device on its own adapter**. Hearing the relay *click* and seeing
+the contact close is the whole of the lesson here.
+</Callout>
+
+<WiringDiagram file="07-smart-plug.svg" caption="The transistor driver, relay and LED strip" />
+
+## The second solution to the 3.3V problem
+
+In project 3 we used a voltage divider to bring a 5V **input** safely into the
+board.
+
+Here the problem runs the other way: the board's 3.3V **output** is not enough
+to drive a 5V module.
+
+Most relay modules are **active-LOW**: pulling IN down to ground energises the
+relay, and holding it near 5V releases it. Since the board can only produce
+3.3V on a HIGH, the module decides that is not high enough and the relay never
+switches off.
+
+The solution is a **transistor**:
+
+| Board pin | Transistor | Relay IN |
+| --- | --- | --- |
+| HIGH (3.3V) | conducts | pulled to GND → relay **on** |
+| LOW (0V) | off | the module's own resistor pulls it to 5V → relay **off** |
+
+The transistor both translates the level and keeps the board electrically
+separated from the relay.
+
+<Callout lang="en" variant="tip" title="One problem, two solutions">
+Project 3: a voltage divider (5V → 3.3V, for an **input**).
+Project 7: a transistor (3.3V → a 5V load, for an **output**).
+
+Which one you need depends on the direction of the signal. Knowing both lets
+you bridge most gaps between the 3.3V and 5V worlds.
+</Callout>
+
+<Step n={1} title="Power down and identify the transistor">
+
+Unplug the USB-C cable and disconnect the external adapter.
+
+The 2N2222 has three legs. **With its flat face towards you, left to right:**
+
+1. **Emitter** (E)
+2. **Base** (B)
+3. **Collector** (C)
+
+<Callout lang="en" variant="warning">
+The order varies between manufacturers. If you are unsure, look up the code
+printed on the part (2N2222, PN2222) and check its datasheet. A transistor
+fitted backwards will not work, though it usually survives.
+</Callout>
+
+</Step>
+
+<Step n={2} title="Build the transistor driver">
+
+Make these three connections:
+
+- **D5** → 10kΩ resistor → the transistor's **base**
+- The transistor's **emitter** → the board's **GND**
+- The transistor's **collector** → the relay module's **IN** input
+
+The 10kΩ resistor limits the current drawn from the board's pin. Without it the
+base current is uncontrolled and both the transistor and the pin suffer.
+
+</Step>
+
+<Step n={3} title="Power the relay">
+
+The relay module's power comes from the **external adapter**:
+
+- Relay **VCC** → external 5V (+)
+- Relay **GND** → external 5V (−)
+
+<Callout lang="en" variant="danger" title="Nothing works without a shared GND">
+You must also connect the external adapter's negative to the board's **GND**
+pin.
+
+Without it the two circuits have no common zero. When the board says "3.3V",
+the relay has no idea 3.3V relative to what. The signals become meaningless and
+the circuit behaves at random.
+
+This is the rule for **every** project that uses an external supply.
+</Callout>
+
+</Step>
+
+<Step n={4} title="Wire the LED strip">
+
+WS2812 strips have **arrows** printed on them showing which way the data flows.
+Use the three pads at the end where the arrows begin:
+
+- **DIN** (data input) → the board's **D6** pin
+- **5V** → the external adapter's (+)
+- **GND** → the shared GND
+
+<Callout lang="en" variant="warning" title="Why is 3.3V data enough?">
+A WS2812 nominally wants a data signal around 70% of 5V (3.5V), so 3.3V sits
+right at the edge. In practice it works reliably on **a short 8-LED strip**.
+
+On longer 30-60 LED strips the chance of the first LED misreading the signal
+grows, and you need a level shifter such as a 74AHCT125.
+</Callout>
+
+<PhotoSlot lang="en" caption="The transistor driver, relay and LED strip assembled" />
+
+</Step>
+
+<Step n={5} title="Create the app">
+
+Create a new app in App Lab and name it `smart-plug`.
+
+Add the `web_ui` brick to `app.yaml`, and the NeoPixel library to
+`sketch/sketch.yaml` — both are in the **Code** section below.
+
+Then put the four files in place:
+
+| File | Its job |
+| --- | --- |
+| `sketch/sketch.ino` | Drives the relay and strip, counts the timer |
+| `python/main.py` | Bridges the web interface and the sketch |
+| `assets/index.html` | The interface's appearance |
+| `assets/app.js` | The interface's logic |
+
+</Step>
+
+<Step n={6} title="Bridge runs both ways here">
+
+In every project so far Bridge went one way. Here **both directions** are in use.
+
+**Downwards** (web → board), as in project 6:
+
+```python
+Bridge.call("set_relay", 1)
+```
+
+**Upwards** (board → web) is the new part. When the timer expires it is the
+microcontroller that switches the relay off, and the web interface needs to
+know:
+
+```cpp
+// in the sketch, when the timer expires
+Bridge.notify("relay_changed", 0);
+```
+
+```python
+# in main.py
+Bridge.provide("relay_changed", relay_changed)
+```
+
+Without this the timer would switch the relay off while the interface on your
+phone kept showing "ON".
+
+<Callout lang="en" variant="tip" title="A single source of truth">
+The web interface assumes nothing on its own. Pressing the button does not
+change the display immediately — the message goes to the board, the board
+changes its state and reports back, and only then does the interface update.
+
+That way two phones used at once both show the real state. This is called a
+*single source of truth*.
+</Callout>
+
+</Step>
+
+<Step n={7} title="Run it and try it">
+
+Plug the external adapter in first, then the USB-C cable. Press **Run** and open
+the web interface.
+
+1. **Press the relay button.** You should hear a distinct click and see the LED
+   on the module light up.
+2. **Pick a colour.** The strip changes instantly.
+3. **Lower the brightness.** At 0 the strip goes dark.
+4. **Set a 5-minute timer.** The relay switches on and the interface says
+   "Switches off in 5 minutes". If you would rather not wait, change `60000UL`
+   in the code to `1000UL` to turn minutes into seconds for testing.
+5. **Open it on a second device.** Switch the relay on from one and the other's
+   display updates too.
+
+</Step>
+
+<Step n={8} title="Take it further">
+
+- Animate the strip: a rainbow cycle or a breathing effect
+- Attach the DHT11 from project 4 and switch the relay on automatically above a
+  temperature threshold — a simple thermostat
+- Show a live countdown of the remaining timer in the web interface
+- Log every relay switch into the database from project 5 to keep a usage history
+
+<Callout lang="en" variant="info" title="What comes next">
+Two projects have now taught you to send commands from a web interface. The
+next one goes deep on the opposite direction: streaming sensor data from the
+board into a live chart in the browser.
+</Callout>
+
+</Step>

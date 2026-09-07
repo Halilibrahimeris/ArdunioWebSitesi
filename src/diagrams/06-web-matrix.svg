@@ -1,0 +1,105 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 400" role="img" aria-labelledby="d6-title">
+  <title id="d6-title">Tarayıcıdan LED matrise veri yolu / From browser to LED matrix</title>
+  <style>
+    .flow   { fill: none; stroke: var(--color-brand-500, #00979d); stroke-width: 3; marker-end: url(#a6); }
+    .box    { fill: var(--surface, #fff); stroke: var(--border, #dde4e8); stroke-width: 1.8; }
+    .mcu    { fill: var(--bg-subtle, #f6f8f9); stroke: #0d8ce0; stroke-width: 2.4; }
+    .mpu    { fill: var(--bg-subtle, #f6f8f9); stroke: var(--color-brand-500, #00979d); stroke-width: 2.4; }
+    .screen { fill: #0b1416; stroke: var(--border, #dde4e8); stroke-width: 1.6; }
+    .lbl-b  { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 13.5px; font-weight: 700; fill: var(--text, #102b2e); }
+    .lbl    { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 12px; fill: var(--text, #102b2e); }
+    .mono   { font-family: ui-monospace, monospace; font-size: 11.5px; font-weight: 700; fill: var(--color-brand-600, #007d83); }
+    .muted  { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 10.5px; fill: var(--text-faint, #83969b); }
+    .tag    { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 10.5px; font-weight: 700; }
+  </style>
+
+  <defs>
+    <marker id="a6" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="var(--color-brand-500, #00979d)" />
+    </marker>
+  </defs>
+
+  <!-- ───── 1. Tarayıcı ───── -->
+  <rect class="box" x="20" y="90" width="150" height="150" rx="12" />
+  <text class="lbl-b" x="95" y="116" text-anchor="middle">Telefon / Bilgisayar</text>
+  <text class="muted" x="95" y="132" text-anchor="middle">Phone / computer</text>
+
+  <rect class="screen" x="40" y="144" width="110" height="76" rx="6" />
+  <rect x="52" y="158" width="86" height="18" rx="3" fill="none" stroke="#7fe3e8" stroke-width="1.4" />
+  <text x="58" y="171" font-family="ui-monospace, monospace" font-size="10" fill="#7fe3e8">MERHABA</text>
+  <rect x="52" y="184" width="42" height="16" rx="3" fill="#7fe3e8" />
+  <text x="73" y="196" font-family="ui-sans-serif, system-ui" font-size="9" font-weight="700" fill="#0b1416" text-anchor="middle">Gönder</text>
+  <text x="58" y="214" font-family="ui-sans-serif, system-ui" font-size="8.5" fill="#5aa8ac">assets/index.html</text>
+
+  <!-- ok 1 -->
+  <path class="flow" d="M170 165 H236" />
+  <text class="muted" x="203" y="156" text-anchor="middle">WiFi</text>
+  <text class="muted" x="203" y="184" text-anchor="middle">WebSocket</text>
+
+  <!-- ───── 2. MPU ───── -->
+  <rect class="mpu" x="236" y="70" width="240" height="190" rx="12" />
+  <text class="tag" x="252" y="92" fill="var(--color-brand-600, #007d83)">MPU · Debian Linux</text>
+
+  <rect class="box" x="252" y="104" width="208" height="60" rx="8" />
+  <text class="lbl-b" x="356" y="124" text-anchor="middle">web_ui brick</text>
+  <text class="muted" x="356" y="140" text-anchor="middle">web sunucusu + WebSocket</text>
+  <text class="muted" x="356" y="154" text-anchor="middle">web server + WebSocket</text>
+
+  <path class="flow" d="M356 164 V180" />
+
+  <rect class="box" x="252" y="180" width="208" height="64" rx="8" />
+  <text class="lbl-b" x="356" y="200" text-anchor="middle">python/main.py</text>
+  <text class="muted" x="356" y="216" text-anchor="middle">metni temizler / sanitises the text</text>
+  <text class="mono" x="356" y="234" text-anchor="middle">Bridge.call("show_text", …)</text>
+
+  <!-- ok 2 -->
+  <path class="flow" d="M476 212 H540" />
+  <text class="lbl-b" x="508" y="200" text-anchor="middle">Bridge</text>
+  <text class="muted" x="508" y="232" text-anchor="middle">RPC</text>
+
+  <!-- ───── 3. MCU ───── -->
+  <rect class="mcu" x="540" y="70" width="200" height="190" rx="12" />
+  <text class="tag" x="556" y="92" fill="#0d8ce0">MCU · sketch/</text>
+
+  <rect class="box" x="556" y="104" width="168" height="66" rx="8" />
+  <text class="mono" x="640" y="124" text-anchor="middle">Bridge.provide(</text>
+  <text class="mono" x="640" y="139" text-anchor="middle">"show_text", …)</text>
+  <text class="muted" x="640" y="158" text-anchor="middle">3x5 fontla çizer / draws it</text>
+
+  <path class="flow" d="M640 170 V190" />
+
+  <!-- LED matris -->
+  <rect class="screen" x="556" y="190" width="168" height="56" rx="6" />
+  <g fill="#7fe3e8">
+    <!-- basit "MERHABA" izlenimi veren pikseller -->
+    <rect x="568" y="206" width="4" height="4" /><rect x="568" y="212" width="4" height="4" />
+    <rect x="568" y="218" width="4" height="4" /><rect x="574" y="206" width="4" height="4" />
+    <rect x="580" y="206" width="4" height="4" /><rect x="580" y="212" width="4" height="4" />
+    <rect x="580" y="218" width="4" height="4" />
+    <rect x="594" y="206" width="4" height="4" /><rect x="594" y="212" width="4" height="4" />
+    <rect x="594" y="218" width="4" height="4" /><rect x="600" y="206" width="4" height="4" />
+    <rect x="600" y="212" width="4" height="4" /><rect x="606" y="206" width="4" height="4" />
+    <rect x="606" y="218" width="4" height="4" />
+    <rect x="620" y="206" width="4" height="4" /><rect x="620" y="212" width="4" height="4" />
+    <rect x="620" y="218" width="4" height="4" /><rect x="626" y="212" width="4" height="4" />
+    <rect x="632" y="206" width="4" height="4" /><rect x="632" y="212" width="4" height="4" />
+    <rect x="632" y="218" width="4" height="4" />
+    <rect x="646" y="212" width="4" height="4" /><rect x="652" y="206" width="4" height="4" />
+    <rect x="652" y="218" width="4" height="4" /><rect x="658" y="212" width="4" height="4" />
+    <rect x="672" y="206" width="4" height="4" /><rect x="672" y="212" width="4" height="4" />
+    <rect x="672" y="218" width="4" height="4" /><rect x="678" y="206" width="4" height="4" />
+    <rect x="684" y="206" width="4" height="4" /><rect x="684" y="212" width="4" height="4" />
+    <rect x="684" y="218" width="4" height="4" />
+  </g>
+  <text class="muted" x="640" y="240" text-anchor="middle">8 × 13 LED matris — kaydırarak / scrolling</text>
+
+  <!-- Alt notlar -->
+  <g transform="translate(20, 288)">
+    <rect class="box" x="0" y="0" width="720" height="86" rx="10" />
+    <text class="lbl-b" x="18" y="24">Bu proje 5. projenin tersi / This project is project 5 in reverse</text>
+    <text class="lbl" x="18" y="46">5. proje: MCU → Bridge.notify → Linux      (mikrodenetleyici konuşur)</text>
+    <text class="lbl" x="18" y="66">6. proje: Linux → Bridge.call → MCU        (Linux konuşur)</text>
+    <text class="muted" x="470" y="46">Project 5: the microcontroller speaks</text>
+    <text class="muted" x="470" y="66">Project 6: Linux speaks</text>
+  </g>
+</svg>

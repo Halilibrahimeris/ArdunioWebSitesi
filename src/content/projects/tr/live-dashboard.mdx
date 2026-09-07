@@ -1,0 +1,245 @@
+---
+projectId: live-dashboard
+title: Canlı Sensör Paneli
+summary: >-
+  Sensör verilerini tarayıcıda canlı bir grafiğe dök. Aynı veri hem anlık olarak
+  ekrana akıyor hem de kartın veritabanına kaydediliyor. Grafiği hiçbir kütüphane
+  kullanmadan, canvas üzerine kendimiz çiziyoruz.
+learn:
+  - "Aynı veriyi iki hedefe birden yönlendirmek: kalıcı depolama ve canlı yayın"
+  - "WebSocket ile tek yönlü sürekli veri akışı kurmak"
+  - "deque(maxlen) ile bellekte sabit uzunlukta geçmiş tutmak"
+  - Canvas üzerine kütüphanesiz çizgi grafik çizmek
+  - Tarayıcıdan CSV dosyası indirmek
+troubleshooting:
+  - q: Grafik boş, "Ölçüm bekleniyor…" yazısı kaybolmuyor.
+    a: >-
+      Karttan veri gelmiyor demektir. Önce App Lab çıktısına bak: "olcum
+      islendi" satırları akıyor mu? Akmıyorsa sorun sketch tarafında; DHT11
+      bağlantısını ve Bridge.begin() satırını kontrol et.
+  - q: Grafik bulanık görünüyor.
+    a: >-
+      app.js içindeki canvasBoyutlandir() fonksiyonunun çağrıldığından emin ol.
+      Bu fonksiyon ekranın piksel yoğunluğuna göre canvas'ı ölçeklendiriyor;
+      olmadan yüksek çözünürlüklü ekranlarda çizgiler bulanık çıkar.
+  - q: Sıcaklık çizgisi grafiğin en altında sürünüyor.
+    a: >-
+      Grafik 0-100 aralığında çiziliyor. Oda sıcaklığı 23 derece civarındaysa
+      çizgi doğal olarak altta kalır. Sıcaklığı daha görünür yapmak istersen
+      app.js içinde ona ayrı bir ölçek verebilirsin — ama o zaman üç çizgiyi
+      aynı eksende karşılaştıramazsın.
+  - q: Sayfayı yenileyince geçmiş kayboluyor.
+    a: >-
+      Kaybolmamalı. Python, bağlanan her tarayıcıya bellekteki geçmişi
+      gönderiyor. Kaybolan yalnızca kartı yeniden başlattığında olur, çünkü
+      bellekteki liste sıfırlanır. Veritabanındaki kayıtlar ise durur.
+  - q: CSV indirme düğmesi çalışmıyor.
+    a: >-
+      Sadece ekrandaki ölçümleri indirir; henüz hiç ölçüm gelmemişse hiçbir şey
+      olmaz. Ayrıca bazı mobil tarayıcılar Blob indirmesini engeller —
+      bilgisayarda dene.
+  - q: İki tarayıcıda grafikler farklı görünüyor.
+    a: >-
+      Her tarayıcı bağlandığı andan itibaren kendi listesini tutuyor, ama
+      bağlanırken tüm geçmişi aldığı için ikisi aynı olmalı. Farklıysa
+      birinin bağlantısı kopmuş olabilir; sayfayı yenile.
+---
+
+Şimdiye kadar veriyi ya kartın üzerinde gördün (4. proje, OLED) ya da dosyaya
+kaydettin (5. proje). Bu projede ikisini birleştirip üçüncü bir şey ekliyoruz:
+**tarayıcıda canlı grafik.**
+
+<WiringDiagram file="08-live-dashboard.svg" caption="Aynı ölçümün iki farklı hedefe gidişi" />
+
+## Aynı veri, iki hedef
+
+Bu projenin mimari fikri şu: bir ölçüm geldiğinde onu **iki yere birden**
+gönderiyoruz.
+
+| Hedef | Ne için | Ömrü |
+| --- | --- | --- |
+| Veritabanı (`dbstorage_tsstore`) | Sonradan analiz, uzun dönem | Kalıcı |
+| Tarayıcı (`web_ui`) | Anlık izleme | Sayfa açık olduğu sürece |
+
+İkisi farklı ihtiyaçları karşılıyor. Veritabanı "geçen hafta salı gecesi oda
+kaç dereceydi?" sorusuna cevap verir. Tarayıcı ise "şu anda ne oluyor?"
+sorusuna.
+
+<Callout lang="tr" variant="tip" title="Devre 5. projeyle aynı">
+DHT11 ve LDR bağlantıları değişmedi. 5. projeyi kurduysan hiçbir kabloya
+dokunmana gerek yok — sadece yeni bir uygulama oluşturup kodları değiştir.
+</Callout>
+
+<Step n={1} title="Devreyi hazırla ve uygulamayı oluştur">
+
+Bağlantılar 5. projedeki gibi:
+
+- **DHT11**: VCC → 3V3, DATA → **D7**, GND → GND (+ 10kΩ pull-up)
+- **LDR**: 3V3 → LDR → **A0**, A0 → 10kΩ → GND
+
+App Lab'de yeni bir uygulama aç, adını `canli-panel` koy. `app.yaml` dosyasına
+**iki brick birden** ekle:
+
+```yaml
+bricks:
+  - arduino:web_ui
+  - arduino:dbstorage_tsstore
+```
+
+İlk kez iki brick'i aynı anda kullanıyorsun. Birbirlerinden habersizler; ikisini
+Python kodun bir araya getiriyor.
+
+</Step>
+
+<Step n={2} title="Sketch tarafı neredeyse değişmedi">
+
+`sketch/sketch.ino` dosyası 5. projedekiyle neredeyse aynı. İki küçük fark var:
+
+**Gönderme aralığı 5 saniyeden 2 saniyeye indi.** Canlı bir grafikte 5 saniye
+çok seyrek kalıyor, çizgi kesik kesik görünüyor.
+
+**Işık değeri yüzdeye çevriliyor:**
+
+```cpp
+int isikYuzde = map(hamIsik, 0, ADC_MAX, 0, 100);
+```
+
+Ham ADC değeri 0-1023 arası. Grafikte sıcaklık ve nem ile aynı eksende
+göstereceğimiz için hepsini 0-100 aralığına çekiyoruz.
+
+<Callout lang="tr" variant="info" title="Sketch'in görevi değişmedi">
+Mikrodenetleyici hâlâ sadece ölçüyor. Veritabanı, WebSocket, grafik — hiçbirinden
+haberi yok. Bu iyi bir tasarım: sketch'in tek bir işi var ve onu iyi yapıyor.
+</Callout>
+
+</Step>
+
+<Step n={3} title="Python: veriyi ikiye dağıt">
+
+`python/main.py` dosyasındaki `olcum_geldi()` fonksiyonu bu projenin kalbi.
+Sırasıyla üç iş yapıyor:
+
+```python
+# 1. Kalıcı olarak kaydet
+db.write_sample("sicaklik", sicaklik)
+
+# 2. Bellekteki geçmişe ekle
+history.append(kayit)
+
+# 3. Bağlı tarayıcılara yayınla
+ui.send_message("olcum", kayit)
+```
+
+Bunlardan önce, her zamanki gibi doğrulama var — bozuk veri ne veritabanına
+girer ne de grafiğe.
+
+</Step>
+
+<Step n={4} title="deque: sabit uzunlukta geçmiş">
+
+Bellekte son 150 ölçümü tutuyoruz. Bunun için Python'un `deque` yapısını
+kullanıyoruz:
+
+```python
+history = deque(maxlen=HISTORY_SIZE)
+```
+
+`maxlen` verildiğinde deque sihirli bir davranış kazanır: **dolduktan sonra
+yeni bir eleman eklediğinde en eskisini kendiliğinden atar.**
+
+Normal bir listeyle bunu yapmak için her seferinde `if len(history) > 150:
+history.pop(0)` yazman gerekirdi.
+
+<Callout lang="tr" variant="tip" title="Bunu daha önce gördün">
+4. projede OLED grafiği için C++ tarafında *halka tampon* yazmıştık. `deque`
+aynı fikrin Python'daki hazır hali. Aynı problem, aynı çözüm, farklı dil.
+</Callout>
+
+</Step>
+
+<Step n={5} title="Tarayıcı bağlanınca geçmişi gönder">
+
+Küçük ama önemli bir ayrıntı:
+
+```python
+def baglandi(sid):
+    ui.send_message("gecmis", {"kayitlar": list(history)})
+```
+
+Bu olmasaydı, sayfayı açan kullanıcı boş bir grafik görür ve ilk noktanın
+gelmesi için 2 saniye beklerdi. Sonra bir nokta, sonra bir tane daha…
+Grafiğin dolması 5 dakika sürerdi.
+
+Bunun yerine bağlanır bağlanmaz elimizdeki tüm geçmişi gönderiyoruz. Kullanıcı
+sayfayı açtığı anda dolu bir grafik görüyor.
+
+<Callout lang="tr" variant="info" title="İki farklı mesaj türü">
+`gecmis` mesajı bir kez, bağlanırken gönderilir ve **tüm listeyi** taşır.
+`olcum` mesajı ise her ölçümde gönderilir ve yalnızca **tek bir kaydı** taşır.
+
+Her ölçümde tüm listeyi göndermek işe yarardı ama 150 kaydı 2 saniyede bir
+tekrar tekrar göndermek boşuna trafik olurdu.
+</Callout>
+
+</Step>
+
+<Step n={6} title="Grafiği neden kütüphanesiz çiziyoruz?">
+
+Chart.js gibi hazır bir kütüphane kullanabilirdik. Kullanmadık, çünkü o
+kütüphanenin internetten indirilmesi gerekirdi.
+
+Bu panelin kartın kendi ağında, **internet olmadan** da çalışmasını istiyoruz.
+Kart WiFi'a bağlı ama o WiFi'ın internete çıkması şart değil.
+
+Grafik `app.js` içinde yaklaşık 60 satırda çiziliyor:
+
+```js
+records.forEach((record, i) => {
+  const px = KENAR.sol + alanG - (kayitlar.length - 1 - i) * adimX;
+  const py = KENAR.ust + alanY - ((deger - Y_MIN) / (Y_MAX - Y_MIN)) * alanY;
+  if (i === 0) ctx.moveTo(px, py);
+  else ctx.lineTo(px, py);
+});
+```
+
+Her ölçümü bir (x, y) noktasına çevirip aralarına çizgi çekiyoruz. Bütün
+grafik kütüphaneleri de temelde bunu yapar.
+
+<Callout lang="tr" variant="warning" title="Canvas ve keskinlik">
+`canvasBoyutlandir()` fonksiyonu şart. Yüksek çözünürlüklü ekranlarda bir CSS
+pikseli birden fazla gerçek piksele karşılık gelir. Canvas'ın piksel boyutunu
+`devicePixelRatio` ile çarpmazsan çizgiler bulanık görünür.
+</Callout>
+
+</Step>
+
+<Step n={7} title="Çalıştır ve izle">
+
+**Run** de ve web arayüzünü aç.
+
+1. Üstteki üç kutuda anlık değerler görünür.
+2. Grafik 2 saniyede bir sağdan büyür.
+3. **Elini LDR'nin üzerine kapat.** Sarı çizgi anında düşer.
+4. **Sensöre üfle.** Mavi (nem) çizgi birkaç saniye içinde yükselir.
+5. **CSV olarak indir** düğmesine bas. Ekrandaki veriler dosya olarak iner.
+
+<PhotoSlot lang="tr" caption="Tarayıcıda canlı akan sensör grafiği" />
+
+</Step>
+
+<Step n={8} title="Geliştir">
+
+- Grafiğe fare ile üzerine gelince değer gösteren bir ipucu ekle
+- Veritabanındaki geçmişi sorgulayıp "son 24 saat" görünümü ekle
+  (`db.read_samples()` fonksiyonunu kullan)
+- Sıcaklık eşiği aşılınca grafiğin arka planını kırmızıya boya
+- 7. projedeki röleyi bağlayıp sıcaklığa göre otomatik kontrol et — basit bir
+  termostat olur
+
+<Callout lang="tr" variant="info" title="Sıradaki proje">
+Bu panele bakmak için tarayıcıyı açman gerekiyor. Bir sonraki projede kart
+sana kendisi haber verecek: hareket algıladığında telefonuna Telegram mesajı
+gönderecek.
+</Callout>
+
+</Step>

@@ -1,0 +1,13 @@
+# Project 8 — Live Sensor Dashboard
+#
+# Two bricks are in use here:
+#   web_ui             → serves the page and opens a WebSocket
+#   dbstorage_tsstore  → stores readings permanently (familiar from project 5)
+
+name: Live Sensor Dashboard
+icon: 📊
+description: Streams temperature, humidity and light into a live browser chart
+
+bricks:
+  - arduino:web_ui
+  - arduino:dbstorage_tsstore

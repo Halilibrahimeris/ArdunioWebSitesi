@@ -1,0 +1,245 @@
+---
+projectId: live-dashboard
+title: Live Sensor Dashboard
+summary: >-
+  Stream sensor data into a live chart in the browser. The same readings flow
+  onto the screen and into the board's database at once. The chart is drawn on
+  a canvas by hand, with no library at all.
+learn:
+  - "Routing one stream of data to two destinations: durable storage and live broadcast"
+  - Setting up a continuous one-way data feed over WebSockets
+  - "Keeping a fixed-length history in memory with deque(maxlen)"
+  - Drawing a line chart on a canvas without a charting library
+  - Downloading a CSV file from the browser
+troubleshooting:
+  - q: The chart is empty and "Waiting for readings…" never goes away.
+    a: >-
+      No data is arriving from the board. Check the App Lab output first: are
+      "readings processed" lines appearing? If not, the problem is on the sketch
+      side — check the DHT11 wiring and the Bridge.begin() line.
+  - q: The chart looks blurry.
+    a: >-
+      Make sure resizeCanvas() in app.js is being called. It scales the canvas
+      to the screen's pixel density; without it, lines look soft on
+      high-resolution displays.
+  - q: The temperature line crawls along the bottom of the chart.
+    a: >-
+      The chart is plotted on a 0-100 scale. With a room at about 23 degrees the
+      line naturally sits low. You can give temperature its own scale in app.js
+      to make it more visible — but then you can no longer compare the three
+      series on one axis.
+  - q: Refreshing the page loses the history.
+    a: >-
+      It should not. Python sends the in-memory history to every browser that
+      connects. It is only lost when you restart the board, which clears that
+      list. The records in the database survive.
+  - q: The CSV download button does nothing.
+    a: >-
+      It only downloads what is on screen, so nothing happens before the first
+      readings arrive. Some mobile browsers also block Blob downloads — try it
+      on a computer.
+  - q: Two browsers show different charts.
+    a: >-
+      Each browser keeps its own list from the moment it connects, but since it
+      receives the whole history on connecting they should match. If they do
+      not, one has probably lost its connection — refresh the page.
+---
+
+So far you have seen data on the board itself (project 4, the OLED) or written
+it to a file (project 5). This project combines both and adds a third thing:
+**a live chart in the browser.**
+
+<WiringDiagram file="08-live-dashboard.svg" caption="One reading travelling to two destinations" />
+
+## One stream, two destinations
+
+The architectural idea here: when a reading arrives, we send it to **two places
+at once**.
+
+| Destination | What for | Lifetime |
+| --- | --- | --- |
+| Database (`dbstorage_tsstore`) | Later analysis, the long term | Permanent |
+| Browser (`web_ui`) | Watching right now | As long as the page is open |
+
+They serve different needs. The database answers "how warm was the room last
+Tuesday night?". The browser answers "what is happening this second?".
+
+<Callout lang="en" variant="tip" title="The circuit is the same as project 5">
+The DHT11 and LDR wiring has not changed. If you built project 5, you do not
+have to touch a single wire — just create a new app and change the code.
+</Callout>
+
+<Step n={1} title="Prepare the circuit and create the app">
+
+The connections are as in project 5:
+
+- **DHT11**: VCC → 3V3, DATA → **D7**, GND → GND (+ a 10kΩ pull-up)
+- **LDR**: 3V3 → LDR → **A0**, A0 → 10kΩ → GND
+
+Create a new app in App Lab and name it `live-dashboard`. Add **two bricks** to
+`app.yaml`:
+
+```yaml
+bricks:
+  - arduino:web_ui
+  - arduino:dbstorage_tsstore
+```
+
+This is the first time you use two bricks together. They know nothing about
+each other; your Python code is what brings them together.
+
+</Step>
+
+<Step n={2} title="The sketch barely changed">
+
+`sketch/sketch.ino` is almost identical to project 5's, with two small differences.
+
+**The interval dropped from 5 seconds to 2.** On a live chart, 5 seconds feels
+too sparse and the line looks choppy.
+
+**The light value is converted to a percentage:**
+
+```cpp
+int lightPercent = map(rawLight, 0, ADC_MAX, 0, 100);
+```
+
+The raw ADC value runs 0-1023. Since we plot it on the same axis as temperature
+and humidity, we pull everything onto a 0-100 scale.
+
+<Callout lang="en" variant="info" title="The sketch's job has not changed">
+The microcontroller still only measures. It knows nothing about databases,
+WebSockets or charts. That is good design: the sketch has one job and does it
+well.
+</Callout>
+
+</Step>
+
+<Step n={3} title="Python: split the data in two">
+
+The `on_reading()` function in `python/main.py` is the heart of this project.
+It does three things in order:
+
+```python
+# 1. Store it permanently
+db.write_sample("temperature", temperature)
+
+# 2. Append to the in-memory history
+history.append(record)
+
+# 3. Broadcast to connected browsers
+ui.send_message("reading", record)
+```
+
+Before all of that comes validation, as always — broken data reaches neither
+the database nor the chart.
+
+</Step>
+
+<Step n={4} title="deque: a fixed-length history">
+
+We keep the last 150 readings in memory using Python's `deque`:
+
+```python
+history = deque(maxlen=HISTORY_SIZE)
+```
+
+Given a `maxlen`, a deque gains one magic behaviour: **once full, adding a new
+item silently drops the oldest.**
+
+With a plain list you would have to write `if len(history) > 150:
+history.pop(0)` every time.
+
+<Callout lang="en" variant="tip" title="You have seen this before">
+In project 4 we wrote a *ring buffer* in C++ for the OLED graph. `deque` is the
+same idea, ready-made, in Python. Same problem, same solution, different language.
+</Callout>
+
+</Step>
+
+<Step n={5} title="Send the history when a browser connects">
+
+A small but important detail:
+
+```python
+def on_connect(sid):
+    ui.send_message("history", {"records": list(history)})
+```
+
+Without it, a user opening the page would see an empty chart and wait two
+seconds for the first point. Then one more, then another… filling the chart
+would take five minutes.
+
+Instead we send everything we have the moment they connect, so the chart is
+already full when the page opens.
+
+<Callout lang="en" variant="info" title="Two different message types">
+The `history` message is sent once, on connect, and carries the **whole list**.
+The `reading` message is sent for every reading and carries **one record**.
+
+Sending the whole list each time would work, but re-sending 150 records every
+two seconds would be wasted traffic.
+</Callout>
+
+</Step>
+
+<Step n={6} title="Why draw the chart without a library?">
+
+We could have used something ready-made like Chart.js. We did not, because that
+library would have to be downloaded from the internet.
+
+We want this dashboard to work on the board's own network, **with no internet
+connection at all**. The board is on WiFi, but that WiFi does not have to reach
+the outside world.
+
+The chart is drawn in about 60 lines of `app.js`:
+
+```js
+records.forEach((record, i) => {
+  const px = PAD.left + plotW - (records.length - 1 - i) * stepX;
+  const py = PAD.top + plotH - ((value - Y_MIN) / (Y_MAX - Y_MIN)) * plotH;
+  if (i === 0) ctx.moveTo(px, py);
+  else ctx.lineTo(px, py);
+});
+```
+
+Each reading becomes an (x, y) point and we draw lines between them. Every
+charting library does fundamentally the same thing.
+
+<Callout lang="en" variant="warning" title="Canvas and sharpness">
+The `resizeCanvas()` function is essential. On high-resolution screens one CSS
+pixel maps to several real ones. Without multiplying the canvas's pixel size by
+`devicePixelRatio`, the lines come out blurry.
+</Callout>
+
+</Step>
+
+<Step n={7} title="Run it and watch">
+
+Press **Run** and open the web interface.
+
+1. The three cards at the top show the current values.
+2. The chart grows from the right every two seconds.
+3. **Cover the LDR with your hand.** The yellow line drops immediately.
+4. **Breathe on the sensor.** The blue humidity line climbs within seconds.
+5. Press **Download as CSV**. What is on screen arrives as a file.
+
+<PhotoSlot lang="en" caption="Sensor data streaming into the browser chart" />
+
+</Step>
+
+<Step n={8} title="Take it further">
+
+- Add a tooltip that shows the value when you hover over the chart
+- Query the database's history and add a "last 24 hours" view
+  (use `db.read_samples()`)
+- Tint the chart's background red when the temperature crosses a threshold
+- Attach the relay from project 7 and control it from the temperature — that
+  makes a simple thermostat
+
+<Callout lang="en" variant="info" title="What comes next">
+Watching this dashboard means opening a browser. In the next project the board
+comes to you instead: it sends a Telegram message to your phone when it detects
+motion.
+</Callout>
+
+</Step>

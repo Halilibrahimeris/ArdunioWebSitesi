@@ -1,0 +1,17 @@
+# Proje 9 — Telegram Bot
+#
+# İki brick:
+#   telegram_bot     → Telegram üzerinden mesajlaşma
+#   weather_forecast → hava durumu bilgisi
+#
+# ÖNEMLİ: Bot token'ı bu dosyaya YAZILMAZ.
+# App Lab'in ortam değişkeni ayarlarından TELEGRAM_BOT_TOKEN olarak girilir.
+# Token'ı koda gömersen, kodu paylaştığın herkes botunu ele geçirebilir.
+
+name: Telegram Bot
+icon: 🤖
+description: Odandaki hareketi ve hava durumunu Telegram'dan sorgula
+
+bricks:
+  - arduino:telegram_bot
+  - arduino:weather_forecast

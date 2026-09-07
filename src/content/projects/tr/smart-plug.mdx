@@ -1,0 +1,251 @@
+---
+projectId: smart-plug
+title: Akıllı Priz — Web'den Röle ve RGB Kontrolü
+summary: >-
+  Telefondan bir düğmeye bas, röle tıklasın; renk seç, LED şerit o renge dönsün.
+  Zamanlayıcı kur, kart kendi kendine kapatsın. Bu projede 3.3V sorununu ikinci
+  bir yolla, transistörle çözüyoruz.
+learn:
+  - Transistörle 3.3V sinyalden 5V yük sürmek (seviye çevirmenin ikinci yolu)
+  - Röle modüllerinin neden aktif-DÜŞÜK olduğu ve bunun ne anlama geldiği
+  - WS2812 adreslenebilir LED şeridi renk ve parlaklıkla kontrol etmek
+  - Harici besleme kullanmak ve ortak GND'nin neden zorunlu olduğu
+  - Bridge'i çift yönlü kullanmak — kart da web arayüzüne haber gönderiyor
+troubleshooting:
+  - q: Röle hiç tıklamıyor.
+    a: >-
+      Önce röle modülünün 5V ile beslendiğini kontrol et; 3.3V ile çoğu röle
+      bobini çekmez. Sonra transistör bağlantısına bak: düz yüzü sana dönükken
+      soldan sağa emiter, baz, kollektör sırasıdır. Ters takarsan çalışmaz.
+  - q: Röle sürekli açık kalıyor, kapanmıyor.
+    a: >-
+      Röle modülünün IN girişi büyük ihtimalle aktif-DÜŞÜK ve transistör
+      olmadan bağlanmış. Kartın 3.3V'u modülü kapatmaya yetmiyor. Şemadaki
+      2N2222'yi devreye almadan bu proje düzgün çalışmaz.
+  - q: LED şerit hiç yanmıyor.
+    a: >-
+      Şeridin veri yönünü kontrol et. WS2812 şeritlerin üzerinde ok işareti
+      vardır; DIN (veri girişi) tarafını karta bağlaman gerekir. Ters bağlarsan
+      hiçbir LED yanmaz. Ayrıca şeridin 5V beslemesinin bağlı olduğundan emin ol.
+  - q: LED şeridin sadece ilk birkaç LED'i yanıyor.
+    a: >-
+      Genellikle besleme yetersizliğidir. 8 LED tam parlaklıkta beyaz yanarken
+      yaklaşık 0.5 A çeker. Kartın 5V pini bunu karşılayamaz — harici adaptör
+      kullan ve GND'yi kartla ortakla.
+  - q: Renkler yanlış çıkıyor, kırmızı dediğimde yeşil yanıyor.
+    a: >-
+      Şeridin renk sırası farklı. Kodda NEO_GRB yazıyor; şeridin RGB sıralıysa
+      NEO_RGB yapıp tekrar dene. Ucuz şeritlerde bu sıra üreticiye göre değişir.
+  - q: Zamanlayıcı doldu ama web arayüzü hâlâ "AÇIK" gösteriyor.
+    a: >-
+      Sketch'teki Bridge.notify("relay_changed", 0) satırının ve main.py'deki
+      Bridge.provide("relay_changed", ...) satırının ikisinin birden var
+      olduğunu kontrol et. Bu çift, kartın web arayüzüne haber vermesini sağlar.
+  - q: Rölenin kontaklarına ne bağlayabilirim?
+    a: >-
+      Pille çalışan bir lamba, küçük bir DC motor, bir zil ya da ayrı bir
+      adaptörle beslenen düşük gerilimli bir cihaz. Şebeke gerilimine (220V)
+      kesinlikle bağlama — bu iş elektrik yetkinliği ve uygun mahfaza gerektirir.
+---
+
+6. projede web arayüzünden karta yazı gönderdin. Bu projede aynı tekniği
+**gerçek bir yükü** açıp kapatmak için kullanacağız.
+
+<Callout lang="tr" variant="danger" title="Bu projede şebeke gerilimi kullanma">
+Röle modülleri 220V anahtarlayabilir ama bu proje bunun için tasarlanmadı.
+Şebeke gerilimi öldürür ve uygun mahfaza, sigorta ve yalıtım ister.
+
+Röleyi yalnızca **pille çalışan bir lamba, küçük bir DC motor veya ayrı
+adaptörle beslenen düşük gerilimli bir cihazla** dene. Rölenin *tıklaması* ve
+kontağın kapanması, işin öğretici kısmının tamamıdır.
+</Callout>
+
+<WiringDiagram file="07-smart-plug.svg" caption="Transistör sürücü, röle ve LED şerit bağlantısı" />
+
+## 3.3V sorununun ikinci çözümü
+
+3. projede 5V bir **girişi** karta güvenle sokmak için gerilim bölücü kullandık.
+
+Burada sorun ters yönde: kartın 3.3V **çıkışı**, 5V'luk bir modülü sürmeye
+yetmiyor.
+
+Röle modüllerinin çoğu **aktif-DÜŞÜK** çalışır: IN girişi toprağa çekilince
+röle çeker, 5V'a yakın olduğunda bırakır. Kart HIGH verdiğinde yalnızca 3.3V
+üretebildiği için modül "bu yeterince yüksek değil" der ve röle kapanmaz.
+
+Çözüm bir **transistör**:
+
+| Kart pini | Transistör | Röle IN |
+| --- | --- | --- |
+| HIGH (3.3V) | iletime geçer | GND'ye çekilir → röle **açık** |
+| LOW (0V) | kesimde | modülün kendi direnci 5V'a çeker → röle **kapalı** |
+
+Transistör hem seviye çeviriyor hem de kartı röleden elektriksel olarak
+ayırıyor.
+
+<Callout lang="tr" variant="tip" title="Aynı sorun, iki farklı çözüm">
+3. projede gerilim bölücü (5V → 3.3V, **giriş** için).
+7. projede transistör (3.3V → 5V yük, **çıkış** için).
+
+Hangisini kullanacağın sinyalin yönüne bağlı. Bu ikisini bilirsen 3.3V ile
+5V dünyası arasındaki köprülerin çoğunu kurabilirsin.
+</Callout>
+
+<Step n={1} title="Gücü kes ve transistörü tanı">
+
+USB-C kabloyu çıkar ve harici adaptörü de fişten çek.
+
+2N2222 transistörün üç bacağı var. **Düz yüzü sana dönükken, soldan sağa:**
+
+1. **Emiter** (E)
+2. **Baz** (B)
+3. **Kollektör** (C)
+
+<Callout lang="tr" variant="warning">
+Farklı üretimlerde sıra değişebilir. Emin değilsen transistörün üzerindeki
+kodu (2N2222, PN2222 gibi) aratıp veri sayfasına bak. Ters takılan bir
+transistör çalışmaz ama genelde bozulmaz da.
+</Callout>
+
+</Step>
+
+<Step n={2} title="Transistör sürücüyü kur">
+
+Şu üç bağlantıyı yap:
+
+- **D5** → 10kΩ direnç → transistörün **bazı**
+- Transistörün **emiteri** → kartın **GND**'si
+- Transistörün **kollektörü** → röle modülünün **IN** girişi
+
+10kΩ direnç, kartın pininden akan akımı sınırlıyor. Onsuz baz akımı
+kontrolsüz olur ve hem transistör hem pin zarar görür.
+
+</Step>
+
+<Step n={3} title="Röleyi besle">
+
+Röle modülünün beslemesi **harici adaptörden** gelmeli:
+
+- Röle **VCC** → harici 5V (+)
+- Röle **GND** → harici 5V (−)
+
+<Callout lang="tr" variant="danger" title="Ortak GND olmadan hiçbir şey çalışmaz">
+Harici adaptörün eksi ucunu kartın **GND** pinine de bağlaman gerekiyor.
+
+Bunu yapmazsan iki devrenin ortak bir sıfır noktası olmaz. Kart "3.3V"
+derken neye göre 3.3V olduğunu röle bilemez. Sinyaller anlamsızlaşır,
+devre rastgele davranır.
+
+Bu, harici besleme kullanan **her** projenin kuralıdır.
+</Callout>
+
+</Step>
+
+<Step n={4} title="LED şeridi bağla">
+
+WS2812 şeritlerin üzerinde **ok işaretleri** vardır — veri bu yönde akar.
+Okların başladığı uçtaki üç pedi kullan:
+
+- **DIN** (veri girişi) → kartın **D6** pini
+- **5V** → harici adaptörün (+) ucu
+- **GND** → ortak GND
+
+<Callout lang="tr" variant="warning" title="Neden 3.3V veri yetiyor?">
+WS2812 teorik olarak 5V'un %70'i (3.5V) civarında bir veri sinyali bekler,
+yani 3.3V sınırda kalır. Uygulamada **8 LED'lik kısa bir şeritte** sorunsuz
+çalışır.
+
+30-60 LED'lik uzun şeritlerde ilk LED'in sinyali yanlış okuma ihtimali artar.
+O durumda 74AHCT125 gibi bir seviye çevirici gerekir.
+</Callout>
+
+<PhotoSlot lang="tr" caption="Transistör sürücü, röle ve LED şerit kurulmuş halde" />
+
+</Step>
+
+<Step n={5} title="Uygulamayı oluştur">
+
+App Lab'de yeni bir uygulama aç, adını `akilli-priz` koy.
+
+`app.yaml` dosyasına `web_ui` brick'ini ekle. `sketch/sketch.yaml` dosyasına
+da NeoPixel kütüphanesini yaz — ikisi de aşağıdaki **Kodlar** bölümünde var.
+
+Sonra dört dosyayı yerine koy:
+
+| Dosya | Görevi |
+| --- | --- |
+| `sketch/sketch.ino` | Röleyi ve şeridi sürer, zamanlayıcıyı sayar |
+| `python/main.py` | Web arayüzü ile sketch arasında köprü |
+| `assets/index.html` | Arayüzün görünümü |
+| `assets/app.js` | Arayüzün mantığı |
+
+</Step>
+
+<Step n={6} title="Bridge bu projede çift yönlü">
+
+Şimdiye kadarki projelerde Bridge tek yönde çalışıyordu. Burada **iki yön de**
+kullanılıyor:
+
+**Aşağı yön** (web → kart), 6. projedeki gibi:
+
+```python
+Bridge.call("set_relay", 1)
+```
+
+**Yukarı yön** (kart → web), yeni olan bu. Zamanlayıcı dolduğunda röleyi
+kapatan taraf mikrodenetleyici; web arayüzünün bundan haberi olması lazım:
+
+```cpp
+// sketch içinde, zamanlayıcı dolunca
+Bridge.notify("relay_changed", 0);
+```
+
+```python
+# main.py içinde
+Bridge.provide("relay_changed", role_degisti)
+```
+
+Bu olmasaydı zamanlayıcı röleyi kapatır, ama telefonundaki arayüz hâlâ
+"AÇIK" göstermeye devam ederdi.
+
+<Callout lang="tr" variant="tip" title="Tek doğru kaynak">
+Web arayüzü kendi başına hiçbir şey varsaymıyor. Düğmeye bastığında arayüz
+hemen değişmiyor — önce karta gidiyor, kart durumu değiştirip geri
+bildiriyor, arayüz o zaman güncelleniyor.
+
+Böylece iki telefondan aynı anda kullansan bile ikisi de gerçek durumu
+gösterir. Buna *tek doğru kaynak* (single source of truth) denir.
+</Callout>
+
+</Step>
+
+<Step n={7} title="Çalıştır ve dene">
+
+Önce harici adaptörü tak, sonra USB-C kabloyu. **Run** de ve web arayüzünü aç.
+
+1. **Röle düğmesine bas.** Modülden net bir "tık" sesi gelmeli ve üzerindeki
+   LED yanmalı.
+2. **Renk seç.** Şerit anında o renge döner.
+3. **Parlaklığı kıs.** 0'a çekersen şerit söner.
+4. **5 dakika zamanlayıcı kur.** Röle açılır ve arayüzde "5 dakika sonra
+   kapanacak" yazar. Beklemek istemezsen koddaki `60000UL` değerini `1000UL`
+   yapıp saniyeye çevir, hemen test et.
+5. **İkinci bir cihazdan aç.** Birinden röleyi aç, diğerinin ekranı da güncellenir.
+
+</Step>
+
+<Step n={8} title="Geliştir">
+
+- Şeride animasyon ekle: gökkuşağı döngüsü veya nefes alma efekti
+- 4. projedeki DHT11'i takıp sıcaklık eşiği aşılınca röleyi otomatik aç
+  (basit bir termostat)
+- Zamanlayıcının kalan süresini web arayüzünde geri sayan bir sayaç göster
+- Röle her açıldığında 5. projedeki veritabanına kayıt at, kullanım geçmişi tut
+
+<Callout lang="tr" variant="info" title="Sıradaki proje">
+Web arayüzünden komut göndermeyi iki projede öğrendin. Bir sonraki projede
+ters yönü derinleştiriyoruz: karttan gelen sensör verisini tarayıcıda canlı
+grafiğe dökeceğiz.
+</Callout>
+
+</Step>

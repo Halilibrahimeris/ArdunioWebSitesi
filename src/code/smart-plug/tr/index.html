@@ -1,0 +1,68 @@
+<!--
+  Proje 7 — Akıllı Priz web arayüzü
+  Arduino UNO Q · assets/index.html
+-->
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Akıllı Priz</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+
+  <body>
+    <main>
+      <h1>Akıllı Priz</h1>
+      <p id="baglanti" class="durum bekliyor">Bağlanıyor&hellip;</p>
+
+      <!-- Röle -->
+      <section class="kart">
+        <h2>Röle</h2>
+        <button id="role-btn" class="buyuk-buton kapali">KAPALI</button>
+        <p class="hint">
+          Röleye şebeke gerilimi bağlama. Yalnızca pille çalışan bir lamba veya
+          küçük bir motor gibi düşük gerilimli yüklerle dene.
+        </p>
+      </section>
+
+      <!-- Zamanlayıcı -->
+      <section class="kart">
+        <h2>Zamanlayıcı</h2>
+        <div class="satir">
+          <button class="sure" data-dakika="5">5 dk</button>
+          <button class="sure" data-dakika="15">15 dk</button>
+          <button class="sure" data-dakika="30">30 dk</button>
+          <button class="sure" data-dakika="60">1 saat</button>
+          <button class="sure iptal" data-dakika="0">İptal</button>
+        </div>
+        <p id="zamanlayici-durum" class="hint">Zamanlayıcı kurulu değil</p>
+      </section>
+
+      <!-- RGB şerit -->
+      <section class="kart">
+        <h2>RGB LED Şerit</h2>
+
+        <label for="renk">Renk</label>
+        <input id="renk" type="color" value="#0078ff" />
+
+        <label for="parlaklik">
+          Parlaklık: <span id="parlaklik-deger">60</span>
+        </label>
+        <input id="parlaklik" type="range" min="0" max="255" step="5" value="60" />
+
+        <div class="satir">
+          <button class="hazir-renk" data-renk="#ff0000">Kırmızı</button>
+          <button class="hazir-renk" data-renk="#00ff00">Yeşil</button>
+          <button class="hazir-renk" data-renk="#0000ff">Mavi</button>
+          <button class="hazir-renk" data-renk="#ffaa00">Sıcak</button>
+          <button class="hazir-renk" data-renk="#000000">Kapat</button>
+        </div>
+      </section>
+    </main>
+
+    <script src="libs/socket.io.min.js"></script>
+    <script src="libs/arduino.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>

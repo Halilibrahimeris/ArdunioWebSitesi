@@ -1,0 +1,9 @@
+# Project 7 — Smart Plug
+# Controls a relay and an RGB LED strip from a web interface.
+
+name: Smart Plug
+icon: 🔌
+description: Relay and RGB strip control from a web panel
+
+bricks:
+  - arduino:web_ui

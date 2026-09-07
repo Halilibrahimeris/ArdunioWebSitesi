@@ -219,7 +219,7 @@ export const projects: Project[] = [
     needsCamera: false,
     needsMic: false,
     bricks: ['arduino:web_ui'],
-    codeFiles: ['app.yaml', 'main.py', 'sketch.ino', 'index.html', 'app.js'],
+    codeFiles: ['app.yaml', 'main.py', 'sketch.ino', 'sketch.yaml', 'index.html', 'app.js'],
     diagram: '07-smart-plug.svg',
     voltageWarning: true,
     bom: [
@@ -244,7 +244,7 @@ export const projects: Project[] = [
     needsCamera: false,
     needsMic: false,
     bricks: ['arduino:web_ui', 'arduino:dbstorage_tsstore'],
-    codeFiles: ['app.yaml', 'main.py', 'sketch.ino', 'index.html', 'app.js'],
+    codeFiles: ['app.yaml', 'main.py', 'sketch.ino', 'sketch.yaml', 'index.html', 'app.js'],
     diagram: '08-live-dashboard.svg',
     bom: [
       { part: 'uno-q', qty: 1, reusedFrom: 1 },
@@ -258,7 +258,7 @@ export const projects: Project[] = [
   {
     id: 'telegram-alert',
     number: 9,
-    slug: { tr: 'telegram-bildirimi', en: 'telegram-alerts' },
+    slug: { tr: 'telegram-botu', en: 'telegram-bot' },
     category: 'wifi',
     difficulty: 'intermediate',
     durationMin: 50,

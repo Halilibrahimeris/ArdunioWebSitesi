@@ -1,0 +1,103 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 400" role="img" aria-labelledby="d9-title">
+  <title id="d9-title">PIR sensörü ve Telegram botu / PIR sensor and Telegram bot</title>
+  <style>
+    .wire  { fill: none; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+    .w-sig { stroke: #0d8ce0; }
+    .w-5v  { stroke: #d94a3d; }
+    .w-gnd { stroke: #6b7b80; }
+    .flow  { fill: none; stroke: var(--color-brand-500, #00979d); stroke-width: 3; marker-end: url(#a9); }
+    .board { fill: var(--bg-subtle, #f6f8f9); stroke: var(--color-brand-500, #00979d); stroke-width: 2.4; }
+    .box   { fill: var(--surface, #fff); stroke: var(--border, #dde4e8); stroke-width: 1.8; }
+    .screen{ fill: #0b1416; stroke: var(--border, #dde4e8); stroke-width: 1.6; }
+    .lbl-b { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 13px; font-weight: 650; fill: var(--text, #102b2e); }
+    .lbl   { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 12px; fill: var(--text, #102b2e); }
+    .pin   { font-family: ui-monospace, monospace; font-size: 12px; font-weight: 700; fill: var(--text, #102b2e); }
+    .muted { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 10.5px; fill: var(--text-faint, #83969b); }
+    .pad   { fill: var(--color-brand-500, #00979d); }
+  </style>
+
+  <defs>
+    <marker id="a9" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="var(--color-brand-500, #00979d)" />
+    </marker>
+  </defs>
+
+  <!-- ───── PIR sensörü ───── -->
+  <rect class="box" x="20" y="96" width="150" height="96" rx="10" />
+  <text class="lbl-b" x="95" y="120" text-anchor="middle">HC-SR501 PIR</text>
+  <circle cx="95" cy="150" r="20" fill="none" stroke="var(--border, #dde4e8)" stroke-width="2" />
+  <circle cx="95" cy="150" r="12" fill="none" stroke="var(--border, #dde4e8)" stroke-width="1.4" />
+  <text class="muted" x="95" y="182" text-anchor="middle">VCC · OUT · GND</text>
+
+  <!-- Bağlantılar -->
+  <path class="wire w-5v"  d="M170 112 H236 V250 H262" />
+  <text class="muted" x="196" y="106">VCC → 5V</text>
+
+  <path class="wire w-sig" d="M170 144 H262" />
+  <text class="muted" x="200" y="138">OUT → D2</text>
+
+  <path class="wire w-gnd" d="M170 176 H214 V282 H262" />
+  <text class="muted" x="196" y="196">GND</text>
+
+  <!-- 3.3V güvenli notu -->
+  <rect x="20" y="212" width="216" height="52" rx="8" fill="#e7f6ec" stroke="#8fd0aa" stroke-width="1.6" />
+  <text x="34" y="232" font-family="ui-sans-serif, system-ui" font-size="11.5" font-weight="700" fill="#155f36">
+    3.3V güvenli / 3.3V safe
+  </text>
+  <text x="34" y="250" font-family="ui-sans-serif, system-ui" font-size="10.5" fill="#155f36">
+    Çıkışı 3.3V TTL — bölücü gerekmez
+  </text>
+
+  <!-- ───── Kart ───── -->
+  <rect class="board" x="262" y="76" width="176" height="240" rx="12" />
+  <text class="lbl-b" x="350" y="102" text-anchor="middle">Arduino UNO Q</text>
+
+  <g>
+    <circle class="pad" cx="262" cy="144" r="4.5" /><text class="pin" x="274" y="148">D2</text>
+    <circle class="pad" cx="262" cy="250" r="4.5" /><text class="pin" x="274" y="254">5V</text>
+    <circle class="pad" cx="262" cy="282" r="4.5" /><text class="pin" x="274" y="286">GND</text>
+  </g>
+
+  <rect class="box" x="280" y="164" width="140" height="34" rx="6" />
+  <text class="muted" x="350" y="185" text-anchor="middle">MCU: kenar yakalar</text>
+
+  <rect class="box" x="280" y="206" width="140" height="34" rx="6" />
+  <text class="muted" x="350" y="227" text-anchor="middle">MPU: sayar, saklar</text>
+
+  <path class="flow" d="M350 198 V206" />
+
+  <!-- ───── İnternet / Telegram ───── -->
+  <path class="flow" d="M438 190 H510" />
+  <text class="muted" x="474" y="182" text-anchor="middle">WiFi</text>
+  <text class="muted" x="474" y="208" text-anchor="middle">internet</text>
+
+  <rect class="box" x="510" y="96" width="110" height="190" rx="12" />
+  <text class="lbl-b" x="565" y="120" text-anchor="middle">Telegram</text>
+  <text class="muted" x="565" y="136" text-anchor="middle">sunucuları</text>
+
+  <rect class="screen" x="524" y="150" width="82" height="120" rx="6" />
+  <rect x="532" y="160" width="66" height="22" rx="4" fill="#1c3c40" />
+  <text x="538" y="174" font-family="ui-sans-serif, system-ui" font-size="8" fill="#7fe3e8">/durum</text>
+  <rect x="532" y="190" width="66" height="40" rx="4" fill="#123033" />
+  <text x="538" y="203" font-family="ui-sans-serif, system-ui" font-size="7" fill="#7fe3e8">Son hareket:</text>
+  <text x="538" y="213" font-family="ui-sans-serif, system-ui" font-size="7" fill="#7fe3e8">4 dakika önce</text>
+  <text x="538" y="223" font-family="ui-sans-serif, system-ui" font-size="7" fill="#7fe3e8">Son 1 saatte: 3</text>
+  <rect x="532" y="238" width="66" height="22" rx="4" fill="#1c3c40" />
+  <text x="538" y="252" font-family="ui-sans-serif, system-ui" font-size="8" fill="#7fe3e8">/hava</text>
+
+  <path class="flow" d="M620 190 H676" />
+  <rect class="box" x="676" y="150" width="66" height="80" rx="10" />
+  <text class="lbl" x="709" y="182" text-anchor="middle">Sen</text>
+  <text class="muted" x="709" y="198" text-anchor="middle">You</text>
+
+  <!-- Alt not -->
+  <g transform="translate(20, 328)">
+    <rect x="0" y="0" width="722" height="58" rx="10" fill="#fdecea" stroke="#e09a90" stroke-width="1.6" />
+    <text x="18" y="24" font-family="ui-sans-serif, system-ui" font-size="12" font-weight="700" fill="#9d2f24">
+      Token asla koda yazılmaz / The token never goes in the code
+    </text>
+    <text x="18" y="44" font-family="ui-sans-serif, system-ui" font-size="11" fill="#9d2f24">
+      TELEGRAM_BOT_TOKEN ortam değişkeninde tutulur · kept in an environment variable
+    </text>
+  </g>
+</svg>

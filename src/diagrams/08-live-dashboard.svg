@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 400" role="img" aria-labelledby="d8-title">
+  <title id="d8-title">Canlı panel veri akışı / Live dashboard data flow</title>
+  <style>
+    .flow  { fill: none; stroke: var(--color-brand-500, #00979d); stroke-width: 3; marker-end: url(#a8); }
+    .box   { fill: var(--surface, #fff); stroke: var(--border, #dde4e8); stroke-width: 1.8; }
+    .mcu   { fill: var(--bg-subtle, #f6f8f9); stroke: #0d8ce0; stroke-width: 2.4; }
+    .mpu   { fill: var(--bg-subtle, #f6f8f9); stroke: var(--color-brand-500, #00979d); stroke-width: 2.4; }
+    .screen{ fill: #0b1416; stroke: var(--border, #dde4e8); stroke-width: 1.6; }
+    .lbl-b { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 13px; font-weight: 700; fill: var(--text, #102b2e); }
+    .lbl   { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 12px; fill: var(--text, #102b2e); }
+    .mono  { font-family: ui-monospace, monospace; font-size: 11px; font-weight: 700; fill: var(--color-brand-600, #007d83); }
+    .muted { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 10.5px; fill: var(--text-faint, #83969b); }
+    .tag   { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 10.5px; font-weight: 700; }
+  </style>
+
+  <defs>
+    <marker id="a8" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="var(--color-brand-500, #00979d)" />
+    </marker>
+  </defs>
+
+  <!-- Sensörler -->
+  <rect class="box" x="16" y="96" width="92" height="38" rx="8" />
+  <text class="lbl" x="62" y="114" text-anchor="middle">DHT11</text>
+  <text class="muted" x="62" y="128" text-anchor="middle">D7</text>
+
+  <rect class="box" x="16" y="150" width="92" height="38" rx="8" />
+  <text class="lbl" x="62" y="168" text-anchor="middle">LDR</text>
+  <text class="muted" x="62" y="182" text-anchor="middle">A0</text>
+
+  <path class="flow" d="M108 115 H154" />
+  <path class="flow" d="M108 169 H154" />
+
+  <!-- MCU -->
+  <rect class="mcu" x="154" y="76" width="164" height="132" rx="12" />
+  <text class="tag" x="168" y="96" fill="#0d8ce0">MCU · sketch/</text>
+  <text class="lbl-b" x="236" y="122" text-anchor="middle">2 saniyede bir</text>
+  <text class="muted" x="236" y="138" text-anchor="middle">every 2 seconds</text>
+  <text class="mono" x="236" y="164" text-anchor="middle">Bridge.notify(</text>
+  <text class="mono" x="236" y="180" text-anchor="middle">"olcum", …)</text>
+
+  <path class="flow" d="M318 142 H366" />
+
+  <!-- MPU -->
+  <rect class="mpu" x="366" y="60" width="212" height="200" rx="12" />
+  <text class="tag" x="380" y="80" fill="var(--color-brand-600, #007d83)">MPU · python/</text>
+
+  <rect class="box" x="380" y="92" width="184" height="46" rx="8" />
+  <text class="lbl-b" x="472" y="110" text-anchor="middle">doğrula / validate</text>
+  <text class="muted" x="472" y="127" text-anchor="middle">bozuk veri buradan geçmez</text>
+
+  <path class="flow" d="M430 138 V158" />
+  <path class="flow" d="M514 138 V158" />
+
+  <rect class="box" x="380" y="158" width="92" height="52" rx="8" />
+  <text class="lbl" x="426" y="177" text-anchor="middle">kaydet</text>
+  <text class="muted" x="426" y="192" text-anchor="middle">tsstore</text>
+  <text class="muted" x="426" y="205" text-anchor="middle">kalıcı / durable</text>
+
+  <rect class="box" x="480" y="158" width="84" height="52" rx="8" />
+  <text class="lbl" x="522" y="177" text-anchor="middle">yayınla</text>
+  <text class="muted" x="522" y="192" text-anchor="middle">web_ui</text>
+  <text class="muted" x="522" y="205" text-anchor="middle">canlı / live</text>
+
+  <rect class="box" x="380" y="220" width="184" height="28" rx="6" />
+  <text class="muted" x="472" y="238" text-anchor="middle">deque(maxlen=150) — son 5 dakika</text>
+
+  <path class="flow" d="M578 184 H626" />
+  <text class="muted" x="602" y="176" text-anchor="middle">WiFi</text>
+
+  <!-- Tarayıcı -->
+  <rect class="box" x="626" y="96" width="118" height="176" rx="12" />
+  <text class="lbl-b" x="685" y="118" text-anchor="middle">Tarayıcı</text>
+  <text class="muted" x="685" y="132" text-anchor="middle">Browser</text>
+
+  <rect class="screen" x="640" y="144" width="90" height="112" rx="6" />
+  <!-- mini grafik -->
+  <polyline points="650,200 662,192 674,196 686,184 698,190 710,178 720,182"
+            fill="none" stroke="#e0533f" stroke-width="1.8" />
+  <polyline points="650,222 662,218 674,224 686,216 698,220 710,214 720,218"
+            fill="none" stroke="#7fb8e8" stroke-width="1.8" />
+  <polyline points="650,240 662,232 674,244 686,228 698,238 710,226 720,234"
+            fill="none" stroke="#e0a91a" stroke-width="1.8" />
+  <text x="650" y="164" font-family="ui-monospace, monospace" font-size="11" fill="#7fe3e8">23.4°C</text>
+  <text x="650" y="178" font-family="ui-monospace, monospace" font-size="9" fill="#5aa8ac">48% · 71%</text>
+
+  <!-- Alt not -->
+  <g transform="translate(16, 296)">
+    <rect class="box" x="0" y="0" width="728" height="88" rx="10" />
+    <text class="lbl-b" x="18" y="24">Aynı veri iki yere birden gidiyor / The same data goes to two places</text>
+    <text class="lbl" x="18" y="46">Veritabanı: kalıcı, sorgulanabilir, kart kapansa da durur</text>
+    <text class="lbl" x="18" y="64">Tarayıcı: anlık, yalnızca son 5 dakika, sayfa kapanınca gider</text>
+    <text class="muted" x="450" y="46">Database: durable and queryable</text>
+    <text class="muted" x="450" y="64">Browser: live, the last 5 minutes only</text>
+  </g>
+</svg>

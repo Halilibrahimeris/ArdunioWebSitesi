@@ -1,0 +1,78 @@
+<!--
+  Proje 8 — Canlı Sensör Paneli
+  Arduino UNO Q · assets/index.html
+
+  Not: Grafik için hiçbir kütüphane kullanmıyoruz. Chart.js gibi bir kütüphane
+  internetten indirilmek zorunda kalırdı; bu panel ise kartın kendi ağında,
+  internetsiz de çalışsın istiyoruz. Grafiği app.js içinde canvas ile çiziyoruz.
+-->
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Canlı Sensör Paneli</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+
+  <body>
+    <main>
+      <h1>Canlı Sensör Paneli</h1>
+      <p id="baglanti" class="durum bekliyor">Bağlanıyor&hellip;</p>
+
+      <!-- Anlık değerler -->
+      <section class="kartlar">
+        <div class="olcum-kart sicaklik">
+          <span class="etiket">Sıcaklık</span>
+          <span class="deger"><span id="v-sicaklik">--</span><small>&deg;C</small></span>
+        </div>
+        <div class="olcum-kart nem">
+          <span class="etiket">Nem</span>
+          <span class="deger"><span id="v-nem">--</span><small>%</small></span>
+        </div>
+        <div class="olcum-kart isik">
+          <span class="etiket">Işık</span>
+          <span class="deger"><span id="v-isik">--</span><small>%</small></span>
+        </div>
+      </section>
+
+      <!-- Grafik -->
+      <section class="kart">
+        <div class="grafik-baslik">
+          <h2>Son 5 dakika</h2>
+          <div class="gosterge">
+            <span class="nokta sicaklik"></span> Sıcaklık
+            <span class="nokta nem"></span> Nem
+            <span class="nokta isik"></span> Işık
+          </div>
+        </div>
+
+        <!--
+          Canvas'ın CSS boyutu ile piksel boyutu farklı olabilir.
+          app.js ekranın yoğunluğuna göre piksel boyutunu ayarlıyor,
+          yoksa grafik bulanık görünür.
+        -->
+        <canvas id="grafik" width="900" height="320"></canvas>
+
+        <p class="hint">
+          Üç ölçüm de 0-100 aralığında çizilir. Sıcaklık santigrat, nem ve ışık
+          yüzde cinsindendir.
+        </p>
+      </section>
+
+      <!-- Veri -->
+      <section class="kart">
+        <h2>Veri</h2>
+        <p class="hint">
+          Ekrandaki <span id="kayit-sayisi">0</span> ölçüm bellekte tutuluyor.
+          Tüm geçmiş ayrıca kartın veritabanına kaydediliyor.
+        </p>
+        <button id="csv-indir">CSV olarak indir</button>
+      </section>
+    </main>
+
+    <script src="libs/socket.io.min.js"></script>
+    <script src="libs/arduino.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>

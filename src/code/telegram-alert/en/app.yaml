@@ -1,0 +1,17 @@
+# Project 9 — Telegram Bot
+#
+# Two bricks:
+#   telegram_bot     → messaging over Telegram
+#   weather_forecast → weather information
+#
+# IMPORTANT: the bot token does NOT go in this file.
+# Enter it as TELEGRAM_BOT_TOKEN in App Lab's environment variable settings.
+# Hardcode it and anyone you share the code with can take over your bot.
+
+name: Telegram Bot
+icon: 🤖
+description: Query motion in your room and the weather over Telegram
+
+bricks:
+  - arduino:telegram_bot
+  - arduino:weather_forecast

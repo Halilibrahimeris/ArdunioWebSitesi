@@ -1,0 +1,13 @@
+# Proje 8 — Canlı Sensör Paneli
+#
+# İki brick kullanıyoruz:
+#   web_ui             → tarayıcıya sayfa servis eder, WebSocket açar
+#   dbstorage_tsstore  → ölçümleri kalıcı olarak kaydeder (5. projeden tanıdık)
+
+name: Canli Sensor Paneli
+icon: 📊
+description: Sicaklik, nem ve isigi tarayicida canli grafige doker
+
+bricks:
+  - arduino:web_ui
+  - arduino:dbstorage_tsstore

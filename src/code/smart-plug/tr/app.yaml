@@ -1,0 +1,9 @@
+# Proje 7 — Akıllı Priz
+# Web arayüzünden röle ve RGB LED şeridi kontrol eder.
+
+name: Akilli Priz
+icon: 🔌
+description: Web panelinden role ve RGB serit kontrolu
+
+bricks:
+  - arduino:web_ui
