@@ -1,0 +1,116 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 870 366" role="img" aria-label="PIR sensoru baglantisi / PIR sensor wiring">
+  <title>PIR sensoru baglantisi / PIR sensor wiring</title>
+  <style>
+  .bb         { fill: #eef1f3; stroke: #c2c8cc; stroke-width: 1.5; }
+  .channel    { fill: #d9dee2; }
+  .hole       { fill: #9aa4aa; }
+  .rail-plus  { stroke: #d94a3d; stroke-width: 2; }
+  .rail-minus { stroke: #3f7fd0; stroke-width: 2; }
+  .rail-lbl   { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 13px; font-weight: 700; }
+  .rail-lbl.plus  { fill: #d94a3d; }
+  .rail-lbl.minus { fill: #3f7fd0; }
+  .rail-name  { font-family: ui-monospace, monospace; font-size: 10.5px; font-weight: 700; }
+  .rail-name.plus  { fill: #d94a3d; }
+  .rail-name.minus { fill: #3f7fd0; }
+  .col-num    { font-family: ui-monospace, monospace; font-size: 9.5px; fill: #6f7d83; }
+  .row-lbl    { font-family: ui-monospace, monospace; font-size: 10px; font-weight: 700; fill: #6f7d83; }
+
+  .ard        { fill: #0f7a80; stroke: #0a5a5f; stroke-width: 2; }
+  .ard-title  { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 14px; font-weight: 700; fill: #eafafa; }
+  .ard-sub    { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 11px; fill: #a9dfe2; }
+  .ard-chip   { fill: #0a5a5f; }
+  .ard-pad    { fill: #f5c542; stroke: #a8862a; stroke-width: 1.2; }
+  .pin        { font-family: ui-monospace, monospace; font-size: 11.5px; font-weight: 700; fill: #eafafa; }
+
+  .w          { fill: none; stroke-width: 3.4; stroke-linecap: round; stroke-linejoin: round; }
+  .w-end      { stroke: rgba(0,0,0,.35); stroke-width: 1; }
+  .leg        { fill: none; stroke: #8d949a; stroke-width: 2; stroke-linecap: round; }
+  .res-body   { fill: #e2d5b0; stroke: #a89876; stroke-width: 1; }
+  .led-halo   { fill: rgba(255,255,255,.8); }
+  .led-body   { stroke: rgba(0,0,0,.35); stroke-width: 1; }
+  .led-shine  { fill: rgba(255,255,255,.75); }
+  .plus-badge { fill: #102b2e; }
+  .plus-mark  { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 12px; font-weight: 700; fill: #fff; }
+  .btn-body   { fill: #4a5157; stroke: #2e3438; stroke-width: 1.5; }
+  .btn-cap    { fill: #bcc3c8; stroke: #7d868c; stroke-width: 1.2; }
+  .btn-leg    { fill: #c9a227; stroke: #8a6d1a; stroke-width: .8; }
+  .ldr-body   { fill: #e8c9a0; stroke: #a07a4a; stroke-width: 1; }
+  .ldr-track  { fill: none; stroke: #8a5a2b; stroke-width: 1.4; }
+  .pot-body   { fill: #2f6fb3; stroke: #1d4f85; stroke-width: 1.2; }
+  .pot-knob   { fill: #e5e7eb; stroke: #6b7280; stroke-width: 1; }
+  .pot-slot   { stroke: #374151; stroke-width: 2; }
+  .buzzer-body{ fill: #1f2327; stroke: #000; stroke-width: 1; }
+  .buzzer-hole{ fill: #6b7280; }
+  .to92       { fill: #1f1f1f; stroke: #000; stroke-width: 1; }
+  .part-dht   { fill: #3b82c4; stroke: #1e4f80; stroke-width: 1.2; }
+  .dht-grid   { fill: #2a63a0; }
+  .part-hcsr04{ fill: #2e6fb0; stroke: #1b4a7a; stroke-width: 1.2; }
+  .eye        { fill: #c9ced3; stroke: #4b5563; stroke-width: 1.2; }
+  .eye-in     { fill: #6b7280; stroke: #374151; stroke-width: 1; }
+  .part-oled  { fill: #1b2a3a; stroke: #0b1622; stroke-width: 1.2; }
+  .oled-screen{ fill: #071522; stroke: #3aa7b8; stroke-width: 1; }
+  .oled-txt   { font-family: ui-monospace, monospace; font-size: 13px; font-weight: 700; fill: #bfefff; }
+  .oled-sub   { font-family: ui-monospace, monospace; font-size: 8.5px; fill: #8fd3e0; }
+  .on-dark    { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 9.5px; font-weight: 700; fill: #fff; }
+  .pin-name   { font-family: ui-monospace, monospace; font-size: 8px; font-weight: 700; fill: #fff; }
+  .mod        { stroke: rgba(0,0,0,.35); stroke-width: 1.2; }
+  .mod-title  { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 11px; font-weight: 700; }
+  .mod-sub    { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 9.5px; opacity: .85; }
+  .mod-pad    { fill: #f5c542; stroke: #a8862a; stroke-width: 1.2; }
+  .diode      { fill: #1a1a1a; stroke: #000; stroke-width: 1; }
+  .diode-band { fill: #d1d5db; }
+  .tag        { stroke: rgba(0,0,0,.25); stroke-width: 1; }
+  .tag-txt    { font-family: ui-monospace, monospace; font-size: 10.5px; font-weight: 700; fill: #fff; }
+
+  /* Tahta üzerindeki etiketler: tahta her temada açık, bu yüzden sabit koyu renk + açık kontur. */
+  .comp-lbl   { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 11.5px; font-weight: 700; fill: #102b2e;
+                paint-order: stroke; stroke: #eef1f3; stroke-width: 5px; stroke-linejoin: round; }
+  .comp-sub   { font-family: ui-monospace, monospace; font-size: 10.5px; font-weight: 700; fill: #3b4a4e;
+                paint-order: stroke; stroke: #eef1f3; stroke-width: 5px; stroke-linejoin: round; }
+
+  /* Tahta dışı: sayfa temasına uyar. */
+  .legend     { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 11.5px; fill: var(--text-muted, #5a6f74); }
+  .legend-b   { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 11.5px; font-weight: 700; fill: var(--text, #102b2e); }
+  .note       { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 11.5px; font-weight: 700; fill: var(--text, #102b2e); }
+  .note-muted { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 11px; fill: var(--text-muted, #5a6f74); }
+  .badge      { fill: #00979d; }
+  .badge-txt  { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 11px; font-weight: 700; fill: #fff; }
+</style>
+  <rect class="ard" x="18" y="84" width="170" height="200" rx="10" />
+  <text class="ard-title" x="103" y="114" text-anchor="middle">Arduino UNO Q</text>
+  <text class="ard-sub" x="103" y="132" text-anchor="middle">3.3V</text>
+  <rect class="ard-chip" x="42" y="154" width="50" height="40" rx="4" />
+  <rect class="ard-chip" x="102" y="154" width="46" height="40" rx="4" />
+  <circle class="ard-pad" cx="188" cy="140" r="5" />
+  <text class="pin" x="175" y="144" text-anchor="end">5V</text>
+  <circle class="ard-pad" cx="188" cy="180" r="5" />
+  <text class="pin" x="175" y="184" text-anchor="end">D2</text>
+  <circle class="ard-pad" cx="188" cy="220" r="5" />
+  <text class="pin" x="175" y="224" text-anchor="end">GND</text>
+  <rect class="mod" fill="#2e6fb0" x="430" y="96" width="220" height="176" rx="7" />
+  <circle cx="560" cy="158" r="34" fill="rgba(255,255,255,.88)" stroke="#9ca3af" stroke-width="1.2" /><circle cx="560" cy="158" r="22" fill="none" stroke="#c7ccd1" stroke-width="1" /><text class="on-dark" x="560" y="224" text-anchor="middle" font-size="12">HC-SR501 PIR</text><circle cx="490" cy="246" r="7" fill="#f0932b" stroke="#7c3f00" /><circle cx="590" cy="246" r="7" fill="#f0932b" stroke="#7c3f00" /><text class="pin-name" x="490" y="263" text-anchor="middle">hassasiyet / sens.</text><text class="pin-name" x="590" y="263" text-anchor="middle">gecikme / delay</text>
+  <circle class="mod-pad" cx="430" cy="140" r="4.4" />
+  <text class="pin-name" fill="#fff" x="441" y="143.6" text-anchor="start">VCC</text>
+  <circle class="mod-pad" cx="430" cy="180" r="4.4" />
+  <text class="pin-name" fill="#fff" x="441" y="183.6" text-anchor="start">OUT</text>
+  <circle class="mod-pad" cx="430" cy="220" r="4.4" />
+  <text class="pin-name" fill="#fff" x="441" y="223.6" text-anchor="start">GND</text>
+  <path class="w" stroke="#d94a3d" d="M188 140 L430 140" />
+  <circle class="w-end" fill="#d94a3d" cx="188" cy="140" r="3.6" />
+  <circle class="w-end" fill="#d94a3d" cx="430" cy="140" r="3.6" />
+  <path class="w" stroke="#0d8ce0" d="M188 180 L430 180" />
+  <circle class="w-end" fill="#0d8ce0" cx="188" cy="180" r="3.6" />
+  <circle class="w-end" fill="#0d8ce0" cx="430" cy="180" r="3.6" />
+  <path class="w" stroke="#2b3136" d="M188 220 L430 220" />
+  <circle class="w-end" fill="#2b3136" cx="188" cy="220" r="3.6" />
+  <circle class="w-end" fill="#2b3136" cx="430" cy="220" r="3.6" />
+  <rect class="tag" fill="#d94a3d" x="298" y="132" width="24" height="16" rx="4" />
+  <text class="tag-txt" x="310" y="143.6" text-anchor="middle">5V</text>
+  <rect class="tag" fill="#0d8ce0" x="298" y="172" width="24" height="16" rx="4" />
+  <text class="tag-txt" x="310" y="183.6" text-anchor="middle">D2</text>
+  <rect class="tag" fill="#2b3136" x="294.5" y="212" width="31" height="16" rx="4" />
+  <text class="tag-txt" x="310" y="223.6" text-anchor="middle">GND</text>
+  <text class="note" x="18" y="322" text-anchor="start">Çıkışı 3.3V — doğrudan bağlanır, gerilim bölücü GEREKMEZ.</text>
+  <text class="note-muted" x="18" y="342" text-anchor="start">Output is 3.3V — connect it directly, NO voltage divider needed.</text>
+  <text class="note-muted" x="430" y="322" text-anchor="start">Açılıştan sonra 30-60 s ısınma bekle / allow 30-60 s warm-up after power-on</text>
+</svg>

@@ -160,7 +160,10 @@ const mdxComponents = { Callout, PhotoSlot, WiringDiagram, Step, CodeTabs };
           <h2 class="text-xl font-bold tracking-tight" style="color: var(--text);">
             {t('project.wiring')}
           </h2>
-          <WiringDiagram file={project.diagram} title={entry.data.title} />
+          {/* Şema metin sütunundan geniş olabilir: büyük ekranda iki yana taşar, küçük ekranda yatay kayar. */}
+          <div class="lg:-mx-24 xl:-mx-40">
+            <WiringDiagram file={project.diagram} title={entry.data.title} />
+          </div>
         </section>
       )
     }

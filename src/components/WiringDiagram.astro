@@ -8,7 +8,7 @@
  * legible in dark mode.
  */
 interface Props {
-  /** src/diagrams/ altındaki dosya adı, ör. "01-traffic-light.svg" */
+  /** src/diagrams/ altındaki dosya adı, ör. "01-traffic-light-breadboard.svg" */
   file: string;
   caption?: string;
   title?: string;
@@ -50,6 +50,6 @@ const svg = diagrams[`../diagrams/${file}`];
     width: 100%;
     height: auto;
     max-width: 100%;
-    min-width: 480px; /* dar ekranda sıkışıp okunmaz hale gelmesin */
+    min-width: 640px; /* dar ekranda küçülüp okunmaz olmasın; kapsayıcı yatay kaydırır */
   }
 </style>

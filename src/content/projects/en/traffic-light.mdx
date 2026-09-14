@@ -56,43 +56,50 @@ takes five minutes and makes every step below make sense.
 
 ## Connection table
 
-Every connection in the diagram above, listed one by one. `a11` means **lower
-block, row `a`, column 11**. Row letters are printed down both sides of the
-board and column numbers along the top.
+Every connection in the diagram above, listed one by one. `a6` means **lower
+block, row `a`, column 6**. Row letters are printed down both sides of the
+board and column numbers along the top and bottom.
+
+Three tips for reading the diagram: every wire has **its own colour** and a
+small label at its end naming the pin it comes from; **no wire crosses
+another** (the LED wires arrive through the centre channel and drop straight
+into their column, the button wire loops around the top of the board); the
+bottom **−** rail carries GND and the **+** rail carries 3.3V.
 
 ### Wires from the board to the breadboard
 
 | On the board | On the breadboard | Wire colour |
 | --- | --- | --- |
-| `D2` | `d9` | blue |
-| `D3` | `d15` | blue |
-| `D4` | `d21` | blue |
-| `D7` | `c3` | blue |
-| `3V3` | `a5` | red |
-| `GND` | `-2` (bottom minus rail) | black |
+| `D2` | `e3` | blue |
+| `D3` | `e11` | purple |
+| `D4` | `e19` | orange |
+| `D7` | `j26` (upper block, the button's left column) | pink |
+| `3V3` | `+1` (bottom plus rail) | red |
+| `GND` | `-1` (bottom minus rail) | black |
 
 ### Parts on the breadboard
 
 | Part | One end | Other end |
 | --- | --- | --- |
-| 220 Ω resistor | `c9` | `c11` |
-| 220 Ω resistor | `c15` | `c17` |
-| 220 Ω resistor | `c21` | `c23` |
-| Red LED | long leg `a11` | short leg `a12` |
-| Amber LED | long leg `a17` | short leg `a18` |
-| Green LED | long leg `a23` | short leg `a24` |
-| Jumper (cathode to GND) | `b12` | `-12` |
-| Jumper (cathode to GND) | `b18` | `-18` |
-| Jumper (cathode to GND) | `b24` | `-24` |
-| Button | columns 3 and 5, **straddling the centre channel** | |
-| 10 kΩ resistor | `b3` | `-3` |
+| 220 Ω resistor | `c3` | `c6` |
+| 220 Ω resistor | `c11` | `c14` |
+| 220 Ω resistor | `c19` | `c22` |
+| Red LED | long leg `a6` | short leg `a7` |
+| Amber LED | long leg `a14` | short leg `a15` |
+| Green LED | long leg `a22` | short leg `a23` |
+| Jumper (cathode to GND) | `b7` | `-7` |
+| Jumper (cathode to GND) | `b15` | `-15` |
+| Jumper (cathode to GND) | `b23` | `-23` |
+| Button | columns 26 and 28, **straddling the centre channel** | |
+| 10 kΩ resistor | `b26` | `-26` |
+| Jumper (+ rail to button) | `+28` | `a28` |
 
 <Callout lang="en" variant="tip" title="Why these columns?">
 The column numbers are arbitrary — you could shift the whole thing five columns
 to the right. What matters is **which parts share a column.**
 
-The red LED's long leg is in `a11` and the 220 Ω resistor's end is in `c11`.
-Both are in column 11, so they are connected — no wire between them, but
+The red LED's long leg is in `a6` and the 220 Ω resistor's end is in `c6`.
+Both are in column 6, so they are connected — no wire between them, but
 electrically the same point.
 </Callout>
 
@@ -132,29 +139,29 @@ the red one first and the other two become easy.
 - **Short leg** = cathode (−), goes to GND
 
 <Callout lang="en" variant="warning" title="The two legs go in different columns">
-An LED's legs must go into **different columns**, such as `a11` and `a12`. Put
-them in the same column (`a11` and `b11`) and you short the LED out — it will
+An LED's legs must go into **different columns**, such as `a6` and `a7`. Put
+them in the same column (`a6` and `b6`) and you short the LED out — it will
 never light.
 </Callout>
 
 **The red LED — four steps:**
 
-1. **Resistor:** put one leg of a 220 Ω resistor in `c9` and the other in `c11`
-2. **LED:** put the red LED's **long** leg in `a11` and its **short** leg in `a12`
-3. **Signal wire:** run a blue wire from the board's **D2** pin to `d9`
-4. **Ground wire:** run a black wire from `b12` to `-12` on the bottom minus rail
+1. **Resistor:** put one leg of a 220 Ω resistor in `c3` and the other in `c6`
+2. **LED:** put the red LED's **long** leg in `a6` and its **short** leg in `a7`
+3. **Signal wire:** run a blue wire from the board's **D2** pin to `e3`
+4. **Ground wire:** run a black wire from `b7` to `-7` on the bottom minus rail
 
-Why it works: `c9` and `d9` share a column, so the resistor's left end is now on
-D2. `c11` and `a11` share a column, so its right end is on the LED's long leg.
-`a12` and `b12` share a column, so the LED's short leg reaches the minus rail.
+Why it works: `e3` and `c3` share a column, so the resistor's left end is now on
+D2. `c6` and `a6` share a column, so its right end is on the LED's long leg.
+`a7` and `b7` share a column, so the LED's short leg reaches the minus rail.
 
-**The amber LED** is the same thing six columns right: `c15`-`c17`, LED
-`a17`/`a18`, wire **D3** → `d15`, jumper `b18` → `-18`.
+**The amber LED** is the same thing eight columns right: `c11`-`c14`, LED
+`a14`/`a15`, purple wire **D3** → `e11`, jumper `b15` → `-15`.
 
-**The green LED** is six columns further: `c21`-`c23`, LED `a23`/`a24`,
-wire **D4** → `d21`, jumper `b24` → `-24`.
+**The green LED** is eight columns further: `c19`-`c22`, LED `a22`/`a23`,
+orange wire **D4** → `e19`, jumper `b23` → `-23`.
 
-Finally run a black wire from the board's **GND** pin to `-2` on the bottom
+Finally run a black wire from the board's **GND** pin to `-1` on the bottom
 minus rail. All three LEDs reach ground through that rail.
 
 <Callout lang="en" variant="danger" title="Never skip the resistor">
@@ -172,20 +179,25 @@ reason for it.
 
 **Place the button.** A tactile button has four legs and sits **straddling the
 centre channel**: two legs in the upper block (row `f`) and two in the lower
-block (row `e`). Put its left legs in column 3 and its right legs in column 5.
+block (row `e`). Put its left legs in column 26 and its right legs in column
+28 — near the right end of the board, well away from the LEDs.
 
 <Callout lang="en" variant="tip" title="How is the button wired inside?">
 The two legs on the same side (either side of the channel) are already
 connected internally. **Pressing** the button joins the left side to the right.
 
-So column 3 and column 5 connect only while the button is held down.
+So column 26 and column 28 connect only while the button is held down.
 </Callout>
 
 Now three more connections:
 
-1. **Voltage:** run a red wire from the board's **3V3** pin to `a5`
-2. **Signal:** run a blue wire from the board's **D7** pin to `c3`
-3. **Pull-down resistor:** put one leg of the 10 kΩ resistor in `b3` and the other in `-3`
+1. **Voltage:** run a red wire from the board's **3V3** pin to `+1` on the
+   bottom plus rail, then fit a short red jumper from `+28` to `a28`. The plus
+   rail is connected end to end, so 3.3V reaches the button's right column.
+2. **Signal:** run a pink wire from the board's **D7** pin to `j26`. `j26` is in
+   the upper block, in the same column as the button's left leg (`f26`) — the
+   wire loops around the top of the board and never crosses the LED wires.
+3. **Pull-down resistor:** put one leg of the 10 kΩ resistor in `b26` and the other in `-26`
 
 That 10kΩ resistor is a *pull-down*. Its job is to hold D7 at zero (at GND)
 while the button is not pressed. Leave it out and D7 connects to nothing at
@@ -206,10 +218,10 @@ the button is held — a negligible amount of wasted energy.
 Once everything is wired, tick off the **connection table** above line by line
 before applying power. Then check these five things:
 
-1. **LED orientation** — long leg in the left hole (`a11`, `a17`, `a23`)
+1. **LED orientation** — long leg in the left hole (`a6`, `a14`, `a22`)
 2. **Each LED's legs are in different columns** — same column and it will not light
-3. **The GND wire is on the minus rail** — the one with the **blue** line, not
-   the red plus rail
+3. **The rails are not mixed up** — the GND wire sits on the **blue-lined minus
+   (−) rail**, the 3V3 wire on the **red-lined plus (+) rail**
 4. **No direct wire between 3V3 and GND**
 5. **The pin numbers are right** — red D2, amber D3, green D4, button D7
 

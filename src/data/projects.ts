@@ -40,7 +40,7 @@ export interface Project {
   bom: BomLine[];
   /** src/code/<id>/<lang>/ altındaki dosyalar / Files under src/code/<id>/<lang>/. */
   codeFiles: string[];
-  /** public/diagrams/ altındaki SVG / SVG under public/diagrams/. */
+  /** src/diagrams/ altındaki bağlantı şeması; donanımı olmayan projede yok / Wiring SVG under src/diagrams/, absent when there is no hardware. */
   diagram?: string;
   /** 3.3V uyarısı gösterilsin mi / Whether to surface the 3.3V warning. */
   voltageWarning?: boolean;
@@ -83,7 +83,7 @@ export const projects: Project[] = [
     needsMic: false,
     bricks: [],
     codeFiles: ['sketch.ino'],
-    diagram: '02-light-sound-meter.svg',
+    diagram: '02-light-sound-meter-breadboard.svg',
     bom: [
       { part: 'uno-q', qty: 1, reusedFrom: 1 },
       { part: 'breadboard', qty: 1, reusedFrom: 1 },
@@ -108,7 +108,7 @@ export const projects: Project[] = [
     needsMic: false,
     bricks: [],
     codeFiles: ['sketch.ino'],
-    diagram: '03-parking-sensor.svg',
+    diagram: '03-parking-sensor-breadboard.svg',
     voltageWarning: true,
     bom: [
       { part: 'uno-q', qty: 1, reusedFrom: 1 },
@@ -157,7 +157,7 @@ export const projects: Project[] = [
     needsMic: false,
     bricks: [],
     codeFiles: ['sketch.ino', 'sketch.yaml'],
-    diagram: '04-weather-station.svg',
+    diagram: '04-weather-station-breadboard.svg',
     bom: [
       { part: 'uno-q', qty: 1, reusedFrom: 1 },
       { part: 'breadboard', qty: 1, reusedFrom: 1 },
@@ -180,7 +180,7 @@ export const projects: Project[] = [
     needsMic: false,
     bricks: ['arduino:dbstorage_tsstore'],
     codeFiles: ['app.yaml', 'main.py', 'sketch.ino'],
-    diagram: '05-data-logger.svg',
+    diagram: '05-data-logger-breadboard.svg',
     bom: [
       { part: 'uno-q', qty: 1, reusedFrom: 1 },
       { part: 'breadboard', qty: 1, reusedFrom: 1 },
@@ -202,7 +202,6 @@ export const projects: Project[] = [
     needsMic: false,
     bricks: ['arduino:web_ui'],
     codeFiles: ['app.yaml', 'main.py', 'sketch.ino', 'index.html', 'app.js', 'style.css'],
-    diagram: '06-web-matrix.svg',
     bom: [
       { part: 'uno-q', qty: 1, reusedFrom: 1 },
       { part: 'usb-c-cable', qty: 1, reusedFrom: 1 },
@@ -220,7 +219,7 @@ export const projects: Project[] = [
     needsMic: false,
     bricks: ['arduino:web_ui'],
     codeFiles: ['app.yaml', 'main.py', 'sketch.ino', 'sketch.yaml', 'index.html', 'app.js', 'style.css'],
-    diagram: '07-smart-plug.svg',
+    diagram: '07-smart-plug-breadboard.svg',
     voltageWarning: true,
     bom: [
       { part: 'uno-q', qty: 1, reusedFrom: 1 },
@@ -254,7 +253,7 @@ export const projects: Project[] = [
     needsMic: false,
     bricks: ['arduino:web_ui', 'arduino:dbstorage_tsstore'],
     codeFiles: ['app.yaml', 'main.py', 'sketch.ino', 'sketch.yaml', 'index.html', 'app.js', 'style.css'],
-    diagram: '08-live-dashboard.svg',
+    diagram: '08-live-dashboard-breadboard.svg',
     bom: [
       { part: 'uno-q', qty: 1, reusedFrom: 1 },
       { part: 'breadboard', qty: 1, reusedFrom: 1 },
@@ -276,7 +275,7 @@ export const projects: Project[] = [
     needsMic: false,
     bricks: ['arduino:telegram_bot', 'arduino:weather_forecast'],
     codeFiles: ['app.yaml', 'main.py', 'sketch.ino'],
-    diagram: '09-telegram-alert.svg',
+    diagram: '09-telegram-alert-breadboard.svg',
     bom: [
       { part: 'uno-q', qty: 1, reusedFrom: 1 },
       { part: 'breadboard', qty: 1, reusedFrom: 1 },
@@ -301,7 +300,7 @@ export const projects: Project[] = [
       'arduino:web_ui',
     ],
     codeFiles: ['app.yaml', 'main.py', 'sketch.ino', 'sketch.yaml', 'index.html', 'app.js', 'style.css'],
-    diagram: '10-seeing-assistant.svg',
+    diagram: '10-seeing-assistant-breadboard.svg',
     bom: [
       { part: 'uno-q', qty: 1, reusedFrom: 1 },
       { part: 'usb-hub', qty: 1 },

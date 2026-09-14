@@ -1,5 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 870 449.40000000000003" role="img" aria-label="Breadboard ic baglantilari / How a breadboard is connected inside">
-  <title>Breadboard ic baglantilari / How a breadboard is connected inside</title>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 870 500.40000000000003" role="img" aria-label="Isik ve ses olcer breadboard yerlesimi / Light and sound meter breadboard layout">
+  <title>Isik ve ses olcer breadboard yerlesimi / Light and sound meter breadboard layout</title>
   <style>
   .bb         { fill: #eef1f3; stroke: #c2c8cc; stroke-width: 1.5; }
   .channel    { fill: #d9dee2; }
@@ -76,24 +76,18 @@
   .badge      { fill: #00979d; }
   .badge-txt  { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 11px; font-weight: 700; fill: #fff; }
 </style>
-  <style>
-      .grp-col        { fill: rgba(0,151,157,.22); stroke: #00979d; stroke-width: 1.7; }
-      .grp-rail       { fill: rgba(217,74,61,.14); stroke: #d94a3d; stroke-width: 1.7; }
-      .grp-rail.minus { fill: rgba(63,127,208,.14); stroke: #3f7fd0; }
-    </style>
   <rect class="bb" x="262" y="44" width="558" height="345.40000000000003" rx="6" />
   <line class="rail-minus" x1="268.3" y1="50" x2="813.7" y2="50" />
-  <text class="rail-lbl minus" x="253" y="64" text-anchor="end">−</text>
   <text class="rail-lbl minus" x="829" y="64">−</text>
+  <text class="rail-name minus" x="841" y="64">GND</text>
   <line class="rail-plus" x1="268.3" y1="88" x2="813.7" y2="88" />
-  <text class="rail-lbl plus" x="253" y="82" text-anchor="end">+</text>
   <text class="rail-lbl plus" x="829" y="82">+</text>
   <line class="rail-minus" x1="268.3" y1="341.6" x2="813.7" y2="341.6" />
-  <text class="rail-lbl minus" x="253" y="355.6" text-anchor="end">−</text>
   <text class="rail-lbl minus" x="829" y="355.6">−</text>
+  <text class="rail-name minus" x="841" y="355.6">GND</text>
   <line class="rail-plus" x1="268.3" y1="379.6" x2="813.7" y2="379.6" />
-  <text class="rail-lbl plus" x="253" y="373.6" text-anchor="end">+</text>
   <text class="rail-lbl plus" x="829" y="373.6">+</text>
+  <text class="rail-name plus" x="841" y="373.6">3V3</text>
   <rect class="channel" x="268.3" y="195" width="545.4" height="39.6" rx="3" />
   <circle class="hole" cx="271" cy="60" r="2.6" />
   <circle class="hole" cx="271" cy="78" r="2.6" />
@@ -529,23 +523,245 @@
   <text class="row-lbl" x="829" y="299.3">b</text>
   <text class="row-lbl" x="253" y="317.3" text-anchor="end">a</text>
   <text class="row-lbl" x="829" y="317.3">a</text>
-  <rect class="grp-col" x="336" y="108.80000000000001" width="14" height="86" rx="7" />
-  <rect class="grp-col" x="444" y="108.80000000000001" width="14" height="86" rx="7" />
-  <rect class="grp-col" x="552" y="108.80000000000001" width="14" height="86" rx="7" />
-  <rect class="grp-col" x="336" y="234.8" width="14" height="86" rx="7" />
-  <rect class="grp-col" x="444" y="234.8" width="14" height="86" rx="7" />
-  <rect class="grp-col" x="552" y="234.8" width="14" height="86" rx="7" />
-  <rect class="grp-rail minus" x="263.5" y="52.5" width="519" height="15" rx="7.5" />
-  <rect class="grp-rail plus" x="263.5" y="70.5" width="519" height="15" rx="7.5" />
-  <rect class="grp-rail minus" x="263.5" y="344.1" width="519" height="15" rx="7.5" />
-  <rect class="grp-rail plus" x="263.5" y="362.1" width="519" height="15" rx="7.5" />
-  <circle class="badge" cx="313" cy="151.8" r="9" /><text class="badge-txt" x="313" y="155.8" text-anchor="middle">1</text>
-  <circle class="badge" cx="241" cy="60" r="9" /><text class="badge-txt" x="241" y="64" text-anchor="middle">2</text>
-  <circle class="badge" cx="505" cy="215.8" r="9" /><text class="badge-txt" x="505" y="219.8" text-anchor="middle">3</text>
-  <g transform="translate(262, 423.40000000000003)">
-      <rect x="0" y="-9" width="14" height="14" rx="7" fill="rgba(0,151,157,.22)" stroke="#00979d" stroke-width="1.5" />
-      <text class="legend" x="22" y="3">5 delik dikey bağlı / 5 holes connected vertically</text>
-      <rect x="330" y="-9" width="14" height="14" rx="7" fill="rgba(217,74,61,.14)" stroke="#d94a3d" stroke-width="1.5" />
-      <text class="legend" x="352" y="3">güç hattı boyunca bağlı / whole rail connected</text>
-    </g>
+  <rect class="ard" x="18" y="84" width="170" height="310" rx="10" />
+  <text class="ard-title" x="103" y="114" text-anchor="middle">Arduino UNO Q</text>
+  <text class="ard-sub" x="103" y="132" text-anchor="middle">3.3V</text>
+  <rect class="ard-chip" x="42" y="154" width="50" height="40" rx="4" />
+  <rect class="ard-chip" x="102" y="154" width="46" height="40" rx="4" />
+  <circle class="ard-pad" cx="188" cy="92" r="5" />
+  <text class="pin" x="175" y="96" text-anchor="end">GND</text>
+  <circle class="ard-pad" cx="188" cy="114" r="5" />
+  <text class="pin" x="175" y="118" text-anchor="end">D2</text>
+  <circle class="ard-pad" cx="188" cy="136" r="5" />
+  <text class="pin" x="175" y="140" text-anchor="end">D3</text>
+  <circle class="ard-pad" cx="188" cy="158" r="5" />
+  <text class="pin" x="175" y="162" text-anchor="end">D4</text>
+  <circle class="ard-pad" cx="188" cy="180" r="5" />
+  <text class="pin" x="175" y="184" text-anchor="end">D5</text>
+  <circle class="ard-pad" cx="188" cy="202" r="5" />
+  <text class="pin" x="175" y="206" text-anchor="end">D6</text>
+  <circle class="ard-pad" cx="188" cy="246" r="5" />
+  <text class="pin" x="175" y="250" text-anchor="end">GND</text>
+  <circle class="ard-pad" cx="188" cy="268" r="5" />
+  <text class="pin" x="175" y="272" text-anchor="end">3V3</text>
+  <circle class="ard-pad" cx="188" cy="300" r="5" />
+  <text class="pin" x="175" y="304" text-anchor="end">A0</text>
+  <circle class="ard-pad" cx="188" cy="322" r="5" />
+  <text class="pin" x="175" y="326" text-anchor="end">A1</text>
+  <circle class="ard-pad" cx="188" cy="344" r="5" />
+  <text class="pin" x="175" y="348" text-anchor="end">D8</text>
+  <path class="w" stroke="#2b3136" d="M188 92 L241 92 Q250 92 250 83 L250 35 Q250 26 259 26 L262 26 Q271 26 271 35 L271 60" />
+  <circle class="w-end" fill="#2b3136" cx="188" cy="92" r="3.6" />
+  <circle class="w-end" fill="#2b3136" cx="271" cy="60" r="3.6" />
+  <rect class="tag" fill="#2b3136" x="255.5" y="34" width="31" height="16" rx="4" />
+  <text class="tag-txt" x="271" y="45.6" text-anchor="middle">GND</text>
+  <path class="w" stroke="#2b3136" d="M188 246 L221 246 Q230 246 230 255 L230 342.6 Q230 351.6 239 351.6 L271 351.6 Q271 351.6 NaN NaN L271 351.6" />
+  <circle class="w-end" fill="#2b3136" cx="188" cy="246" r="3.6" />
+  <circle class="w-end" fill="#2b3136" cx="271" cy="351.6" r="3.6" />
+  <path class="w" stroke="#d94a3d" d="M188 268 L203 268 Q212 268 212 277 L212 360.6 Q212 369.6 221 369.6 L271 369.6 Q271 369.6 NaN NaN L271 369.6" />
+  <circle class="w-end" fill="#d94a3d" cx="188" cy="268" r="3.6" />
+  <circle class="w-end" fill="#d94a3d" cx="271" cy="369.6" r="3.6" />
+  <path class="w" stroke="#0d8ce0" d="M188 114 L235 114 Q244 114 244 123 L244 191.8 Q244 200.8 253 200.8 L264.5 200.8 Q271 200.8 271 194.3 L271 187.8" />
+  <circle class="w-end" fill="#0d8ce0" cx="188" cy="114" r="3.6" />
+  <circle class="w-end" fill="#0d8ce0" cx="271" cy="187.8" r="3.6" />
+  <path class="w" stroke="#8b5cf6" d="M188 136 L225 136 Q234 136 234 145 L234 198.8 Q234 207.8 243 207.8 L370 207.8 Q379 207.8 379 198.8 L379 187.8" />
+  <circle class="w-end" fill="#8b5cf6" cx="188" cy="136" r="3.6" />
+  <circle class="w-end" fill="#8b5cf6" cx="379" cy="187.8" r="3.6" />
+  <path class="w" stroke="#f97316" d="M188 158 L215 158 Q224 158 224 167 L224 205.8 Q224 214.8 233 214.8 L478 214.8 Q487 214.8 487 205.8 L487 187.8" />
+  <circle class="w-end" fill="#f97316" cx="188" cy="158" r="3.6" />
+  <circle class="w-end" fill="#f97316" cx="487" cy="187.8" r="3.6" />
+  <path class="w" stroke="#ec4899" d="M188 180 L205 180 Q214 180 214 189 L214 212.8 Q214 221.8 223 221.8 L586 221.8 Q595 221.8 595 212.8 L595 187.8" />
+  <circle class="w-end" fill="#ec4899" cx="188" cy="180" r="3.6" />
+  <circle class="w-end" fill="#ec4899" cx="595" cy="187.8" r="3.6" />
+  <path class="w" stroke="#16a34a" d="M188 202 L196 202 Q204 202 204 210 L204 219.8 Q204 228.8 213 228.8 L694 228.8 Q703 228.8 703 219.8 L703 187.8" />
+  <circle class="w-end" fill="#16a34a" cx="188" cy="202" r="3.6" />
+  <circle class="w-end" fill="#16a34a" cx="703" cy="187.8" r="3.6" />
+  <path class="leg" d="M271 169.8 L325 169.8" />
+  <g transform="translate(298 169.8) rotate(0)">
+    <rect class="res-body" x="-15" y="-5.5" width="30" height="11" rx="4.5" />
+    <rect x="-10.5" y="-5.5" width="3" height="11" fill="#c8102e" />
+    <rect x="-5.5"  y="-5.5" width="3" height="11" fill="#c8102e" />
+    <rect x="-0.5"  y="-5.5" width="3" height="11" fill="#8a5a2b" />
+    <rect x="7"     y="-5.5" width="3" height="11" fill="#d4a017" />
+  </g>
+  <path class="leg" d="M325 133.8 L325 131.8" />
+  <path class="leg" d="M343 133.8 L343 131.8" />
+  <circle class="led-halo" cx="334" cy="129.8" r="12.5" />
+  <circle class="led-body" fill="#20b050" cx="334" cy="129.8" r="10" />
+  <circle class="led-shine" cx="330.8" cy="126.60000000000001" r="2.8" />
+  <circle class="plus-badge" cx="325" cy="117.80000000000001" r="6.5" />
+  <text class="plus-mark" x="325" y="121.60000000000001" text-anchor="middle">+</text>
+  <path class="w" stroke="#2b3136" d="M343 115.80000000000001 L343 60" />
+  <circle class="w-end" fill="#2b3136" cx="343" cy="115.80000000000001" r="3.6" />
+  <circle class="w-end" fill="#2b3136" cx="343" cy="60" r="3.6" />
+  <text class="comp-sub" x="298" y="155.8" text-anchor="middle">220Ω</text>
+  <path class="leg" d="M379 169.8 L433 169.8" />
+  <g transform="translate(406 169.8) rotate(0)">
+    <rect class="res-body" x="-15" y="-5.5" width="30" height="11" rx="4.5" />
+    <rect x="-10.5" y="-5.5" width="3" height="11" fill="#c8102e" />
+    <rect x="-5.5"  y="-5.5" width="3" height="11" fill="#c8102e" />
+    <rect x="-0.5"  y="-5.5" width="3" height="11" fill="#8a5a2b" />
+    <rect x="7"     y="-5.5" width="3" height="11" fill="#d4a017" />
+  </g>
+  <path class="leg" d="M433 133.8 L433 131.8" />
+  <path class="leg" d="M451 133.8 L451 131.8" />
+  <circle class="led-halo" cx="442" cy="129.8" r="12.5" />
+  <circle class="led-body" fill="#20b050" cx="442" cy="129.8" r="10" />
+  <circle class="led-shine" cx="438.8" cy="126.60000000000001" r="2.8" />
+  <circle class="plus-badge" cx="433" cy="117.80000000000001" r="6.5" />
+  <text class="plus-mark" x="433" y="121.60000000000001" text-anchor="middle">+</text>
+  <path class="w" stroke="#2b3136" d="M451 115.80000000000001 L451 60" />
+  <circle class="w-end" fill="#2b3136" cx="451" cy="115.80000000000001" r="3.6" />
+  <circle class="w-end" fill="#2b3136" cx="451" cy="60" r="3.6" />
+  <text class="comp-sub" x="406" y="155.8" text-anchor="middle">220Ω</text>
+  <path class="leg" d="M487 169.8 L541 169.8" />
+  <g transform="translate(514 169.8) rotate(0)">
+    <rect class="res-body" x="-15" y="-5.5" width="30" height="11" rx="4.5" />
+    <rect x="-10.5" y="-5.5" width="3" height="11" fill="#c8102e" />
+    <rect x="-5.5"  y="-5.5" width="3" height="11" fill="#c8102e" />
+    <rect x="-0.5"  y="-5.5" width="3" height="11" fill="#8a5a2b" />
+    <rect x="7"     y="-5.5" width="3" height="11" fill="#d4a017" />
+  </g>
+  <path class="leg" d="M541 133.8 L541 131.8" />
+  <path class="leg" d="M559 133.8 L559 131.8" />
+  <circle class="led-halo" cx="550" cy="129.8" r="12.5" />
+  <circle class="led-body" fill="#e0b020" cx="550" cy="129.8" r="10" />
+  <circle class="led-shine" cx="546.8" cy="126.60000000000001" r="2.8" />
+  <circle class="plus-badge" cx="541" cy="117.80000000000001" r="6.5" />
+  <text class="plus-mark" x="541" y="121.60000000000001" text-anchor="middle">+</text>
+  <path class="w" stroke="#2b3136" d="M559 115.80000000000001 L559 60" />
+  <circle class="w-end" fill="#2b3136" cx="559" cy="115.80000000000001" r="3.6" />
+  <circle class="w-end" fill="#2b3136" cx="559" cy="60" r="3.6" />
+  <text class="comp-sub" x="514" y="155.8" text-anchor="middle">220Ω</text>
+  <path class="leg" d="M595 169.8 L649 169.8" />
+  <g transform="translate(622 169.8) rotate(0)">
+    <rect class="res-body" x="-15" y="-5.5" width="30" height="11" rx="4.5" />
+    <rect x="-10.5" y="-5.5" width="3" height="11" fill="#c8102e" />
+    <rect x="-5.5"  y="-5.5" width="3" height="11" fill="#c8102e" />
+    <rect x="-0.5"  y="-5.5" width="3" height="11" fill="#8a5a2b" />
+    <rect x="7"     y="-5.5" width="3" height="11" fill="#d4a017" />
+  </g>
+  <path class="leg" d="M649 133.8 L649 131.8" />
+  <path class="leg" d="M667 133.8 L667 131.8" />
+  <circle class="led-halo" cx="658" cy="129.8" r="12.5" />
+  <circle class="led-body" fill="#e0b020" cx="658" cy="129.8" r="10" />
+  <circle class="led-shine" cx="654.8" cy="126.60000000000001" r="2.8" />
+  <circle class="plus-badge" cx="649" cy="117.80000000000001" r="6.5" />
+  <text class="plus-mark" x="649" y="121.60000000000001" text-anchor="middle">+</text>
+  <path class="w" stroke="#2b3136" d="M667 115.80000000000001 L667 60" />
+  <circle class="w-end" fill="#2b3136" cx="667" cy="115.80000000000001" r="3.6" />
+  <circle class="w-end" fill="#2b3136" cx="667" cy="60" r="3.6" />
+  <text class="comp-sub" x="622" y="155.8" text-anchor="middle">220Ω</text>
+  <path class="leg" d="M703 169.8 L757 169.8" />
+  <g transform="translate(730 169.8) rotate(0)">
+    <rect class="res-body" x="-15" y="-5.5" width="30" height="11" rx="4.5" />
+    <rect x="-10.5" y="-5.5" width="3" height="11" fill="#c8102e" />
+    <rect x="-5.5"  y="-5.5" width="3" height="11" fill="#c8102e" />
+    <rect x="-0.5"  y="-5.5" width="3" height="11" fill="#8a5a2b" />
+    <rect x="7"     y="-5.5" width="3" height="11" fill="#d4a017" />
+  </g>
+  <path class="leg" d="M757 133.8 L757 131.8" />
+  <path class="leg" d="M775 133.8 L775 131.8" />
+  <circle class="led-halo" cx="766" cy="129.8" r="12.5" />
+  <circle class="led-body" fill="#e02020" cx="766" cy="129.8" r="10" />
+  <circle class="led-shine" cx="762.8" cy="126.60000000000001" r="2.8" />
+  <circle class="plus-badge" cx="757" cy="117.80000000000001" r="6.5" />
+  <text class="plus-mark" x="757" y="121.60000000000001" text-anchor="middle">+</text>
+  <path class="w" stroke="#2b3136" d="M775 115.80000000000001 L775 60" />
+  <circle class="w-end" fill="#2b3136" cx="775" cy="115.80000000000001" r="3.6" />
+  <circle class="w-end" fill="#2b3136" cx="775" cy="60" r="3.6" />
+  <text class="comp-sub" x="730" y="155.8" text-anchor="middle">220Ω</text>
+  <rect class="tag" fill="#0d8ce0" x="275" y="178.8" width="24" height="16" rx="4" />
+  <text class="tag-txt" x="287" y="190.4" text-anchor="middle">D2</text>
+  <rect class="tag" fill="#8b5cf6" x="383" y="178.8" width="24" height="16" rx="4" />
+  <text class="tag-txt" x="395" y="190.4" text-anchor="middle">D3</text>
+  <rect class="tag" fill="#f97316" x="491" y="178.8" width="24" height="16" rx="4" />
+  <text class="tag-txt" x="503" y="190.4" text-anchor="middle">D4</text>
+  <rect class="tag" fill="#ec4899" x="599" y="178.8" width="24" height="16" rx="4" />
+  <text class="tag-txt" x="611" y="190.4" text-anchor="middle">D5</text>
+  <rect class="tag" fill="#16a34a" x="707" y="178.8" width="24" height="16" rx="4" />
+  <text class="tag-txt" x="719" y="190.4" text-anchor="middle">D6</text>
+  <text class="note" x="332" y="35" text-anchor="start">LED çubuğu / LED bar — D2 → D6 soldan sağa / left to right</text>
+  <path class="w" stroke="#d94a3d" d="M289 369.6 L289 313.8" />
+  <circle class="w-end" fill="#d94a3d" cx="289" cy="369.6" r="3.6" />
+  <circle class="w-end" fill="#d94a3d" cx="289" cy="313.8" r="3.6" />
+  <path class="leg" d="M289 277.8 L343 277.8" />
+  <circle class="ldr-body" cx="316" cy="277.8" r="10.5" />
+  <path class="ldr-track" d="M310 271.8 h12 M310 275.3 h12 M310 278.8 h12 M310 282.3 h12" />
+  <path class="leg" d="M343 295.8 L397 295.8" />
+  <g transform="translate(370 295.8) rotate(0)">
+    <rect class="res-body" x="-15" y="-5.5" width="30" height="11" rx="4.5" />
+    <rect x="-10.5" y="-5.5" width="3" height="11" fill="#8a5a2b" />
+    <rect x="-5.5"  y="-5.5" width="3" height="11" fill="#1a1a1a" />
+    <rect x="-0.5"  y="-5.5" width="3" height="11" fill="#f0932b" />
+    <rect x="7"     y="-5.5" width="3" height="11" fill="#d4a017" />
+  </g>
+  <path class="w" stroke="#2b3136" d="M397 313.8 L397 351.6" />
+  <circle class="w-end" fill="#2b3136" cx="397" cy="313.8" r="3.6" />
+  <circle class="w-end" fill="#2b3136" cx="397" cy="351.6" r="3.6" />
+  <path class="w" stroke="#a05a2c" d="M188 300 L196 300 Q204 300 204 308 L204 393.40000000000003 Q204 402.40000000000003 213 402.40000000000003 L334 402.40000000000003 Q343 402.40000000000003 343 393.40000000000003 L343 313.8" />
+  <circle class="w-end" fill="#a05a2c" cx="188" cy="300" r="3.6" />
+  <circle class="w-end" fill="#a05a2c" cx="343" cy="313.8" r="3.6" />
+  <text class="comp-lbl" x="285" y="263.8" text-anchor="start">LDR (ışık / light)</text>
+  <text class="comp-sub" x="370" y="317.8" text-anchor="middle">10kΩ</text>
+  <path class="leg" d="M487 277.8 L487 270.8" />
+  <path class="leg" d="M505 277.8 L505 270.8" />
+  <path class="leg" d="M523 277.8 L523 270.8" />
+  <rect class="pot-body" x="486" y="240.8" width="38" height="30" rx="4" />
+  <circle class="pot-knob" cx="505" cy="255.8" r="9" />
+  <path class="pot-slot" d="M500 255.8 h10" />
+  <circle class="btn-leg" cx="487" cy="277.8" r="3" />
+  <circle class="btn-leg" cx="505" cy="277.8" r="3" />
+  <circle class="btn-leg" cx="523" cy="277.8" r="3" />
+  <path class="w" stroke="#d94a3d" d="M487 313.8 L487 369.6" />
+  <circle class="w-end" fill="#d94a3d" cx="487" cy="313.8" r="3.6" />
+  <circle class="w-end" fill="#d94a3d" cx="487" cy="369.6" r="3.6" />
+  <path class="w" stroke="#2b3136" d="M523 313.8 L523 351.6" />
+  <circle class="w-end" fill="#2b3136" cx="523" cy="313.8" r="3.6" />
+  <circle class="w-end" fill="#2b3136" cx="523" cy="351.6" r="3.6" />
+  <path class="w" stroke="#0d9488" d="M188 322 L193 322 Q198 322 198 327 L198 401.40000000000003 Q198 410.40000000000003 207 410.40000000000003 L496 410.40000000000003 Q505 410.40000000000003 505 401.40000000000003 L505 313.8" />
+  <circle class="w-end" fill="#0d9488" cx="188" cy="322" r="3.6" />
+  <circle class="w-end" fill="#0d9488" cx="505" cy="313.8" r="3.6" />
+  <text class="comp-lbl" x="467" y="263.8" text-anchor="end">Pot 10kΩ</text>
+  <path class="leg" d="M613 295.8 L667 295.8" />
+  <g transform="translate(640 295.8) rotate(0)">
+    <rect class="res-body" x="-15" y="-5.5" width="30" height="11" rx="4.5" />
+    <rect x="-10.5" y="-5.5" width="3" height="11" fill="#c8102e" />
+    <rect x="-5.5"  y="-5.5" width="3" height="11" fill="#c8102e" />
+    <rect x="-0.5"  y="-5.5" width="3" height="11" fill="#8a5a2b" />
+    <rect x="7"     y="-5.5" width="3" height="11" fill="#d4a017" />
+  </g>
+  <path class="leg" d="M667 277.8 L667 276.8" />
+  <path class="leg" d="M703 277.8 L703 276.8" />
+  <circle class="buzzer-body" cx="685" cy="268.8" r="15" />
+  <circle class="buzzer-hole" cx="685" cy="268.8" r="3" />
+  <path class="w" stroke="#2b3136" d="M703 313.8 L703 351.6" />
+  <circle class="w-end" fill="#2b3136" cx="703" cy="313.8" r="3.6" />
+  <circle class="w-end" fill="#2b3136" cx="703" cy="351.6" r="3.6" />
+  <path class="w" stroke="#ca8a04" d="M188 344 L190 344 Q192 344 192 346 L192 409.40000000000003 Q192 418.40000000000003 201 418.40000000000003 L604 418.40000000000003 Q613 418.40000000000003 613 409.40000000000003 L613 313.8" />
+  <circle class="w-end" fill="#ca8a04" cx="188" cy="344" r="3.6" />
+  <circle class="w-end" fill="#ca8a04" cx="613" cy="313.8" r="3.6" />
+  <text class="comp-lbl" x="609" y="263.8" text-anchor="start">Pasif buzzer + 220Ω</text>
+  <rect class="tag" fill="#a05a2c" x="307" y="394.40000000000003" width="24" height="16" rx="4" />
+  <text class="tag-txt" x="319" y="406.00000000000006" text-anchor="middle">A0</text>
+  <rect class="tag" fill="#0d9488" x="469" y="402.40000000000003" width="24" height="16" rx="4" />
+  <text class="tag-txt" x="481" y="414.00000000000006" text-anchor="middle">A1</text>
+  <rect class="tag" fill="#ca8a04" x="577" y="410.40000000000003" width="24" height="16" rx="4" />
+  <text class="tag-txt" x="589" y="422.00000000000006" text-anchor="middle">D8</text>
+  <g transform="translate(18, 452.40000000000003)">
+    <line class="w" stroke="#0d8ce0" x1="0" y1="0" x2="26" y2="0" />
+    <text class="legend" x="34" y="4"><tspan class="legend-b">D2…D6</tspan> → LED çubuğu / LED bar</text>
+    <line class="w" stroke="#a05a2c" x1="210" y1="0" x2="236" y2="0" />
+    <text class="legend" x="244" y="4"><tspan class="legend-b">A0</tspan> → LDR (ışık / light)</text>
+    <line class="w" stroke="#0d9488" x1="420" y1="0" x2="446" y2="0" />
+    <text class="legend" x="454" y="4"><tspan class="legend-b">A1</tspan> → pot (eşik / threshold)</text>
+    <line class="w" stroke="#ca8a04" x1="630" y1="0" x2="656" y2="0" />
+    <text class="legend" x="664" y="4"><tspan class="legend-b">D8</tspan> → buzzer</text>
+    <line class="w" stroke="#d94a3d" x1="0" y1="24" x2="26" y2="24" />
+    <text class="legend" x="34" y="28"><tspan class="legend-b">3V3</tspan> → + hattı / + rail</text>
+    <line class="w" stroke="#2b3136" x1="210" y1="24" x2="236" y2="24" />
+    <text class="legend" x="244" y="28"><tspan class="legend-b">GND</tspan> → − hatları / − rails</text>
+    <circle class="plus-badge" cx="433" cy="24" r="6.5" /><text class="plus-mark" x="433" y="27.8" text-anchor="middle">+</text>
+    <text class="legend" x="447" y="28">= LED'in uzun bacağı / long leg</text>
+  </g>
 </svg>

@@ -55,43 +55,49 @@ Beş dakika sürüyor ve buradaki her adımı anlaşılır kılıyor.
 
 ## Bağlantı tablosu
 
-Yukarıdaki şemadaki her bağlantı, tek tek burada. `a11` demek: **alt blok,
-`a` satırı, 11. sütun** demektir. Satır harfleri tahtanın iki yanında,
-sütun numaraları üstünde yazılıdır.
+Yukarıdaki şemadaki her bağlantı, tek tek burada. `a6` demek: **alt blok,
+`a` satırı, 6. sütun** demektir. Satır harfleri tahtanın iki yanında, sütun
+numaraları üstünde ve altında yazılıdır.
+
+Şemayı okumak için üç ipucu: her kablo **kendi renginde** çizildi ve ucundaki
+küçük etikette hangi pinden geldiği yazıyor; **hiçbir kablo diğerini kesmez**
+(LED kabloları ortadaki kanaldan gelip kendi sütununa dik iner, buton kablosu
+tahtanın üstünden dolanır); alttaki **−** hattı GND, **+** hattı 3.3V taşır.
 
 ### Karttan breadboard'a giden kablolar
 
 | Kartta | Breadboard'da | Kablo rengi |
 | --- | --- | --- |
-| `D2` | `d9` | mavi |
-| `D3` | `d15` | mavi |
-| `D4` | `d21` | mavi |
-| `D7` | `c3` | mavi |
-| `3V3` | `a5` | kırmızı |
-| `GND` | `−2` (alt eksi hattı) | siyah |
+| `D2` | `e3` | mavi |
+| `D3` | `e11` | mor |
+| `D4` | `e19` | turuncu |
+| `D7` | `j26` (üst blok, butonun sol sütunu) | pembe |
+| `3V3` | `+1` (alt artı hattı) | kırmızı |
+| `GND` | `−1` (alt eksi hattı) | siyah |
 
 ### Breadboard üzerindeki parçalar
 
 | Parça | Bir ucu | Diğer ucu |
 | --- | --- | --- |
-| 220 Ω direnç | `c9` | `c11` |
-| 220 Ω direnç | `c15` | `c17` |
-| 220 Ω direnç | `c21` | `c23` |
-| Kırmızı LED | uzun bacak `a11` | kısa bacak `a12` |
-| Sarı LED | uzun bacak `a17` | kısa bacak `a18` |
-| Yeşil LED | uzun bacak `a23` | kısa bacak `a24` |
-| Jumper (katot → GND) | `b12` | `−12` |
-| Jumper (katot → GND) | `b18` | `−18` |
-| Jumper (katot → GND) | `b24` | `−24` |
-| Buton | 3. ve 5. sütunlara, **orta kanalı atlayacak şekilde** | |
-| 10 kΩ direnç | `b3` | `−3` |
+| 220 Ω direnç | `c3` | `c6` |
+| 220 Ω direnç | `c11` | `c14` |
+| 220 Ω direnç | `c19` | `c22` |
+| Kırmızı LED | uzun bacak `a6` | kısa bacak `a7` |
+| Sarı LED | uzun bacak `a14` | kısa bacak `a15` |
+| Yeşil LED | uzun bacak `a22` | kısa bacak `a23` |
+| Jumper (katot → GND) | `b7` | `−7` |
+| Jumper (katot → GND) | `b15` | `−15` |
+| Jumper (katot → GND) | `b23` | `−23` |
+| Buton | 26. ve 28. sütunlara, **orta kanalı atlayacak şekilde** | |
+| 10 kΩ direnç | `b26` | `−26` |
+| Jumper (+ hattı → buton) | `+28` | `a28` |
 
 <Callout lang="tr" variant="tip" title="Neden bu sütunlar?">
 Sütun numaraları keyfi — istersen hepsini 5 sütun sağa kaydırabilirsin.
 Önemli olan **hangi parçaların aynı sütunu paylaştığı.**
 
-Örneğin kırmızı LED'in uzun bacağı `a11`'de, 220 Ω direncin ucu da `c11`'de.
-İkisi de 11. sütunda olduğu için birbirine bağlılar — arada kablo yok ama
+Örneğin kırmızı LED'in uzun bacağı `a6`'da, 220 Ω direncin ucu da `c6`'da.
+İkisi de 6. sütunda olduğu için birbirine bağlılar — arada kablo yok ama
 elektriksel olarak aynı noktalar.
 </Callout>
 
@@ -129,29 +135,29 @@ kırmızı LED'i yapalım, sonra diğer ikisi kolay gelecek.
 - **Kısa bacak** = katot (−), GND'ye gider
 
 <Callout lang="tr" variant="warning" title="İki bacak farklı sütunlara">
-LED'in iki bacağı **farklı sütunlara** girmeli. `a11` ve `a12` gibi. Aynı
-sütuna takarsan (`a11` ve `b11`) LED'i kısa devre etmiş olursun ve hiç yanmaz.
+LED'in iki bacağı **farklı sütunlara** girmeli. `a6` ve `a7` gibi. Aynı
+sütuna takarsan (`a6` ve `b6`) LED'i kısa devre etmiş olursun ve hiç yanmaz.
 </Callout>
 
 **Kırmızı LED — dört adım:**
 
-1. **Direnç:** 220 Ω direncin bir bacağını `c9`, diğerini `c11` deliğine tak
-2. **LED:** kırmızı LED'in **uzun** bacağını `a11`, **kısa** bacağını `a12` deliğine tak
-3. **Sinyal kablosu:** kartın **D2** pininden `d9` deliğine mavi bir kablo çek
-4. **Toprak kablosu:** `b12` deliğinden alt eksi hattındaki `−12` deliğine siyah bir kablo çek
+1. **Direnç:** 220 Ω direncin bir bacağını `c3`, diğerini `c6` deliğine tak
+2. **LED:** kırmızı LED'in **uzun** bacağını `a6`, **kısa** bacağını `a7` deliğine tak
+3. **Sinyal kablosu:** kartın **D2** pininden `e3` deliğine mavi bir kablo çek
+4. **Toprak kablosu:** `b7` deliğinden alt eksi hattındaki `−7` deliğine siyah bir kablo çek
 
-Neden işe yarıyor: `c9` ve `d9` aynı sütunda, yani direncin sol ucu D2'ye
-bağlandı. `c11` ve `a11` de aynı sütunda, yani direncin sağ ucu LED'in uzun
-bacağına bağlandı. `a12` ve `b12` de aynı sütunda, yani LED'in kısa bacağı
+Neden işe yarıyor: `e3` ve `c3` aynı sütunda, yani direncin sol ucu D2'ye
+bağlandı. `c6` ve `a6` da aynı sütunda, yani direncin sağ ucu LED'in uzun
+bacağına bağlandı. `a7` ve `b7` de aynı sütunda, yani LED'in kısa bacağı
 eksi hattına gitti.
 
-**Sarı LED** için aynısını 6 sütun sağda yap: `c15`-`c17`, LED `a17`/`a18`,
-kablo **D3** → `d15`, jumper `b18` → `−18`.
+**Sarı LED** için aynısını 8 sütun sağda yap: `c11`-`c14`, LED `a14`/`a15`,
+mor kablo **D3** → `e11`, jumper `b15` → `−15`.
 
-**Yeşil LED** için 6 sütun daha sağda: `c21`-`c23`, LED `a23`/`a24`,
-kablo **D4** → `d21`, jumper `b24` → `−24`.
+**Yeşil LED** için 8 sütun daha sağda: `c19`-`c22`, LED `a22`/`a23`,
+turuncu kablo **D4** → `e19`, jumper `b23` → `−23`.
 
-Son olarak kartın **GND** pininden alt eksi hattına (`−2`) siyah bir kablo çek.
+Son olarak kartın **GND** pininden alt eksi hattına (`−1`) siyah bir kablo çek.
 Üç LED'in toprağı da bu hat üzerinden karta ulaşacak.
 
 <Callout lang="tr" variant="danger" title="Direnci asla atlama">
@@ -168,20 +174,25 @@ Buton bağlantısı ilk bakışta gereğinden karmaşık görünür, ama sebebi 
 
 **Butonu yerleştir.** Tact butonun dört bacağı var ve **orta kanalı atlayacak
 şekilde** takılır: iki bacak üst blokta (`f` satırı), iki bacak alt blokta
-(`e` satırı) olur. Sol bacakları 3. sütuna, sağ bacakları 5. sütuna gelsin.
+(`e` satırı) olur. Sol bacakları 26. sütuna, sağ bacakları 28. sütuna gelsin —
+tahtanın sağ ucuna yakın, LED'lerden uzakta.
 
 <Callout lang="tr" variant="tip" title="Butonun içi nasıl bağlı?">
 Aynı taraftaki iki bacak (kanalın iki yanındakiler) zaten içeriden bağlıdır.
 Butona **bastığında** sol taraf ile sağ taraf birleşir.
 
-Yani: 3. sütun ile 5. sütun, sadece basılıyken bağlanır.
+Yani: 26. sütun ile 28. sütun, sadece basılıyken bağlanır.
 </Callout>
 
 Şimdi üç bağlantı daha:
 
-1. **Gerilim:** kartın **3V3** pininden `a5` deliğine kırmızı bir kablo çek
-2. **Sinyal:** kartın **D7** pininden `c3` deliğine mavi bir kablo çek
-3. **Pull-down direnç:** 10 kΩ direncin bir bacağını `b3`, diğerini `−3` deliğine tak
+1. **Gerilim:** kartın **3V3** pininden alt artı hattındaki `+1` deliğine kırmızı
+   bir kablo çek; sonra `+28` deliğinden `a28` deliğine kısa bir kırmızı jumper
+   tak. Artı hattı boydan boya bağlı olduğu için 3.3V butonun sağ sütununa ulaşır.
+2. **Sinyal:** kartın **D7** pininden `j26` deliğine pembe bir kablo çek. `j26`
+   üst blokta, butonun sol bacağıyla (`f26`) aynı sütunda — kablo tahtanın
+   üstünden dolanıp gelir, LED kablolarıyla hiç kesişmez.
+3. **Pull-down direnç:** 10 kΩ direncin bir bacağını `b26`, diğerini `−26` deliğine tak
 
 Bu 10kΩ direnç *pull-down* direnci. Görevi şu: buton basılı değilken D7 pinini
 sıfıra (GND'ye) çeker. Direnci koymazsan buton bırakıldığında D7 hiçbir yere
@@ -202,10 +213,10 @@ Direnç 10kΩ olduğu için basılıyken 3V3'ten GND'ye akan akım yalnızca
 Kabloları taktıktan sonra güç vermeden önce yukarıdaki **bağlantı tablosunu**
 baştan sona tek tek işaretle. Sonra şu beş şeyi ayrıca kontrol et:
 
-1. **LED'lerin yönü** — uzun bacak sol delikte (`a11`, `a17`, `a23`)
+1. **LED'lerin yönü** — uzun bacak sol delikte (`a6`, `a14`, `a22`)
 2. **Her LED'in iki bacağı farklı sütunda** — aynı sütundaysa yanmaz
-3. **GND kablosu eksi hattında** — kırmızı çizgili artı hattına değil, **mavi
-   çizgili eksi hattına** takılı olmalı
+3. **Hatlar karışmamış** — GND kablosu **mavi çizgili eksi (−) hattında**,
+   3V3 kablosu **kırmızı çizgili artı (+) hattında**
 4. **3V3 ile GND arasında doğrudan kablo yok**
 5. **Pin numaraları doğru** — kırmızı D2, sarı D3, yeşil D4, buton D7
 
