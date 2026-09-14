@@ -121,6 +121,14 @@ Ancak **kodlar henüz gerçek donanımda çalıştırılmadı.** Her proje sayfa
 kod bölümünde bu not görünür. Kart elinize geçtiğinde sırayla doğrulamanız
 önerilir.
 
+Eylül 2026 denetimi (resmî veri sayfası, Zephyr çekirdeği ve brick kaynak
+kodlarıyla karşılaştırıldı): Servo ≥ 1.3.0 ve Adafruit NeoPixel ≥ 1.15.5
+(Zephyr desteği bu sürümlerde geldi); nesne tanıma geri çağrısı brick'in
+"etiket → tespit listesi" biçimine göre düzeltildi; `tts` brick'inde Türkçe ses
+olmadığı için 10. projenin sesli cevapları İngilizce; buzzer'a seri 220 Ω,
+WS2812 için isteğe bağlı 1N4007 eklendi; USB-C hub'ın PD güç geçişli olması ve
+hoparlörün USB olması gerektiği düzeltildi.
+
 ---
 
 ## Teknoloji / Stack

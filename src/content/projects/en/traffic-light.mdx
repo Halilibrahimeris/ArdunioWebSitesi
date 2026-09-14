@@ -29,9 +29,10 @@ troubleshooting:
       the 10kΩ resistor connects D7 to GND.
   - q: Nothing appears on the matrix.
     a: >-
-      Make sure the Arduino_LED_Matrix library is installed in App Lab. If not,
-      add it from the Libraries section and recompile the sketch. Also confirm
-      that matrix.begin() is called inside setup().
+      The Arduino_LED_Matrix library ships with the UNO Q core; there is nothing
+      to install. First confirm that matrix.begin() is called inside setup().
+      Then check the timing: while the board boots, the matrix shows the Linux
+      boot logo for 20-30 seconds — run the sketch after that has finished.
   - q: The light does not go red immediately when I press the button.
     a: >-
       That is by design. Like a real traffic light, green stays on for another
@@ -222,8 +223,10 @@ Tinkercad has no Arduino UNO Q, only the classic **Arduino UNO**. Practising the
 logic there is a good idea — the circuit is identical.
 
 The one difference: on a classic UNO you wire the button to the **5V** pin,
-because that board's logic is 5V. **On a real UNO Q it must go to 3V3** — 5V
-would damage the D7 pin.
+because that board's logic is 5V. **On a real UNO Q wire it to 3V3.** The rule
+on this site is never to feed 5V into any pin: D3 and the analog pins cannot
+take it at all, and the others only tolerate it while the board is powered —
+rather than memorise the exceptions, treat every pin as 3.3V.
 </Callout>
 
 <PhotoSlot lang="en" caption="The finished breadboard wiring" />

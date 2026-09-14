@@ -29,8 +29,9 @@ troubleshooting:
       the edge of the breadboard, it measures your own board.
   - q: I forgot the voltage divider. Is my board damaged?
     a: >-
-      Often there is no immediately visible damage, but the pin can degrade
-      over time. Test D9 by wiring a simple button circuit and seeing whether
+      According to the datasheet most digital pins, D9 included, tolerate a 5V
+      input while the board is powered, so most likely nothing happened. Still,
+      test D9 by wiring a simple button circuit and seeing whether
       it reads. If it does not, stop using that pin and move PIN_ECHO in the
       code to a free one such as D11.
   - q: My multimeter does not read 3.0V.
@@ -45,9 +46,10 @@ like a car's parking sensor. The second is the most important technical lesson
 on this site.
 
 <Callout lang="en" variant="voltage" linkToGuide>
-The HC-SR04's **ECHO pin outputs 5V**. The UNO Q's pins tolerate 3.3V at most.
-Wire ECHO directly and you damage the pin. In this project we put a two-resistor
-circuit in between — and you will understand exactly why it works.
+The HC-SR04's **ECHO pin outputs 5V**. The UNO Q's pins are designed for 3.3V
+logic; wiring ECHO directly puts the pin at risk (on D3 or an analog pin it is
+certain damage). In this project we put a two-resistor circuit in between — and
+you will understand exactly why it works.
 </Callout>
 
 ## How does an ultrasonic sensor work?
@@ -144,7 +146,7 @@ the D9 wire.
 
 Familiar from project 2:
 
-- Passive buzzer → **D8** and **GND**
+- Passive buzzer + 220 Ω in series → **D8** and **GND**
 - Red LED + 220Ω → **D2**
 - Amber LED + 220Ω → **D3**
 - Green LED + 220Ω → **D4**

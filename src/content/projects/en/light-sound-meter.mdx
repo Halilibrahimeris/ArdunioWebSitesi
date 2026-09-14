@@ -107,7 +107,9 @@ Line up five LEDs side by side. Run each long leg through its own 220Ω
 resistor to these pins: **D2, D3, D4, D5, D6**. The short legs go to the
 breadboard's negative rail.
 
-Connect one side of the passive buzzer to **D8** and the other to **GND**.
+Do not wire the passive buzzer straight to **D8**; put a **220 Ω resistor** in
+series: **D8** → 220 Ω → buzzer → **GND**. An electromagnetic buzzer's coil is
+only ~16 Ω; without the resistor the pin would source far more than its 20 mA limit.
 
 <Callout lang="en" variant="danger" title="It must be a passive buzzer">
 An active buzzer contains its own oscillator, so applying voltage produces one

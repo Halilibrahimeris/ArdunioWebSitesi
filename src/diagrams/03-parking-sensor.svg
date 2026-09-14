@@ -78,7 +78,7 @@
   <!-- Buzzer -->
   <path class="wire w-sig" d="M196 290 H240 V352 H300" />
   <rect class="part" x="300" y="338" width="112" height="28" rx="6" />
-  <text class="lbl" x="356" y="357" text-anchor="middle">Pasif buzzer</text>
+  <text class="lbl" x="356" y="357" text-anchor="middle">Pasif buzzer + 220Ω</text>
   <path class="wire w-gnd" d="M412 352 H480 V420" />
 
   <!-- LED'ler -->

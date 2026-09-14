@@ -235,6 +235,12 @@ The **database** is for programs. It can be queried with `read_last_sample()`
 and `read_samples()` — in project 8 we plot exactly this data in a web
 interface.
 
+<Callout lang="en" variant="info" title="How long does the database keep data?">
+`TimeSeriesStore()` keeps the last **7 days** by default and drops anything
+older. For more, construct it as `TimeSeriesStore(retention_days=30)`. The CSV
+file has no such limit; it grows until you delete it.
+</Callout>
+
 <PhotoSlot lang="en" caption="The CSV file's contents in the App Lab terminal" />
 
 </Step>

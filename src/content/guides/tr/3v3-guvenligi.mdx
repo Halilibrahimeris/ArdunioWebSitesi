@@ -34,6 +34,20 @@ modülden karta 5V *sinyal göndermek*.
 Kartın 5V pini de vardır ve modülleri beslemek için kullanılabilir. 5V pini
 sorun değil; sorun 5V'luk bir *sinyalin* giriş pinine ulaşması.
 
+<Callout lang="tr" variant="info" title="Veri sayfası ne diyor?">
+Resmî veri sayfası dijital pinlerin çoğunu (FT tipi) **giriş olarak 5V
+toleranslı** sayıyor. Peki neden yine de bölücü kuruyoruz? Üç sebep:
+
+- **İstisnalar var:** ~D3 (PB0) en fazla 3.6V'a dayanır; A0-A5 analog modda
+  hiç 5V tolere etmez. Hangi pinin hangi tip olduğunu ezberlemek hata davet eder.
+- **Tolerans yalnızca kart beslenirken geçerli.** Kart kapalıyken bir pine 5V
+  gelirse koruma diyotu üzerinden akım akar — bu yüzden "önce gücü kes" kuralı.
+- **Pay yok.** Toleranslı bile olsa pin 5V'u "rahat" değil "sınırda" karşılar;
+  bölücü gürültü ve direnç toleransı için 0.3V pay bırakır.
+
+Kural basit kalıyor: **her pini 3.3V-max kabul et.**
+</Callout>
+
 ## Kullandığımız modüllerin durumu
 
 Bu sitedeki 10 projede geçen tüm modüller:
@@ -46,7 +60,7 @@ Bu sitedeki 10 projede geçen tüm modüller:
 | HC-SR501 PIR | Güvenli | 5V ile beslenir ama çıkışı zaten 3.3V TTL |
 | SSD1306 OLED | Güvenli | Doğal olarak 3.3V çalışır |
 | **HC-SR04** | **Tehlikeli** | ECHO pinine gerilim bölücü **şart** |
-| WS2812 LED şerit | Dikkat | Kısa şeritte 3.3V veri çalışır, uzunda çevirici gerekir |
+| WS2812 LED şerit | Dikkat | 3.3V veri sınırda; gerekirse 5V hattına 1N4007 diyot, uzun şeritte çevirici |
 | Röle modülü | Dikkat | 3.3V ile tetiklenmeyebilir, transistörle sür |
 | SG90 servo | Dikkat | Sinyal 3.3V olur, ama gücü harici 5V'den al |
 

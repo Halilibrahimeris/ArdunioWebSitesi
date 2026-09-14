@@ -232,6 +232,12 @@ Bu dosyayı bilgisayarına kopyalayıp Excel'de açabilir, grafik çizebilirsin.
 fonksiyonlarıyla sorgulanabilir — 8. projede bunu web arayüzünde grafiğe
 dökeceğiz.
 
+<Callout lang="tr" variant="info" title="Veritabanı kaç gün saklar?">
+`TimeSeriesStore()` varsayılan olarak son **7 günü** tutar, eskisini siler.
+Daha uzun istiyorsan `TimeSeriesStore(retention_days=30)` gibi kur. CSV
+dosyasında böyle bir sınır yok; sen silmedikçe büyür.
+</Callout>
+
 <PhotoSlot lang="tr" caption="App Lab terminalinde CSV dosyasının içeriği" />
 
 </Step>

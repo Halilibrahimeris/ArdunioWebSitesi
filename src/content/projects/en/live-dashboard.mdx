@@ -58,7 +58,7 @@ at once**.
 
 | Destination | What for | Lifetime |
 | --- | --- | --- |
-| Database (`dbstorage_tsstore`) | Later analysis, the long term | Permanent |
+| Database (`dbstorage_tsstore`) | Later analysis, the long term | Durable (7 days by default, extend with `retention_days`) |
 | Browser (`web_ui`) | Watching right now | As long as the page is open |
 
 They serve different needs. The database answers "how warm was the room last

@@ -65,8 +65,8 @@
 
   <rect class="part" x="300" y="230" width="220" height="60" rx="10" />
   <text class="lbl-b" x="410" y="252" text-anchor="middle">WS2812B — 8 LED</text>
-  <text class="muted" x="410" y="270" text-anchor="middle">kısa şeritte 3.3V veri yeter</text>
-  <text class="muted" x="410" y="284" text-anchor="middle">3.3V data is fine on a short strip</text>
+  <text class="muted" x="410" y="270" text-anchor="middle">3.3V veri sınırda — gerekirse 1N4007 diyot</text>
+  <text class="muted" x="410" y="284" text-anchor="middle">3.3V data is borderline — add a 1N4007 if needed</text>
 
   <!-- ───────── Harici 5V besleme ───────── -->
   <rect class="part" x="560" y="230" width="160" height="76" rx="10" />

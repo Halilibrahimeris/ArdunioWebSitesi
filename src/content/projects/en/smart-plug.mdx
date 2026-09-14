@@ -29,7 +29,9 @@ troubleshooting:
       Check the strip's data direction. WS2812 strips have arrows printed on
       them; the DIN (data input) end is the one that connects to the board.
       Connected backwards, no LED lights. Also confirm the strip's 5V supply is
-      connected.
+      connected. If both are fine, the 3.3V data signal is not reaching the
+      strip's threshold: put a 1N4007 diode in series with the 5V feed (see the
+      box in step 4).
   - q: Only the first few LEDs on the strip light up.
     a: >-
       Usually a power problem. Eight LEDs at full white draw about 0.5 A, which
@@ -158,12 +160,18 @@ Use the three pads at the end where the arrows begin:
 - **5V** → the external adapter's (+)
 - **GND** → the shared GND
 
-<Callout lang="en" variant="warning" title="Why is 3.3V data enough?">
-A WS2812 nominally wants a data signal around 70% of 5V (3.5V), so 3.3V sits
-right at the edge. In practice it works reliably on **a short 8-LED strip**.
+<Callout lang="en" variant="warning" title="3.3V data is borderline — have a fallback ready">
+The WS2812B datasheet wants at least 70% of 5V (3.5V) for a "1"; the board's
+3.3V is **below** that line. On a short 8-LED stick it usually works anyway,
+but it is not guaranteed.
 
-On longer 30-60 LED strips the chance of the first LED misreading the signal
-grows, and you need a level shifter such as a 74AHCT125.
+If the strip flickers, shows random colours or stays dark, the fix takes two
+minutes: put a **1N4007 diode** in series with the wire going to the strip's
+**5V** pad (banded end towards the strip). The diode drops ~0.7V, the strip
+runs at 4.3V and now accepts 3.0V as a "1" — 3.3V clears it comfortably.
+
+On long 30-60 LED strips even the diode may not be enough; then you need a
+level shifter such as a 74AHCT125.
 </Callout>
 
 <PhotoSlot lang="en" caption="The transistor driver, relay and LED strip assembled" />
@@ -175,7 +183,9 @@ grows, and you need a level shifter such as a 74AHCT125.
 Create a new app in App Lab and name it `smart-plug`.
 
 Add the `web_ui` brick to `app.yaml`, and the NeoPixel library to
-`sketch/sketch.yaml` — both are in the **Code** section below.
+`sketch/sketch.yaml` — both are in the **Code** section below. The NeoPixel
+version must be **1.15.5 or newer**; older releases do not know the UNO Q's
+Zephyr core and the build fails.
 
 Then put the four files in place:
 

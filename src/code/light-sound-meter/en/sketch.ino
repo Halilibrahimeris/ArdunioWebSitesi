@@ -16,7 +16,7 @@
 // ───────────────── Pin assignments ─────────────────
 const int PIN_LDR    = A0;   // LDR + 10k voltage divider
 const int PIN_POT    = A1;   // Potentiometer wiper
-const int PIN_BUZZER = 8;    // Passive buzzer
+const int PIN_BUZZER = 8;    // Passive buzzer (+ 220 ohm series resistor)
 
 // LED bar: five LEDs left to right (each with a 220 ohm resistor)
 const int LED_PINS[]  = { 2, 3, 4, 5, 6 };

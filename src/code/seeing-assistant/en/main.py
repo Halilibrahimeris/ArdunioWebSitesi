@@ -52,7 +52,7 @@ log = deque(maxlen=LOG_SIZE)
 
 # ───────────────── Bricks ─────────────────
 camera = VideoObjectDetection(confidence=CONFIDENCE, debounce_sec=DEBOUNCE_SEC)
-microphone = AutomaticSpeechRecognition()
+microphone = AutomaticSpeechRecognition(language="en")   # pin the language so short phrases are not misdetected
 voice = TextToSpeech()
 ui = WebUI()
 
@@ -72,12 +72,22 @@ def add_to_log(kind: str, text: str):
 def objects_seen(detections: dict):
     """
     Called every time the camera recognises something.
-    detections looks like: {"person": 0.87, "cup": 0.66}
+
+    The brick hands us a LIST per label — there may be several of one object:
+      {"person": [{"confidence": 0.87, "bounding_box_xyxy": (10, 20, 110, 220)}],
+       "cup":    [{"confidence": 0.66, "bounding_box_xyxy": (...)}]}
+    We keep the best confidence per label and flatten it into a plain dict.
     """
     if not detections:
         return
 
-    rounded = {name: round(score, 2) for name, score in detections.items()}
+    rounded = {
+        name: round(max(d["confidence"] for d in items), 2)
+        for name, items in detections.items()
+        if items
+    }
+    if not rounded:
+        return
 
     state["objects"] = rounded
     state["last_seen"] = time.time()
@@ -114,7 +124,7 @@ def describe_view() -> str:
     if len(names) == 1:
         return f"I can see a {names[0]}."
 
-    return f"I can see {', '.join(names[:-1])} and {names[-1]}."
+    return f"I can see {', '.join('a ' + n for n in names[:-1])} and a {names[-1]}."
 
 
 def speak(text: str):

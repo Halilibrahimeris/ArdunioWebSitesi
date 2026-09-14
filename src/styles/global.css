@@ -161,3 +161,55 @@
   font-weight: var(--shiki-dark-font-weight) !important;
   text-decoration: var(--shiki-dark-text-decoration) !important;
 }
+
+/* ---- Ajans imzası / Agency signature ----
+   Footer'ın altında kendi ince bandında durur; durağan hâlde çerçevesiz ve
+   hareketsiz, hover/focus'ta hap zemini belirir. Yazdırmada gizlenir. */
+.imza-band {
+  display: flex;
+  justify-content: center;
+  padding: 0.6rem 1rem 0.9rem;
+  background-color: var(--bg);
+  border-top: 1px solid var(--border-soft);
+}
+.imza {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  background-color: transparent;
+  color: var(--text);
+  text-decoration: none;
+  line-height: 1;
+  transition: background-color 160ms ease;
+}
+.imza__mark {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  transition: transform 160ms ease;
+}
+.imza__ust {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+.imza__ad {
+  font-size: 0.82rem;
+  font-weight: 650;
+  color: var(--text);
+}
+.imza__tld {
+  color: var(--text-faint);
+  font-weight: 500;
+  transition: color 160ms ease;
+}
+.imza:hover, .imza:focus-visible {
+  background-color: var(--bg-inset);
+}
+.imza:hover .imza__mark, .imza:focus-visible .imza__mark { transform: scale(1.08); }
+.imza:hover .imza__tld, .imza:focus-visible .imza__tld { color: var(--text-muted); }
+@media print { .imza-band { display: none; } }

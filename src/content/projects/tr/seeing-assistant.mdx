@@ -21,9 +21,9 @@ troubleshooting:
   - q: Kamera, mikrofon ve hoparlörü aynı anda bağlayamıyorum.
     a: >-
       Kartta tek bir USB-C portu var ve o da güç taşıyor. Üç cihazı birden
-      bağlamak için kendi adaptörü olan (harici beslemeli) bir USB-C hub
-      gerekiyor. Beslemesiz hub'lar yeterli akımı veremez ve cihazlar rastgele
-      kopar.
+      bağlamak için kendi USB-C güç girişi (PD) olan ve bu gücü karta geçiren
+      bir USB-C hub gerekiyor; 5 V / 3 A adaptör kullan. Güç girişi olmayan
+      hub'lar hem kartı besleyemez hem de cihazlara yeterli akımı veremez.
   - q: Mikrofon beni duyuyor ama yanlış anlıyor.
     a: >-
       Bu normal; konuşma tanıma mükemmel değil. Kod da bunu varsayarak
@@ -50,6 +50,11 @@ troubleshooting:
       Model İngilizce etiketler üretiyor. Kodda TURKCE_ADLAR sözlüğü ile en sık
       görülenleri çeviriyoruz. Listede olmayan bir nesne İngilizce kalır —
       sözlüğe yeni satır ekleyerek genişletebilirsin.
+  - q: Hoparlör Türkçe cümleleri anlaşılmaz okuyor.
+    a: >-
+      tts brick'inde Türkçe ses modeli yok; İngilizce sesle Türkçe metin bozuk
+      çıkar. Kod bu yüzden sesli cevapları İngilizce üretiyor. Panelden
+      konuşturma kutusuna da İngilizce yaz.
 ---
 
 Son proje. Şimdiye kadar öğrendiğin her şey burada bir araya geliyor: Bridge,
@@ -73,20 +78,24 @@ Klasik bir Arduino'da bunların hiçbiri mümkün değil.
 Kartta **tek bir USB-C portu** var ve o da hem güç hem veri taşıyor. Bu projede
 üç USB cihazı birden bağlamamız gerekiyor: kamera, mikrofon, hoparlör.
 
-Çözüm: **harici beslemeli bir USB-C hub.**
+Çözüm: **PD güç girişli (power passthrough) bir USB-C hub.** Arduino'nun
+tarifi tam olarak bu: "harici güç girişi olan bir USB-C dongle".
 
-<Callout lang="tr" variant="warning" title="Hub'ın kendi adaptörü olmalı">
-Beslemesiz (passive) hub'lar kartın verdiği akımı üç cihaz arasında paylaştırır.
+<Callout lang="tr" variant="warning" title="Hub'ın kendi USB-C güç girişi olmalı">
+Hub karta takıldığında kartın tek portu dolar; kartı artık hub beslemek zorunda.
+Bu yüzden hub'da bir **USB-C güç girişi (PD)** olmalı ve hub bu gücü karta
+geçirmeli — "power delivery / PD passthrough" yazan modelleri seç, 5 V / 3 A
+adaptörle besle. Apple hub'ları bu kartla çalışmıyor.
+
+Güç girişi olmayan bir hub kartın verdiği akımı üç cihaz arasında paylaştırır.
 Kamera tek başına 500 mA çekebilir. Sonuç: cihazlar rastgele kopar, kamera
-donar, uygulama çöker.
-
-Kendi adaptörü olan bir hub al. Bu proje için en kritik malzeme bu.
+donar, uygulama çöker. Bu proje için en kritik malzeme bu.
 </Callout>
 
 <Step n={1} title="USB cihazları bağla ve tanındığını doğrula">
 
-Hub'ı kendi adaptörüne tak, sonra karta bağla. Kamera, mikrofon ve hoparlörü
-hub'a tak.
+Hub'ın güç girişine 5 V / 3 A adaptörü tak, sonra hub'ı karta bağla. Kamera,
+mikrofon ve hoparlörü hub'a tak.
 
 App Lab'de terminali aç ve cihazların görüldüğünü kontrol et:
 
@@ -159,6 +168,17 @@ from arduino.app_bricks.video_objectdetection import VideoObjectDetection
 
 Bu tutarsızlık ilk seferde herkesi yanıltır. Kodu olduğu gibi kopyalarsan sorun
 yaşamazsın.
+</Callout>
+
+<Callout lang="tr" variant="warning" title="Kart Türkçe konuşamıyor (şimdilik)">
+`tts` brick'inin ses modelleri arasında Türkçe yok; İngilizce, İspanyolca, Çince,
+Almanca ve İtalyanca var. Türkçe bir cümleyi İngilizce sesle okutursan anlaşılmaz
+bir şey çıkar. Bu yüzden kod **sesli cevapları İngilizce** üretiyor ("I can see
+a person and a cup"); panel ve günlük Türkçe kalıyor.
+
+Konuşma tanıma (`asr`) ise Whisper tabanlı ve Türkçe'yi anlıyor — sen Türkçe
+sor, kart İngilizce cevaplasın. Kodda `AutomaticSpeechRecognition(language="tr")`
+ile dili sabitledik; otomatik algılamaya bırakırsan kısa cümlelerde yanılabilir.
 </Callout>
 
 </Step>
@@ -261,10 +281,12 @@ Web arayüzünü aç ve şunları dene:
 
 1. **Kameranın önüne geç.** Panelde "insan" belirir, güven çubuğu dolar.
    Servo ortaya döner, matriste bir göz açılır.
-2. **Panelde "Ne görüyorsun?" düğmesine bas.** Hoparlörden cevap gelir.
+2. **Panelde "Ne görüyorsun?" düğmesine bas.** Hoparlörden İngilizce cevap
+   gelir: "I can see a person."
 3. **Mikrofona "ne görüyorsun" de.** Aynı cevabı sesli soruyla al.
 4. **Kameraya bir bardak göster.** Panelde iki nesne birden listelenir.
-5. **"Kartı konuştur" kutusuna bir cümle yaz.** Kart onu söyler.
+5. **"Kartı konuştur" kutusuna bir cümle yaz.** Kart onu söyler — İngilizce yaz,
+   Türkçe ses modeli yok.
 
 <PhotoSlot lang="tr" caption="Kamera, mikrofon ve hoparlör bağlı çalışan sistem" />
 

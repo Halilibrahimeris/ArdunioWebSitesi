@@ -48,7 +48,7 @@ Header düzeni klasik UNO ile aynı, yani eski shield'ler fiziksel olarak uyar:
 
 - **14 dijital pin** (D0-D13), bunların 6'sı PWM üretebilir
 - **6 analog giriş** (A0-A5)
-- **Güç pinleri:** 3V3, 5V, GND
+- **Güç pinleri:** 3V3 çıkışı, 5V çıkışı (USB-C'den gelen 5V_SYS hattı), VIN girişi (7-24 V), GND
 - **Qwiic konnektörü:** I2C cihazları lehimsiz takmak için
 
 <Callout lang="tr" variant="voltage" linkToGuide>
@@ -79,7 +79,7 @@ taşıyor hem de video çıkışı verebiliyor.
 
 <Callout lang="tr" variant="warning" title="Kamera projesi için önemli">
 Tek port olduğu için kamera, mikrofon ve hoparlörü aynı anda bağlamak
-istediğinde **harici beslemeli bir USB-C hub** gerekiyor. 10. projede bunu
+istediğinde **PD güç girişli (power passthrough) bir USB-C hub** gerekiyor. 10. projede bunu
 kullanacağız.
 </Callout>
 

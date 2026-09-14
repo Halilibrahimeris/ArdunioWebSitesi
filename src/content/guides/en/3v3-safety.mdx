@@ -35,6 +35,20 @@ from 5V, it is a module *sending* a 5V signal back to the board.
 The board does have a 5V pin, and using it to power modules is fine. The
 danger is a 5V *signal* reaching an input pin.
 
+<Callout lang="en" variant="info" title="What the datasheet says">
+The official datasheet rates most digital pins (FT type) as **5V-tolerant as
+inputs**. So why still build the divider? Three reasons:
+
+- **There are exceptions:** ~D3 (PB0) tolerates 3.6V at most, and A0-A5 in
+  analog mode do not tolerate 5V at all. Memorising which pin is which invites mistakes.
+- **Tolerance only holds while the board is powered.** 5V on a pin of an
+  unpowered board flows through the protection diode — hence "power down first".
+- **No margin.** Even a tolerant pin takes 5V at its limit, not comfortably;
+  the divider leaves 0.3V of headroom for noise and resistor tolerance.
+
+The rule stays simple: **treat every pin as 3.3V max.**
+</Callout>
+
 ## Where each module stands
 
 Every module used across the ten projects on this site:
@@ -47,7 +61,7 @@ Every module used across the ten projects on this site:
 | HC-SR501 PIR | Safe | Runs on 5V but its output is already 3.3V TTL |
 | SSD1306 OLED | Safe | Natively 3.3V |
 | **HC-SR04** | **Dangerous** | A voltage divider on ECHO is **mandatory** |
-| WS2812 LED strip | Caution | 3.3V data works on short strips; long ones need a shifter |
+| WS2812 LED strip | Caution | 3.3V data is borderline; add a 1N4007 in the 5V feed if needed, long strips need a shifter |
 | Relay module | Caution | May not trigger at 3.3V — drive it with a transistor |
 | SG90 servo | Caution | The 3.3V signal is fine, but power it externally |
 

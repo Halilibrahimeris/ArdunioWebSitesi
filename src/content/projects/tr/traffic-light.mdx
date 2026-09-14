@@ -29,9 +29,10 @@ troubleshooting:
       10kΩ direncin bir ucunun D7'ye, diğer ucunun GND'ye bağlı olduğunu doğrula.
   - q: Matriste hiçbir şey görünmüyor.
     a: >-
-      App Lab'de Arduino_LED_Matrix kütüphanesinin kurulu olduğundan emin ol.
-      Kurulu değilse Libraries bölümünden arayıp ekle, sonra sketch'i yeniden
-      derle. Ayrıca setup() içinde matrix.begin() çağrıldığını doğrula.
+      Arduino_LED_Matrix kütüphanesi UNO Q çekirdeğiyle birlikte gelir, ayrıca
+      kurulmaz. Önce setup() içinde matrix.begin() çağrıldığını doğrula. Sonra
+      zamanlamaya bak: kart açılırken matris 20-30 saniye boyunca Linux'un
+      açılış logosunu gösterir; sketch'i bu süre bittikten sonra çalıştır.
   - q: Butona bastığımda ışık hemen kırmızıya dönmüyor.
     a: >-
       Öyle olması gerekiyor. Gerçek trafik lambaları gibi, yeşil ışık önce
@@ -219,7 +220,9 @@ Tinkercad'de Arduino UNO Q yok, klasik **Arduino UNO** var. Bu projenin
 mantığını orada denemek gayet iyi bir fikir — devre birebir aynı.
 
 Tek fark: klasik UNO'da butonu **5V** pinine bağlarsın, çünkü o kartın lojiği
-5V. **Gerçek UNO Q'da ise 3V3'e bağlaman şart** — 5V, D7 pinini bozar.
+5V. **Gerçek UNO Q'da ise 3V3'e bağla.** Bu sitenin kuralı hiçbir pine 5V
+vermemek: D3 ve analog pinler 5V'a hiç dayanmaz, diğerleri de yalnızca kart
+beslenirken tolere eder — ayrımı ezberlemek yerine hepsini 3.3V say.
 </Callout>
 
 <PhotoSlot lang="tr" caption="Tamamlanmış breadboard bağlantısı" />

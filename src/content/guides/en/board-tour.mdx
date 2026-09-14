@@ -49,7 +49,7 @@ The header layout matches the classic UNO, so old shields physically fit:
 
 - **14 digital pins** (D0-D13), six of which can produce PWM
 - **6 analog inputs** (A0-A5)
-- **Power pins:** 3V3, 5V, GND
+- **Power pins:** 3V3 out, 5V out (the 5V_SYS rail fed from USB-C), VIN in (7-24 V), GND
 - **Qwiic connector** for plugging in I2C devices without soldering
 
 <Callout lang="en" variant="voltage" linkToGuide>
@@ -79,7 +79,7 @@ output all at once.
 
 <Callout lang="en" variant="warning" title="Important for the camera project">
 Because there is only one port, connecting a camera, a microphone and a
-speaker at the same time needs **a powered USB-C hub**. Project 10 uses one.
+speaker at the same time needs **a USB-C hub with PD power passthrough**. Project 10 uses one.
 </Callout>
 
 ## Differences from a classic UNO

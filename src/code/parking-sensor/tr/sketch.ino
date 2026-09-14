@@ -9,7 +9,7 @@
 
   ┌──────────────────────────────────────────────────────────────┐
   │  DİKKAT: HC-SR04'ün ECHO pini 5V verir.                      │
-  │  ECHO'yu D9'a DOĞRUDAN bağlarsan pini kalıcı olarak bozarsın.│
+  │  ECHO'yu D9'a DOĞRUDAN bağlarsan pini riske atarsın.         │
   │  Araya 2.2k + 3.3k gerilim bölücü ŞART.                      │
   └──────────────────────────────────────────────────────────────┘
 */
@@ -19,7 +19,7 @@
 // ───────────────── Pin tanımları ─────────────────
 const int PIN_TRIG   = 10;  // Sensöre gider  (kart → sensör, 3.3V yeterli)
 const int PIN_ECHO   = 9;   // Sensörden gelir (GERİLİM BÖLÜCÜ ÜZERİNDEN!)
-const int PIN_BUZZER = 8;
+const int PIN_BUZZER = 8;   // Pasif buzzer (+ 220 ohm seri direnç)
 
 const int PIN_GREEN  = 4;
 const int PIN_YELLOW = 3;

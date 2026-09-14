@@ -107,7 +107,9 @@ Beş LED'i yan yana diz. Her birinin uzun bacağı kendi 220Ω direnci üzerinde
 şu pinlere gitsin: **D2, D3, D4, D5, D6**. Kısa bacaklar breadboard'un eksi
 hattına.
 
-Pasif buzzer'ın bir ucunu **D8**'e, diğerini **GND**'ye bağla.
+Pasif buzzer'ı **D8**'e doğrudan değil, **220 Ω direnç üzerinden** bağla:
+**D8** → 220 Ω → buzzer → **GND**. Elektromanyetik buzzer'ın bobini yalnızca
+~16 Ω'dur; direnç olmadan pinden 20 mA sınırının çok üstünde akım çekilir.
 
 <Callout lang="tr" variant="danger" title="Pasif buzzer şart">
 Aktif buzzer içinde kendi osilatörü olduğu için ona gerilim verdiğinde tek bir

@@ -69,5 +69,14 @@ const canonical = new URL(Astro.url.pathname, Astro.site ?? 'https://example.com
     </main>
 
     <Footer lang={lang} />
+
+    {/* Ajans imzası — footer'ın altında, kendi ince bandında. Metin ve bağlantı sabittir. */}
+    <div class="imza-band">
+      <a class="imza" href="https://egweblab.com.tr" target="_blank" rel="noopener">
+        <img class="imza__mark" src="/assets/logo-96.png" width="20" height="20" alt="" decoding="async">
+        <span class="imza__ust">Tasarım ve yazılım</span>
+        <span class="imza__ad">egweblab<span class="imza__tld">.com.tr</span></span>
+      </a>
+    </div>
   </body>
 </html>

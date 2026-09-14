@@ -30,8 +30,9 @@ troubleshooting:
       yakın durursa kendi kartını ölçer.
   - q: Gerilim bölücüyü kurmayı unuttum, kartım bozuldu mu?
     a: >-
-      Muhtemelen hemen fark edilir bir hasar olmaz ama pin zamanla bozulabilir.
-      D9'u test et: basit bir buton devresi kurup okuyabiliyor musun bak.
+      Veri sayfasına göre D9 dahil çoğu dijital pin, kart beslenirken 5V girişi
+      tolere eder; bu yüzden büyük ihtimalle bir şey olmadı. Yine de D9'u test et:
+      basit bir buton devresi kurup okuyabiliyor musun bak.
       Okumuyorsa o pini kullanmayı bırak, koddaki PIN_ECHO değerini boştaki
       başka bir pine (örneğin D11) taşı.
   - q: Multimetrede ölçtüğüm değer 3.0V değil.
@@ -45,9 +46,10 @@ Bu proje ikiye ayrılıyor. Birincisi eğlenceli kısım: arabanın park sensör
 gibi çalışan bir devre. İkincisi ise bu sitedeki en önemli teknik ders.
 
 <Callout lang="tr" variant="voltage" linkToGuide>
-HC-SR04'ün **ECHO pini 5V** verir. UNO Q'nun pinleri en fazla 3.3V kaldırır.
-ECHO'yu doğrudan bağlarsan pini bozarsın. Bu projede araya iki dirençlik bir
-devre koyacağız — ve neden işe yaradığını anlayacaksın.
+HC-SR04'ün **ECHO pini 5V** verir. UNO Q'nun pinleri 3.3V lojik için tasarlandı;
+ECHO'yu doğrudan bağlamak pini riske atar (D3 ya da bir analog pinde kesin bozar).
+Bu projede araya iki dirençlik bir devre koyacağız — ve neden işe yaradığını
+anlayacaksın.
 </Callout>
 
 ## Ultrasonik sensör nasıl çalışır?
@@ -144,7 +146,7 @@ kablosunu tak.
 
 2. projeden tanıdık:
 
-- Pasif buzzer → **D8** ve **GND**
+- Pasif buzzer + 220 Ω seri → **D8** ve **GND**
 - Kırmızı LED + 220Ω → **D2**
 - Sarı LED + 220Ω → **D3**
 - Yeşil LED + 220Ω → **D4**

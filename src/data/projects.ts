@@ -93,7 +93,7 @@ export const projects: Project[] = [
       { part: 'pot-10k', qty: 1 },
       { part: 'buzzer-passive', qty: 1 },
       { part: 'led-set', qty: 1, reusedFrom: 1 },
-      { part: 'res-220', qty: 5 },
+      { part: 'res-220', qty: 6 },
     ],
   },
   {
@@ -133,7 +133,7 @@ export const projects: Project[] = [
       },
       { part: 'buzzer-passive', qty: 1, reusedFrom: 2 },
       { part: 'led-set', qty: 1, reusedFrom: 1 },
-      { part: 'res-220', qty: 3, reusedFrom: 2 },
+      { part: 'res-220', qty: 4, reusedFrom: 2 },
       {
         part: 'multimeter',
         qty: 1,
@@ -228,6 +228,15 @@ export const projects: Project[] = [
       { part: 'jumper-mm', qty: 1, reusedFrom: 1 },
       { part: 'relay-1ch', qty: 1 },
       { part: 'ws2812-8', qty: 1 },
+      {
+        part: 'diode-1n4007',
+        qty: 1,
+        optional: true,
+        note: {
+          tr: 'Şerit 3.3V veriyle titrer ya da yanmazsa 5V hattına seri tak.',
+          en: 'Fit it in series with the 5V feed if the strip flickers or stays dark on 3.3V data.',
+        },
+      },
       { part: '2n2222', qty: 1 },
       { part: 'res-10k', qty: 1, reusedFrom: 1 },
       { part: 'psu-5v', qty: 1 },

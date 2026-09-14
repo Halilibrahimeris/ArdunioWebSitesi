@@ -161,6 +161,16 @@ const partsCatalogue = {
       en: 'Lets a 3.3V signal drive a 5V relay, keeping the board isolated from it.',
     },
   },
+  'diode-1n4007': {
+    id: 'diode-1n4007',
+    name: { tr: '1N4007 diyot', en: '1N4007 diode' },
+    category: 'passive',
+    voltageRisk: 'safe',
+    voltageNote: {
+      tr: 'WS2812 şeridin 5V beslemesine seri bağlanır; ~0.7V düşürüp şeridi 4.3V’ta çalıştırır. Böylece 3.3V veri sinyali güvenli sınıra girer.',
+      en: 'Goes in series with the WS2812 strip’s 5V feed; drops ~0.7V so the strip runs at 4.3V, bringing the 3.3V data signal within spec.',
+    },
+  },
 
   // ───────────────────────── Sensörler ─────────────────────────
   ldr: {
@@ -211,8 +221,8 @@ const partsCatalogue = {
     category: 'output',
     voltageRisk: 'safe',
     voltageNote: {
-      tr: 'Pasif olmalı — aktif buzzer tek ton çalar, melodi üretemez.',
-      en: 'Must be passive — an active buzzer plays one fixed tone and cannot make melodies.',
+      tr: 'Pasif olmalı — aktif buzzer tek ton çalar, melodi üretemez. Pin akımını sınırlamak için araya seri 220 Ω koy.',
+      en: 'Must be passive — an active buzzer plays one fixed tone and cannot make melodies. Put a 220 Ω resistor in series to limit the pin current.',
     },
   },
   'oled-ssd1306': {
@@ -231,8 +241,8 @@ const partsCatalogue = {
     category: 'output',
     voltageRisk: 'caution',
     voltageNote: {
-      tr: '8 LED’lik kısa şeritte 3.3V veri çalışır. Uzun şeritlerde seviye çevirici gerekir.',
-      en: '3.3V data works on a short 8-LED stick. Longer strips need a level shifter.',
+      tr: 'Veri girişi resmî olarak 3.5V ister; 3.3V sınırda kalır ve 8 LED’lik çubukta genelde çalışır. Çalışmazsa şeridin 5V hattına seri 1N4007 diyot koy. Uzun şeritlerde seviye çevirici gerekir.',
+      en: 'The data input officially wants 3.5V; 3.3V is borderline and usually works on an 8-LED stick. If it does not, put a 1N4007 diode in series with the strip’s 5V feed. Longer strips need a level shifter.',
     },
   },
   'relay-1ch': {
@@ -275,18 +285,22 @@ const partsCatalogue = {
   },
   speaker: {
     id: 'speaker',
-    name: { tr: 'Küçük hoparlör (3.5 mm veya USB)', en: 'Small speaker (3.5 mm or USB)' },
-    category: 'ai',
-    voltageRisk: 'safe',
-  },
-  'usb-hub': {
-    id: 'usb-hub',
-    name: { tr: 'Harici güçlü USB-C hub', en: 'Powered USB-C hub' },
+    name: { tr: 'USB hoparlör', en: 'USB speaker' },
     category: 'ai',
     voltageRisk: 'safe',
     voltageNote: {
-      tr: 'Kartta tek USB-C portu var ve o da güç için kullanılıyor. Kamera + mikrofon + hoparlörü aynı anda bağlamak için harici beslemeli hub şart.',
-      en: 'The board has a single USB-C port, also used for power. A powered hub is required to attach camera, microphone and speaker at once.',
+      tr: 'Kartta 3.5 mm ses jakı yok. USB ses cihazı gerekir — ya USB hoparlör ya da USB ses kartı + sıradan hoparlör.',
+      en: 'The board has no 3.5 mm audio jack. You need a USB audio device — either a USB speaker or a USB sound card plus an ordinary speaker.',
+    },
+  },
+  'usb-hub': {
+    id: 'usb-hub',
+    name: { tr: 'PD güç girişli USB-C hub (power passthrough)', en: 'USB-C hub with PD power passthrough' },
+    category: 'ai',
+    voltageRisk: 'safe',
+    voltageNote: {
+      tr: 'Kartta tek USB-C portu var ve o da güç için kullanılıyor. Hub’ın kendi USB-C güç girişi (PD) olmalı ve bu gücü karta geçirmeli; 5 V / 3 A adaptör kullan. Sıradan “harici beslemeli USB-A hub” kartı beslemez; Apple hub’lar çalışmaz.',
+      en: 'The board has a single USB-C port, also used for power. The hub needs its own USB-C power input (PD) and must pass that power through to the board; use a 5 V / 3 A adapter. An ordinary powered USB-A hub does not power the board, and Apple hubs do not work.',
     },
   },
 } as const satisfies Record<string, Part>;

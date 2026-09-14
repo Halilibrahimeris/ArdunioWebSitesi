@@ -9,7 +9,7 @@
 
   ┌──────────────────────────────────────────────────────────────┐
   │  WARNING: the HC-SR04's ECHO pin outputs 5V.                 │
-  │  Wire ECHO straight to D9 and you permanently damage the pin.│
+  │  Wire ECHO straight to D9 and you put the pin at risk.       │
   │  A 2.2k + 3.3k voltage divider in between is MANDATORY.      │
   └──────────────────────────────────────────────────────────────┘
 */
@@ -19,7 +19,7 @@
 // ───────────────── Pin assignments ─────────────────
 const int PIN_TRIG   = 10;  // To the sensor   (board → sensor, 3.3V is enough)
 const int PIN_ECHO   = 9;   // From the sensor (THROUGH THE VOLTAGE DIVIDER!)
-const int PIN_BUZZER = 8;
+const int PIN_BUZZER = 8;   // Passive buzzer (+ 220 ohm series resistor)
 
 const int PIN_GREEN  = 4;
 const int PIN_YELLOW = 3;

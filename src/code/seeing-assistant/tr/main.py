@@ -4,7 +4,7 @@
 # Ne yapar?
 #   1. Kamerayı sürekli izler, tanıdığı nesneleri kaydeder
 #   2. Mikrofonu dinler; "ne görüyorsun" gibi bir soru duyunca
-#   3. Hoparlörden sesli cevap verir
+#   3. Hoparlörden sesli cevap verir (İngilizce — tts brick'inde Türkçe ses yok)
 #   4. Olan biteni web panelinde gösterir
 #
 # Dört brick birden çalışıyor ama her biri kendi işine bakıyor.
@@ -34,8 +34,9 @@ DINLEME_SURESI = 5
 # Panelde gösterilecek olay sayısı
 GUNLUK_BOYUTU = 40
 
-# Nesne adlarının Türkçe karşılıkları.
-# Model İngilizce etiketler üretiyor; sesli cevabı Türkçe vermek için çeviriyoruz.
+# Nesne adlarının Türkçe karşılıkları — yalnızca PANEL için.
+# Model İngilizce etiketler üretiyor. Sesli cevap İngilizce kalıyor, çünkü
+# tts brick'inin ses modelleri arasında Türkçe yok.
 TURKCE_ADLAR = {
     "person": "insan",
     "cat": "kedi",
@@ -62,7 +63,8 @@ GORME_KELIMELERI = ["gör", "gor", "ne var", "bak", "see"]
 # ───────────────── Paylaşılan durum ─────────────────
 # Dört brick'in de eriştiği tek yer burası.
 durum = {
-    "son_nesneler": {},      # {"insan": 0.87, "bardak": 0.66}
+    "son_nesneler": {},      # {"insan": 0.87, "bardak": 0.66}  — panel için Türkçe
+    "son_etiketler": {},     # {"person": 0.87, "cup": 0.66}    — sesli cevap için ham etiket
     "son_gorme": 0.0,        # zaman damgası
     "son_duyulan": "",       # mikrofonun anladığı son cümle
     "dinliyor": False,
@@ -72,8 +74,8 @@ gunluk = deque(maxlen=GUNLUK_BOYUTU)
 
 # ───────────────── Brickler ─────────────────
 kamera = VideoObjectDetection(confidence=GUVEN_ESIGI, debounce_sec=DEBOUNCE_SN)
-mikrofon = AutomaticSpeechRecognition()
-ses = TextToSpeech()
+mikrofon = AutomaticSpeechRecognition(language="tr")   # Türkçe soruları tanısın
+ses = TextToSpeech()                                    # Türkçe ses modeli yok — İngilizce konuşur
 ui = WebUI()
 
 
@@ -97,18 +99,30 @@ def turkcelestir(ad: str) -> str:
 def nesneler_gorundu(tespitler: dict):
     """
     Kamera her tanıma yaptığında çağrılır.
-    tespitler örneği: {"person": 0.87, "cup": 0.66}
+
+    Brick her etiket için bir LİSTE verir — aynı nesneden birden fazla olabilir:
+      {"person": [{"confidence": 0.87, "bounding_box_xyxy": (10, 20, 110, 220)}],
+       "cup":    [{"confidence": 0.66, "bounding_box_xyxy": (...)}]}
+    Biz her etiketin en yüksek güvenini alıp düz bir sözlüğe indiriyoruz.
     """
     if not tespitler:
         return
 
-    cevrilmis = {turkcelestir(ad): round(guven, 2) for ad, guven in tespitler.items()}
+    en_yuksek = {
+        ad: max(t["confidence"] for t in liste)
+        for ad, liste in tespitler.items()
+        if liste
+    }
+    if not en_yuksek:
+        return
 
-    durum["son_nesneler"] = cevrilmis
+    # Ham İngilizce etiketler sesli cevap için, Türkçe karşılıklar panel için
+    durum["son_etiketler"] = {ad: round(g, 2) for ad, g in en_yuksek.items()}
+    durum["son_nesneler"] = {turkcelestir(ad): round(g, 2) for ad, g in en_yuksek.items()}
     durum["son_gorme"] = time.time()
 
     ui.send_message("durum", durum)
-    gunluge_ekle("goruldu", ", ".join(cevrilmis.keys()))
+    gunluge_ekle("goruldu", ", ".join(durum["son_nesneler"].keys()))
 
 
 def insan_gorundu():
@@ -127,19 +141,24 @@ kamera.on_detect("person", insan_gorundu)
 # ───────────────── Cevap üretme ─────────────────
 
 def gordugunu_anlat() -> str:
-    """Kameranın son gördüklerinden bir cümle kurar."""
-    nesneler = durum["son_nesneler"]
+    """
+    Kameranın son gördüklerinden bir cümle kurar.
+
+    Cümle İNGİLİZCE: tts brick'inde Türkçe ses modeli yok; Türkçe metni
+    İngilizce sesle okutmak anlaşılmaz bir sonuç veriyor. Panel Türkçe kalıyor.
+    """
+    etiketler = durum["son_etiketler"]
 
     # Uzun süredir bir şey görmediysek eski bilgiyi doğru gibi sunmayalım
-    if not nesneler or (time.time() - durum["son_gorme"]) > 10:
-        return "Şu anda tanıdığım bir şey görmüyorum."
+    if not etiketler or (time.time() - durum["son_gorme"]) > 10:
+        return "I cannot see anything I recognise right now."
 
-    adlar = list(nesneler.keys())
+    adlar = list(etiketler.keys())
 
     if len(adlar) == 1:
-        return f"Bir {adlar[0]} görüyorum."
+        return f"I can see a {adlar[0]}."
 
-    return f"{', '.join(adlar[:-1])} ve {adlar[-1]} görüyorum."
+    return f"I can see {', '.join('a ' + ad for ad in adlar[:-1])} and a {adlar[-1]}."
 
 
 def konus(metin: str):

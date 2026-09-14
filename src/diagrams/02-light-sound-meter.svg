@@ -61,7 +61,7 @@
   <!-- ───── Buzzer ───── -->
   <path class="wire w-sig" d="M205 290 H300" />
   <rect class="part" x="300" y="276" width="118" height="28" rx="6" />
-  <text class="lbl" x="359" y="295" text-anchor="middle">Pasif buzzer</text>
+  <text class="lbl" x="359" y="295" text-anchor="middle">Pasif buzzer + 220Ω</text>
   <path class="wire w-gnd" d="M418 290 H660" />
 
   <!-- ───── LED çubuğu ───── -->

@@ -16,7 +16,7 @@
 // ───────────────── Pin tanımları ─────────────────
 const int PIN_LDR    = A0;   // LDR + 10k gerilim bölücü
 const int PIN_POT    = A1;   // Potansiyometrenin orta bacağı
-const int PIN_BUZZER = 8;    // Pasif buzzer
+const int PIN_BUZZER = 8;    // Pasif buzzer (+ 220 ohm seri direnç)
 
 // LED çubuğu: soldan sağa beş LED (her biri + 220 ohm)
 const int LED_PINS[]  = { 2, 3, 4, 5, 6 };

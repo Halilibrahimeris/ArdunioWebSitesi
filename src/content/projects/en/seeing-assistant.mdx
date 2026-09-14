@@ -21,8 +21,9 @@ troubleshooting:
   - q: I cannot connect the camera, microphone and speaker at once.
     a: >-
       The board has a single USB-C port and it also carries power. Attaching
-      three devices needs a USB-C hub with its own adapter. Unpowered hubs
-      cannot supply enough current and the devices drop out at random.
+      three devices needs a USB-C hub with its own USB-C power input (PD) that
+      passes power through to the board; use a 5 V / 3 A adapter. Hubs without
+      a power input cannot power the board or supply the devices.
   - q: The microphone hears me but gets the words wrong.
     a: >-
       That is normal; speech recognition is not perfect. The code assumes it:
@@ -73,20 +74,26 @@ are for. None of it is possible on a classic Arduino.
 The board has **a single USB-C port**, and it carries both power and data. This
 project needs three USB devices at once: a camera, a microphone and a speaker.
 
-The solution: **a USB-C hub with its own power supply.**
+The solution: **a USB-C hub with PD power passthrough.** That is exactly how
+Arduino describes it: "a USB-C dongle with external power delivery".
 
-<Callout lang="en" variant="warning" title="The hub must have its own adapter">
-A passive hub divides the current the board provides between three devices. A
-camera alone can draw 500 mA. The result: devices drop out at random, the
-camera freezes, the app crashes.
+<Callout lang="en" variant="warning" title="The hub needs its own USB-C power input">
+Once the hub is plugged in, the board's only port is taken, so the hub has to
+power the board. It therefore needs a **USB-C power input (PD)** and must pass
+that power through — look for "power delivery / PD passthrough" in the
+description and feed it from a 5 V / 3 A adapter. Apple hubs do not work with
+this board.
 
-Buy a hub with its own adapter. It is the most critical part for this project.
+A hub without a power input divides whatever the board provides between three
+devices. A camera alone can draw 500 mA. The result: devices drop out at
+random, the camera freezes, the app crashes. This is the most critical part
+for this project.
 </Callout>
 
 <Step n={1} title="Connect the USB devices and confirm they are seen">
 
-Plug the hub into its own adapter, then into the board. Connect the camera,
-microphone and speaker to the hub.
+Plug the 5 V / 3 A adapter into the hub's power input, then plug the hub into
+the board. Connect the camera, microphone and speaker to the hub.
 
 Open the terminal in App Lab and check the devices appear:
 
@@ -161,6 +168,15 @@ from arduino.app_bricks.video_objectdetection import VideoObjectDetection
 
 This inconsistency catches everyone the first time. Copying the code as-is
 avoids the problem.
+</Callout>
+
+<Callout lang="en" variant="info" title="Which languages can the board speak?">
+The `tts` brick ships English voices (plus Spanish, Chinese, German and
+Italian models); there is no Turkish voice yet, which is why the spoken
+answers in this project are English. Speech recognition (`asr`) is
+Whisper-based and understands many languages; we pin it with
+`AutomaticSpeechRecognition(language="en")` so short phrases are not
+misdetected as another language.
 </Callout>
 
 </Step>

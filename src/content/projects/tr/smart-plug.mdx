@@ -27,6 +27,8 @@ troubleshooting:
       Şeridin veri yönünü kontrol et. WS2812 şeritlerin üzerinde ok işareti
       vardır; DIN (veri girişi) tarafını karta bağlaman gerekir. Ters bağlarsan
       hiçbir LED yanmaz. Ayrıca şeridin 5V beslemesinin bağlı olduğundan emin ol.
+      Bunlar doğruysa sorun 3.3V veri sinyalinin şeride yetmemesidir: 5V hattına
+      seri bir 1N4007 diyot koy (4. adımdaki kutuya bak).
   - q: LED şeridin sadece ilk birkaç LED'i yanıyor.
     a: >-
       Genellikle besleme yetersizliğidir. 8 LED tam parlaklıkta beyaz yanarken
@@ -150,13 +152,18 @@ Okların başladığı uçtaki üç pedi kullan:
 - **5V** → harici adaptörün (+) ucu
 - **GND** → ortak GND
 
-<Callout lang="tr" variant="warning" title="Neden 3.3V veri yetiyor?">
-WS2812 teorik olarak 5V'un %70'i (3.5V) civarında bir veri sinyali bekler,
-yani 3.3V sınırda kalır. Uygulamada **8 LED'lik kısa bir şeritte** sorunsuz
-çalışır.
+<Callout lang="tr" variant="warning" title="3.3V veri sınırda — yedek planın hazır olsun">
+WS2812B veri sayfası "1" için en az 5V'un %70'ini (3.5V) ister; kartın 3.3V'u
+bu sınırın **altında**. 8 LED'lik kısa çubukta çoğu zaman yine de çalışır, ama
+garanti değil.
 
-30-60 LED'lik uzun şeritlerde ilk LED'in sinyali yanlış okuma ihtimali artar.
-O durumda 74AHCT125 gibi bir seviye çevirici gerekir.
+Şerit titrer, rastgele renk gösterir ya da hiç yanmazsa çözüm iki dakikalık:
+şeridin **5V** ucuna giden kabloya seri bir **1N4007 diyot** koy (çizgili uç
+şeride bakacak). Diyot ~0.7V düşürür, şerit 4.3V'ta çalışır ve artık 3.0V'luk
+bir sinyali "1" sayar — 3.3V rahatça yeter.
+
+30-60 LED'lik uzun şeritlerde diyot da yetmeyebilir; o zaman 74AHCT125 gibi
+bir seviye çevirici gerekir.
 </Callout>
 
 <PhotoSlot lang="tr" caption="Transistör sürücü, röle ve LED şerit kurulmuş halde" />
@@ -169,6 +176,8 @@ App Lab'de yeni bir uygulama aç, adını `akilli-priz` koy.
 
 `app.yaml` dosyasına `web_ui` brick'ini ekle. `sketch/sketch.yaml` dosyasına
 da NeoPixel kütüphanesini yaz — ikisi de aşağıdaki **Kodlar** bölümünde var.
+NeoPixel sürümü **1.15.5 veya üstü** olmalı; daha eski sürümler UNO Q'nun
+Zephyr çekirdeğini tanımaz ve derleme hata verir.
 
 Sonra dört dosyayı yerine koy:
 
