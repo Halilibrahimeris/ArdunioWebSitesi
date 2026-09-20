@@ -1,0 +1,100 @@
+<!--
+  Proje 6 — Mesafe Oyunu web arayüzü
+  Arduino UNO Q · assets/index.html
+-->
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mesafe Oyunu</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+
+  <body>
+    <main>
+      <h1>Mesafe Oyunu</h1>
+      <p id="baglanti" class="durum bekliyor">Bağlanıyor&hellip;</p>
+
+      <!-- Oyun alanı -->
+      <section class="kart">
+        <canvas id="oyun" class="oyun-alani"></canvas>
+
+        <div class="sayaclar">
+          <div class="sayac"><span class="etiket">Puan</span><span id="puan" class="deger">0</span></div>
+          <div class="sayac"><span class="etiket">Süre</span><span id="sure" class="deger">60</span></div>
+          <div class="sayac"><span class="etiket">Tur</span><span id="tur" class="deger">1</span></div>
+          <div class="sayac"><span class="etiket">Rekor</span><span id="rekor" class="deger">0</span></div>
+        </div>
+
+        <label for="oyuncu">Oyuncu adı</label>
+        <input id="oyuncu" type="text" maxlength="16" placeholder="Adını yaz" />
+
+        <button id="basla" class="buyuk-buton kapali">BAŞLA</button>
+        <p class="hint">
+          Elini sensörün üstünde gezdir. Balonu yeşil bandın içinde tut; bant
+          her turda biraz daha daralıyor.
+        </p>
+      </section>
+
+      <!-- Veri işleme -->
+      <section class="kart">
+        <h2>Ortalama penceresi</h2>
+
+        <label for="pencere">
+          Son <span id="pencere-deger">5</span> ölçümün ortalaması
+        </label>
+        <input id="pencere" type="range" min="1" max="9" step="1" value="5" />
+
+        <p class="hint">
+          <strong>1</strong> demek ortalama yok demek — balon tek bir ölçümle
+          hareket eder ve titrer. Büyüttükçe hareket yumuşar ama tepki gecikir.
+          Aşağıdaki grafikte iki izi birden görüyorsun.
+        </p>
+
+        <div class="izler">
+          <span class="iz ham">Ham ölçüm</span>
+          <span class="iz ortalama">Ortalama</span>
+        </div>
+
+        <canvas id="grafik"></canvas>
+      </section>
+
+      <!-- Skor tablosu -->
+      <section class="kart">
+        <h2>Skor tablosu</h2>
+
+        <p id="pencere-ozeti" class="hint">Henüz kayıtlı oyun yok.</p>
+
+        <div class="tablo-sarmal">
+          <table class="skor-tablosu">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Oyuncu</th>
+                <th>Puan</th>
+                <th>Tur</th>
+                <th>Pencere</th>
+                <th>Tarih</th>
+              </tr>
+            </thead>
+            <tbody id="skor-satirlari">
+              <tr class="bos"><td colspan="6">Bir oyun bitir, ilk kayıt senin olsun.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <button id="csv-indir" class="ikincil-buton">CSV indir</button>
+        <p class="hint">
+          Skorlar kartın üzerindeki <code>skorlar.json</code> dosyasında duruyor —
+          uygulamayı kapatıp açsan da kayboluyor değil. Listeyi sıfırlamak için
+          o dosyayı silmen yeterli.
+        </p>
+      </section>
+    </main>
+
+    <script src="libs/socket.io.min.js"></script>
+    <script src="libs/arduino.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>

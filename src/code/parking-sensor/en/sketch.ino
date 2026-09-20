@@ -19,7 +19,7 @@
 // ───────────────── Pin assignments ─────────────────
 const int PIN_TRIG   = 10;  // To the sensor   (board → sensor, 3.3V is enough)
 const int PIN_ECHO   = 9;   // From the sensor (THROUGH THE VOLTAGE DIVIDER!)
-const int PIN_BUZZER = 8;   // Passive buzzer (+ 220 ohm series resistor)
+const int PIN_BUZZER = 8;   // Passive buzzer, or a buzzer module's S pin (+ 220 ohm series resistor)
 
 const int PIN_GREEN  = 4;
 const int PIN_YELLOW = 3;
@@ -37,6 +37,10 @@ const int BEEP_LENGTH_MS = 60;    // How long each beep lasts
 const int BEEP_GAP_MIN   = 60;    // Shortest gap between beeps (close up)
 const int BEEP_GAP_MAX   = 900;   // Longest gap (far away)
 
+// If you set BUZZER_ACTIVE_LOW = true in project 2 (a buzzer module whose
+// transistor reads 8550 or 9012), set it here too.
+const bool BUZZER_ACTIVE_LOW = false;
+
 // ───────────────── Timing ─────────────────
 const unsigned long MEASURE_INTERVAL_MS = 60;    // Wait between measurements
 const unsigned long ECHO_TIMEOUT_US     = 25000; // Roughly 4 m
@@ -53,6 +57,7 @@ void setup() {
   pinMode(PIN_TRIG, OUTPUT);
   pinMode(PIN_ECHO, INPUT);
   pinMode(PIN_BUZZER, OUTPUT);
+  buzzerOff();
   pinMode(PIN_GREEN, OUTPUT);
   pinMode(PIN_YELLOW, OUTPUT);
   pinMode(PIN_RED, OUTPUT);
@@ -108,7 +113,7 @@ void updateLeds() {
 void updateBuzzer() {
   // Far away: stay quiet
   if (distanceCm >= DIST_FAR) {
-    noTone(PIN_BUZZER);
+    buzzerOff();
     beeping = false;
     return;
   }
@@ -126,7 +131,7 @@ void updateBuzzer() {
   unsigned long now = millis();
 
   if (beeping && now - lastBeepAt >= (unsigned long)BEEP_LENGTH_MS) {
-    noTone(PIN_BUZZER);
+    buzzerOff();
     beeping = false;
     lastBeepAt = now;
   } else if (!beeping && now - lastBeepAt >= (unsigned long)gap) {
@@ -134,6 +139,12 @@ void updateBuzzer() {
     beeping = true;
     lastBeepAt = now;
   }
+}
+
+// Silence the buzzer and park the pin at the module's "quiet" level
+void buzzerOff() {
+  noTone(PIN_BUZZER);
+  digitalWrite(PIN_BUZZER, BUZZER_ACTIVE_LOW ? HIGH : LOW);
 }
 
 // map() works on integers; here is our own version for a fractional distance

@@ -20,7 +20,7 @@
 import {
   P, BX, BY, BOARD_W, BOARD_BOTTOM, Y_CHANNEL, Y_BOT_MINUS, Y_BOT_PLUS, Y_TOP_MINUS,
   TOP_ROUTE_Y, bottomLane, hole, breadboardBase, wire, route, tag, label, note,
-  resistor, led, button, ldr, pot, buzzer, transistor, headerPart, moduleBox,
+  resistor, led, button, ldr, partModule, pot, buzzer, transistor, headerPart, moduleBox,
   diodeOnWire, arduino, legend, badge, svg, write,
 } from './breadboard-lib.mjs';
 
@@ -41,6 +41,7 @@ const C = {
   SCL: '#ca8a04',   // sarı (koyu)
   V33: '#d94a3d',   // kırmızı
   V5:  '#d94a3d',   // kırmızı
+  V33ALT: '#0d9488', // turkuaz — + hattı 5V olan projede ayrı 3V3 kablosu
   GND: '#2b3136',   // siyah
 };
 
@@ -49,6 +50,15 @@ const laneUp = (k) => Y_CHANNEL - 14 + k * 7;   // kanal şeritleri (5 şeride k
 
 /** Tahta üstü etiketi: kart tarafındaki üst yol kablosunun sağında kalır. */
 const noteAbove = (text, x = BX + 70) => note(x, BY - 9, text);
+
+/** Kartlı şemaların dosya adı — projects.ts'teki picker() ile aynı kural. */
+const variantFile = (base, { dht = false, light = false, buzzer = false }) =>
+  `${base}${dht ? '-dht-module' : ''}${light ? '-light-module' : ''}${buzzer ? '-buzzer-module' : ''}-breadboard.svg`;
+
+/** Kartlı şemalarda A0 açıklaması ve pin sırası uyarısı. */
+const A0_MODULE = '→ kartın S pini / module S';
+const moduleNote = (y) =>
+  note(18, y, 'Pin sırası karttan karta değişir, yazılara göre bağla / Pin order varies, follow the labels on your module', { cls: 'note-muted' });
 
 // ═══════════════════ Ortak LED şeritleri ═══════════════════
 
@@ -146,8 +156,11 @@ function gndToTopRail(edgeX, pinY) {
 //     en yakın sütun (D2) en üstte. Katotlar üst eksi hattına; oraya ikinci GND.
 //   - Alt blok: LDR (2-8), potansiyometre (13-15), buzzer (20-25).
 //     A0, A1, D8 tahtanın altından dolanıp a satırına çıkar.
+//   - Kart çeşitleri: ışık sensörü kartı c3/c4/c5 (S VCC GND) → A0 a3'e,
+//     a4 → +4, a5 → −5. Buzzer kartı c25/c26/c27 (S VCC GND) → 220Ω b22→b25,
+//     D8 a22'ye, a26 → +26, a27 → −27.
 
-{
+function lightSoundMeterDiagram(name, title, { lightMod = false, buzzerMod = false } = {}) {
   const pins = [['GND', 92], ['D2', 114], ['D3', 136], ['D4', 158], ['D5', 180], ['D6', 202],
                 ['GND', 246], ['3V3', 268], ['A0', 300], ['A1', 322], ['D8', 344]];
   const ard = arduino(pins);
@@ -176,14 +189,24 @@ function gndToTopRail(edgeX, pinY) {
       .map(([h, t, c]) => tag(hole(h).x + 16, hole(h).y - 1, t, c)),
     noteAbove('LED çubuğu / LED bar — D2 → D6 soldan sağa / left to right', BX + 70),
 
-    // LDR gerilim bölücü: 3V3 → LDR → A0, A0 → 10kΩ → GND
-    wire(['P2', 'a2'], C.V33),
-    ldr('c2', 'c5'),
-    resistor('b5', 'b8', '10kΩ'),
-    wire(['a8', 'M8'], C.GND),
-    route(EX, 300, 204, bottomLane(0), 'a5', C.A0),
-    label(hole('c2').x - 4, hole('d1').y + 4, 'LDR (ışık / light)', { anchor: 'start' }),
-    label((hole('b5').x + hole('b8').x) / 2, hole('a1').y + 4, '10kΩ', { cls: 'comp-sub' }),
+    ...(lightMod
+      ? [
+          // Işık sensörü kartı: LDR ve 10kΩ kartın üstünde hazır
+          partModule({ row: 'c', colStart: 3, names: ['S', 'VCC', 'GND'], kind: 'ldr', title: 'LDR kartı' }),
+          wire(['a4', 'P4'], C.V33),
+          wire(['a5', 'M5'], C.GND),
+          route(EX, 300, 204, bottomLane(0), 'a3', C.A0),
+        ]
+      : [
+          // LDR gerilim bölücü: 3V3 → LDR → A0, A0 → 10kΩ → GND
+          wire(['P2', 'a2'], C.V33),
+          ldr('c2', 'c5'),
+          resistor('b5', 'b8', '10kΩ'),
+          wire(['a8', 'M8'], C.GND),
+          route(EX, 300, 204, bottomLane(0), 'a5', C.A0),
+          label(hole('c2').x - 4, hole('d1').y + 4, 'LDR (ışık / light)', { anchor: 'start' }),
+          label((hole('b5').x + hole('b8').x) / 2, hole('a1').y + 4, '10kΩ', { cls: 'comp-sub' }),
+        ]),
 
     // Potansiyometre: sol uç 3V3, orta A1, sağ uç GND
     pot(13, 'c'),
@@ -192,34 +215,53 @@ function gndToTopRail(edgeX, pinY) {
     route(EX, 322, 198, bottomLane(1), 'a14', C.A1),
     label(hole('c12').x - 2, hole('d1').y + 4, 'Pot 10kΩ', { anchor: 'end' }),
 
-    // Buzzer: D8 → 220Ω → buzzer → GND
-    resistor('b20', 'b23', '220Ω'),
-    buzzer('c23', 'c25'),
-    wire(['a25', 'M25'], C.GND),
-    route(EX, 344, 192, bottomLane(2), 'a20', C.D8),
-    label(hole('c20').x - 4, hole('d1').y + 4, 'Pasif buzzer + 220Ω', { anchor: 'start' }),
+    ...(buzzerMod
+      ? [
+          // Buzzer kartı: D8 → 220Ω → S; kart + hattından (3V3) beslenir
+          resistor('b22', 'b25', '220Ω'),
+          partModule({ row: 'c', colStart: 25, names: ['S', 'VCC', 'GND'], kind: 'buzzer', title: 'Buzzer kartı' }),
+          wire(['a26', 'P26'], C.V33),
+          wire(['a27', 'M27'], C.GND),
+          route(EX, 344, 192, bottomLane(2), 'a22', C.D8),
+          label((hole('b22').x + hole('b25').x) / 2, hole('a1').y + 4, '220Ω', { cls: 'comp-sub' }),
+        ]
+      : [
+          // Buzzer: D8 → 220Ω → buzzer → GND
+          resistor('b20', 'b23', '220Ω'),
+          buzzer('c23', 'c25'),
+          wire(['a25', 'M25'], C.GND),
+          route(EX, 344, 192, bottomLane(2), 'a20', C.D8),
+          label(hole('c20').x - 4, hole('d1').y + 4, 'Pasif buzzer + 220Ω', { anchor: 'start' }),
+        ]),
 
-    tag(hole('a5').x - 24, bottomLane(0), 'A0', C.A0),
+    tag(hole(lightMod ? 'a3' : 'a5').x - 24, bottomLane(0), 'A0', C.A0),
     tag(hole('a14').x - 24, bottomLane(1), 'A1', C.A1),
-    tag(hole('a20').x - 24, bottomLane(2), 'D8', C.D8),
+    tag(hole(buzzerMod ? 'a22' : 'a20').x - 24, bottomLane(2), 'D8', C.D8),
 
     legend([
       { c: C.D2, b: 'D2…D6', t: '→ LED çubuğu / LED bar' },
-      { c: C.A0, b: 'A0', t: '→ LDR (ışık / light)' },
+      { c: C.A0, b: 'A0', t: lightMod ? A0_MODULE : '→ LDR (ışık / light)' },
       { c: C.A1, b: 'A1', t: '→ pot (eşik / threshold)' },
-      { c: C.D8, b: 'D8', t: '→ buzzer' },
+      { c: C.D8, b: 'D8', t: buzzerMod ? '→ 220Ω → kart S / module S' : '→ buzzer' },
       { c: C.V33, b: '3V3', t: '→ + hattı / + rail' },
       { c: C.GND, b: 'GND', t: '→ − hatları / − rails' },
       { kind: 'plus', t: "= LED'in uzun bacağı / long leg" },
     ], 18, bottomLane(2) + 34),
+    ...(lightMod || buzzerMod ? [moduleNote(bottomLane(2) + 82)] : []),
   ].join('\n  ');
 
-  write('02-light-sound-meter-breadboard.svg', svg({
-    title: 'Isik ve ses olcer breadboard yerlesimi / Light and sound meter breadboard layout',
-    height: bottomLane(2) + 82,
-    body,
-  }));
+  write(name, svg({ title, height: bottomLane(2) + (lightMod || buzzerMod ? 100 : 82), body }));
 }
+
+lightSoundMeterDiagram(variantFile('02-light-sound-meter', {}),
+  'Isik ve ses olcer breadboard yerlesimi / Light and sound meter breadboard layout');
+lightSoundMeterDiagram(variantFile('02-light-sound-meter', { light: true }),
+  'Isik ve ses olcer, isik sensoru kartiyla / Light and sound meter with a light sensor module', { lightMod: true });
+lightSoundMeterDiagram(variantFile('02-light-sound-meter', { buzzer: true }),
+  'Isik ve ses olcer, buzzer kartiyla / Light and sound meter with a buzzer module', { buzzerMod: true });
+lightSoundMeterDiagram(variantFile('02-light-sound-meter', { light: true, buzzer: true }),
+  'Isik ve ses olcer, isik ve buzzer kartlariyla / Light and sound meter with light and buzzer modules',
+  { lightMod: true, buzzerMod: true });
 
 // ═══════════════════ Proje 3 — Park Sensörü ═══════════════════
 //
@@ -227,10 +269,20 @@ function gndToTopRail(edgeX, pinY) {
 //   - Alt blok: buzzer (2-7), HC-SR04 header e20..e23 (VCC TRIG ECHO GND),
 //     gerilim bölücü 2.2kΩ d22→d25, 3.3kΩ c25→c28, orta nokta 25. sütun → D9.
 //   - Alt artı hattı bu projede 5V taşır (sensör 5V ister).
+//   - Buzzer kartı çeşidi (buzzerMod): kart c5/c6/c7 (S VCC GND), 220Ω b2→b5.
+//     Kartın VCC'si + hattına (5V) DEĞİL, ayrı bir 3V3 kablosuyla a6'ya gider;
+//     bu kablo için alttan dördüncü bir şerit açılır, dikey inişler sola kayar.
 
-{
+function parkingSensorDiagram(name, title, buzzerMod = false) {
+  // Her kablo için [kart pininin y'si, dikey iniş x'i, alt şerit numarası]
+  const W = buzzerMod
+    ? { gnd: [240, 250], v5: [262, 239], d8: [284, 228, 0], v33: [306, 217, 1], d10: [328, 206, 2], d9: [350, 195, 3] }
+    : { gnd: [240, 230], v5: [264, 212], d8: [300, 204, 0], d10: [322, 198, 1], d9: [344, 192, 2] };
+  const lastLane = buzzerMod ? 3 : 2;
   const pins = [['GND', 92], ['D2', 118], ['D3', 148], ['D4', 178],
-                ['GND', 240], ['5V', 264], ['D8', 300], ['D10', 322], ['D9', 344]];
+                ['GND', W.gnd[0]], ['5V', W.v5[0]], ['D8', W.d8[0]],
+                ...(buzzerMod ? [['3V3', W.v33[0]]] : []),
+                ['D10', W.d10[0]], ['D9', W.d9[0]]];
   const ard = arduino(pins);
   const EX = ard.edgeX;
 
@@ -239,8 +291,8 @@ function gndToTopRail(edgeX, pinY) {
     ard.svg,
 
     gndToTopRail(EX, 92),
-    route(EX, 240, 230, Y_BOT_MINUS, 'M1', C.GND),
-    route(EX, 264, 212, Y_BOT_PLUS, 'P1', C.V5),
+    route(EX, W.gnd[0], W.gnd[1], Y_BOT_MINUS, 'M1', C.GND),
+    route(EX, W.v5[0], W.v5[1], Y_BOT_PLUS, 'P1', C.V5),
 
     route(EX, 118, 236, laneUp(1), 'f1', C.D2),
     route(EX, 148, 220, laneUp(2), 'f7', C.D3),
@@ -255,47 +307,81 @@ function gndToTopRail(edgeX, pinY) {
     note(hole('g9').x, BY - 9, 'Sarı / Yellow', { anchor: 'middle' }),
     note(hole('g15').x, BY - 9, 'Yeşil / Green', { anchor: 'middle' }),
 
-    // Buzzer
+    // Buzzer: D8 → 220Ω → buzzer (ya da buzzer kartının S pini) → GND
     resistor('b2', 'b5', '220Ω'),
-    buzzer('c5', 'c7'),
-    wire(['a7', 'M7'], C.GND),
-    route(EX, 300, 204, bottomLane(0), 'a2', C.D8),
-    label(hole('c2').x - 4, hole('d1').y + 4, 'Pasif buzzer + 220Ω', { anchor: 'start' }),
+    ...(buzzerMod
+      ? [
+          partModule({ row: 'c', colStart: 5, names: ['S', 'VCC', 'GND'], kind: 'buzzer', title: 'Buzzer kartı' }),
+          wire(['a7', 'M7'], C.GND),
+          route(EX, W.d8[0], W.d8[1], bottomLane(W.d8[2]), 'a2', C.D8),
+          route(EX, W.v33[0], W.v33[1], bottomLane(W.v33[2]), 'a6', C.V33ALT),
+          label((hole('b2').x + hole('b5').x) / 2, hole('a1').y + 4, '220Ω', { cls: 'comp-sub' }),
+        ]
+      : [
+          buzzer('c5', 'c7'),
+          wire(['a7', 'M7'], C.GND),
+          route(EX, W.d8[0], W.d8[1], bottomLane(W.d8[2]), 'a2', C.D8),
+          label(hole('c2').x - 4, hole('d1').y + 4, 'Pasif buzzer + 220Ω', { anchor: 'start' }),
+        ]),
 
     // HC-SR04 ve gerilim bölücü
     headerPart({ row: 'e', colStart: 20, names: ['VCC', 'TRIG', 'ECHO', 'GND'], kind: 'hcsr04', title: 'HC-SR04' }),
     wire(['a20', 'P20'], C.V5),
     wire(['a23', 'M23'], C.GND),
-    route(EX, 322, 198, bottomLane(1), 'a21', C.D10),
+    route(EX, W.d10[0], W.d10[1], bottomLane(W.d10[2]), 'a21', C.D10),
     resistor('d22', 'd25', '2.2kΩ'),
     resistor('c25', 'c28', '3.3kΩ'),
     wire(['a28', 'M28'], C.GND),
-    route(EX, 344, 192, bottomLane(2), 'a25', C.D9),
+    route(EX, W.d9[0], W.d9[1], bottomLane(W.d9[2]), 'a25', C.D9),
     label(hole('c23').x, hole('c1').y + 4, '2.2kΩ', { cls: 'comp-sub' }),
     label((hole('c25').x + hole('c28').x) / 2, hole('b1').y + 4, '3.3kΩ', { cls: 'comp-sub' }),
     label(hole('d18').x, hole('d1').y + 4, 'ECHO 5V → 3.0V', { anchor: 'end' }),
 
-    tag(hole('a2').x + 24, bottomLane(0), 'D8', C.D8),
-    tag(hole('a21').x - 24, bottomLane(1), 'D10', C.D10),
-    tag(hole('a25').x - 60, bottomLane(2), 'D9', C.D9),
+    tag(hole('a2').x + 24, bottomLane(W.d8[2]), 'D8', C.D8),
+    ...(buzzerMod ? [tag(hole('a6').x + 26, bottomLane(W.v33[2]), '3V3', C.V33ALT)] : []),
+    tag(hole('a21').x - 24, bottomLane(W.d10[2]), 'D10', C.D10),
+    tag(hole('a25').x - 60, bottomLane(W.d9[2]), 'D9', C.D9),
 
-    legend([
-      { c: C.D2, b: 'D2 D3 D4', t: '→ LED\'ler / LEDs' },
-      { c: C.D8, b: 'D8', t: '→ buzzer' },
-      { c: C.D10, b: 'D10', t: '→ TRIG (3.3V yeter / is fine)' },
-      { c: C.D9, b: 'D9', t: '← ECHO, bölücüden / via divider' },
-      { c: C.V5, b: '5V', t: '→ + hattı / + rail (sensör / sensor)' },
-      { c: C.GND, b: 'GND', t: '→ − hatları / − rails' },
-      { kind: 'plus', t: "= LED'in uzun bacağı / long leg" },
-    ], 18, bottomLane(2) + 34),
+    // Kartlı çeşitte sekiz öğe var; uzun D9 yazısı yan sütuna taşmasın diye son sütuna alınır.
+    legend(buzzerMod
+      ? [
+          { c: C.D2, b: 'D2 D3 D4', t: '→ LED\'ler / LEDs' },
+          { c: C.D8, b: 'D8', t: '→ 220Ω → kart S / module S' },
+          { c: C.V33ALT, b: '3V3', t: '→ kart VCC / module VCC' },
+          { c: C.D10, b: 'D10', t: '→ TRIG (3.3V yeter / is fine)' },
+          { c: C.V5, b: '5V', t: '→ + hattı / + rail (HC-SR04)' },
+          { c: C.GND, b: 'GND', t: '→ − hatları / − rails' },
+          { kind: 'plus', t: "= LED'in uzun bacağı / long leg" },
+          { c: C.D9, b: 'D9', t: '← ECHO, bölücüden / via divider' },
+        ]
+      : [
+          { c: C.D2, b: 'D2 D3 D4', t: '→ LED\'ler / LEDs' },
+          { c: C.D8, b: 'D8', t: '→ buzzer' },
+          { c: C.D10, b: 'D10', t: '→ TRIG (3.3V yeter / is fine)' },
+          { c: C.D9, b: 'D9', t: '← ECHO, bölücüden / via divider' },
+          { c: C.V5, b: '5V', t: '→ + hattı / + rail (HC-SR04)' },
+          { c: C.GND, b: 'GND', t: '→ − hatları / − rails' },
+          { kind: 'plus', t: "= LED'in uzun bacağı / long leg" },
+        ],
+    18, bottomLane(lastLane) + 34),
+    ...(buzzerMod ? [moduleNote(bottomLane(lastLane) + 82)] : []),
   ].join('\n  ');
 
-  write('03-parking-sensor-breadboard.svg', svg({
-    title: 'Park sensoru breadboard yerlesimi / Parking sensor breadboard layout',
-    height: bottomLane(2) + 82,
-    body,
-  }));
+  write(name, svg({ title, height: bottomLane(lastLane) + (buzzerMod ? 100 : 82), body }));
 }
+
+parkingSensorDiagram('03-parking-sensor-breadboard.svg',
+  'Park sensoru breadboard yerlesimi / Parking sensor breadboard layout');
+parkingSensorDiagram(variantFile('03-parking-sensor', { buzzer: true }),
+  'Park sensoru, buzzer kartiyla / Parking sensor with a buzzer module', true);
+
+// 6. proje aynı devreyi kullanıyor — değişen tek şey kod. Şemayı da aynı
+// fonksiyondan üretiyoruz ki iki sayfadaki yerleşim birbirinin aynısı olsun.
+// Project 6 reuses this exact circuit; only the code changes.
+parkingSensorDiagram('06-distance-game-breadboard.svg',
+  'Mesafe oyunu breadboard yerlesimi / Distance game breadboard layout');
+parkingSensorDiagram(variantFile('06-distance-game', { buzzer: true }),
+  'Mesafe oyunu, buzzer kartiyla / Distance game with a buzzer module', true);
 
 // ═══════════════════ Proje 4 — OLED Hava İstasyonu ═══════════════════
 //
@@ -303,7 +389,16 @@ function gndToTopRail(edgeX, pinY) {
 //     10kΩ b2→b5 (pull-up), c2→c4 jumper (VCC). GND a7 → −7. D7 → a5.
 //   - OLED header e14..e17 (VCC GND SCL SDA): a14 → +14, a15 → −15, SCL → a16, SDA → a17.
 
-function dhtBlock() {
+function dhtBlock(dhtMod = false) {
+  if (dhtMod) {
+    // 3 bacaklı DHT11 kartı: pull-up direnci kartın üstünde hazır.
+    // e5..e7 (VCC DATA GND): a5 → +5, D7 → a6, a7 → −7 (6. sütunda hat deliği yok).
+    return [
+      headerPart({ row: 'e', colStart: 5, names: ['VCC', 'DATA', 'GND'], kind: 'dht', title: 'DHT11' }),
+      wire(['a5', 'P5'], C.V33),
+      wire(['a7', 'M7'], C.GND),
+    ].join('\n  ');
+  }
   return [
     wire(['P2', 'a2'], C.V33),
     resistor('b2', 'b5', '10kΩ'),
@@ -314,7 +409,12 @@ function dhtBlock() {
   ].join('\n  ');
 }
 
-{
+/** DHT11 DATA pininin deliği: çıplak sensörde a5, kartta a6. */
+const dhtData = (dhtMod) => (dhtMod ? 'a6' : 'a5');
+const DHT_MODULE = '→ DHT11 DATA / OUT';
+
+
+function weatherStationDiagram(name, title, dhtMod = false) {
   const pins = [['GND', 140], ['3V3', 164], ['D7', 220], ['SCL', 242], ['SDA', 264]];
   const ard = arduino(pins);
   const EX = ard.edgeX;
@@ -326,8 +426,8 @@ function dhtBlock() {
     route(EX, 140, 230, Y_BOT_MINUS, 'M1', C.GND),
     route(EX, 164, 212, Y_BOT_PLUS, 'P1', C.V33),
 
-    dhtBlock(),
-    route(EX, 220, 204, bottomLane(0), 'a5', C.D7),
+    dhtBlock(dhtMod),
+    route(EX, 220, 204, bottomLane(0), dhtData(dhtMod), C.D7),
 
     headerPart({ row: 'e', colStart: 14, names: ['VCC', 'GND', 'SCL', 'SDA'], kind: 'oled', title: 'SSD1306 OLED' }),
     wire(['a14', 'P14'], C.V33),
@@ -335,33 +435,37 @@ function dhtBlock() {
     route(EX, 242, 198, bottomLane(1), 'a16', C.SCL),
     route(EX, 264, 192, bottomLane(2), 'a17', C.SDA),
 
-    tag(hole('a5').x - 24, bottomLane(0), 'D7', C.D7),
+    tag(hole(dhtData(dhtMod)).x - 24, bottomLane(0), 'D7', C.D7),
     tag(hole('a16').x - 40, bottomLane(1), 'SCL', C.SCL),
     tag(hole('a17').x - 82, bottomLane(2), 'SDA', C.SDA),
     noteAbove('OLED pin sırası değişebilir, modülün yazısına bak / OLED pin order varies, read its labels', BX + 20),
 
     legend([
-      { c: C.D7, b: 'D7', t: '→ DHT11 DATA' },
+      { c: C.D7, b: 'D7', t: dhtMod ? DHT_MODULE : '→ DHT11 DATA' },
       { c: C.SCL, b: 'SCL', t: '→ OLED SCL (A5 değil / not A5)' },
       { c: C.SDA, b: 'SDA', t: '→ OLED SDA (A4 değil / not A4)' },
       { c: C.V33, b: '3V3', t: '→ + hattı / + rail' },
       { c: C.GND, b: 'GND', t: '→ − hattı / − rail' },
     ], 18, bottomLane(2) + 34),
+    ...(dhtMod ? [moduleNote(bottomLane(2) + 82)] : []),
   ].join('\n  ');
 
-  write('04-weather-station-breadboard.svg', svg({
-    title: 'OLED hava istasyonu breadboard yerlesimi / OLED weather station breadboard layout',
-    height: bottomLane(2) + 60,
-    body,
-  }));
+  write(name, svg({ title, height: bottomLane(2) + (dhtMod ? 100 : 60), body }));
 }
+
+weatherStationDiagram(variantFile('04-weather-station', {}),
+  'OLED hava istasyonu breadboard yerlesimi / OLED weather station breadboard layout');
+weatherStationDiagram(variantFile('04-weather-station', { dht: true }),
+  'OLED hava istasyonu, DHT11 kartiyla / OLED weather station with a DHT11 module', true);
 
 // ═══════════════════ Proje 5 ve 8 — DHT11 + LDR ═══════════════════
 //
 //   - DHT11 4. projedeki gibi (2-7). LDR: +13 → a13, LDR c13→c16,
 //     10kΩ b16→b19, a19 → −19, A0 → a16.
+//   - Kart çeşidi (lightMod): ışık sensörü kartı c14/c15/c16 (S VCC GND):
+//     A0 a14'e, a15 → +15, a16 → −16.
 
-function dhtLdrDiagram(name, title) {
+function dhtLdrDiagram(name, title, { dhtMod = false, lightMod = false } = {}) {
   const pins = [['GND', 140], ['3V3', 164], ['D7', 230], ['A0', 252]];
   const ard = arduino(pins);
   const EX = ard.edgeX;
@@ -373,34 +477,55 @@ function dhtLdrDiagram(name, title) {
     route(EX, 140, 230, Y_BOT_MINUS, 'M1', C.GND),
     route(EX, 164, 212, Y_BOT_PLUS, 'P1', C.V33),
 
-    dhtBlock(),
-    route(EX, 230, 204, bottomLane(0), 'a5', C.D7),
+    dhtBlock(dhtMod),
+    route(EX, 230, 204, bottomLane(0), dhtData(dhtMod), C.D7),
 
-    wire(['P13', 'a13'], C.V33),
-    ldr('c13', 'c16'),
-    resistor('b16', 'b19', '10kΩ'),
-    wire(['a19', 'M19'], C.GND),
-    route(EX, 252, 198, bottomLane(1), 'a16', C.A0),
-    label(hole('c13').x - 4, hole('d1').y + 4, 'LDR (ışık / light)', { anchor: 'start' }),
-    label((hole('b16').x + hole('b19').x) / 2, hole('a1').y + 4, '10kΩ', { cls: 'comp-sub' }),
+    ...(lightMod
+      ? [
+          partModule({ row: 'c', colStart: 14, names: ['S', 'VCC', 'GND'], kind: 'ldr', title: 'LDR kartı' }),
+          wire(['a15', 'P15'], C.V33),
+          wire(['a16', 'M16'], C.GND),
+          route(EX, 252, 198, bottomLane(1), 'a14', C.A0),
+        ]
+      : [
+          wire(['P13', 'a13'], C.V33),
+          ldr('c13', 'c16'),
+          resistor('b16', 'b19', '10kΩ'),
+          wire(['a19', 'M19'], C.GND),
+          route(EX, 252, 198, bottomLane(1), 'a16', C.A0),
+          label(hole('c13').x - 4, hole('d1').y + 4, 'LDR (ışık / light)', { anchor: 'start' }),
+          label((hole('b16').x + hole('b19').x) / 2, hole('a1').y + 4, '10kΩ', { cls: 'comp-sub' }),
+        ]),
 
-    tag(hole('a5').x - 24, bottomLane(0), 'D7', C.D7),
-    tag(hole('a16').x - 24, bottomLane(1), 'A0', C.A0),
+    tag(hole(dhtData(dhtMod)).x - 24, bottomLane(0), 'D7', C.D7),
+    tag(hole(lightMod ? 'a14' : 'a16').x - 24, bottomLane(1), 'A0', C.A0),
     noteAbove('Devre 4. ve 2. projelerle aynı / Same circuit as projects 4 and 2', BX + 20),
 
     legend([
-      { c: C.D7, b: 'D7', t: '→ DHT11 DATA' },
-      { c: C.A0, b: 'A0', t: '→ LDR (ışık / light)' },
+      { c: C.D7, b: 'D7', t: dhtMod ? DHT_MODULE : '→ DHT11 DATA' },
+      { c: C.A0, b: 'A0', t: lightMod ? A0_MODULE : '→ LDR (ışık / light)' },
       { c: C.V33, b: '3V3', t: '→ + hattı / + rail' },
       { c: C.GND, b: 'GND', t: '→ − hattı / − rail' },
     ], 18, bottomLane(1) + 34),
+    ...(dhtMod || lightMod ? [moduleNote(bottomLane(1) + 60)] : []),
   ].join('\n  ');
 
-  write(name, svg({ title, height: bottomLane(1) + 60, body }));
+  write(name, svg({ title, height: bottomLane(1) + (dhtMod || lightMod ? 76 : 60), body }));
 }
 
-dhtLdrDiagram('05-data-logger-breadboard.svg', 'Veri kaydedici breadboard yerlesimi / Data logger breadboard layout');
-dhtLdrDiagram('08-live-dashboard-breadboard.svg', 'Canli panel breadboard yerlesimi / Live dashboard breadboard layout');
+for (const [base, name] of [
+  ['05-data-logger', 'Veri kaydedici / Data logger'],
+  ['08-live-dashboard', 'Canli panel / Live dashboard'],
+]) {
+  for (const dht of [false, true]) {
+    for (const light of [false, true]) {
+      const parts = [dht && 'DHT11 karti / DHT11 module', light && 'isik sensoru karti / light sensor module'].filter(Boolean);
+      dhtLdrDiagram(variantFile(base, { dht, light }),
+        `${name}${parts.length ? ` — ${parts.join(', ')}` : ' breadboard yerlesimi / breadboard layout'}`,
+        { dhtMod: dht, lightMod: light });
+    }
+  }
+}
 
 // ═══════════════════ Proje 7 — Akıllı Priz ═══════════════════
 //

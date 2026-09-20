@@ -26,6 +26,11 @@ DHT dht(PIN_DHT, DHT11);
 const unsigned long SEND_INTERVAL_MS = 5000;
 
 const int ADC_BITS = 10;
+const int ADC_MAX  = 1023;
+
+// If you set LDR_INVERTED = true in project 2 (a light sensor module that
+// reads backwards), set it here too.
+const bool LDR_INVERTED = false;
 
 unsigned long lastSendAt = 0;
 
@@ -48,6 +53,7 @@ void loop() {
   float temperature = dht.readTemperature();
   float humidity    = dht.readHumidity();
   int   light       = analogRead(PIN_LDR);
+  if (LDR_INVERTED) light = ADC_MAX - light;   // Keep 0 = dark on a reversed module
 
   // The DHT11 drops a reading now and then. There is no point sending broken
   // data — we simply try again on the next pass.

@@ -303,6 +303,37 @@ export function ldr(from, to) {
   ].join('\n  ');
 }
 
+/**
+ * 3 bacaklı kart (ör. KY-018 ışık sensörü, KY-006 pasif buzzer). Pinleri verilen
+ * satırda yan yana üç sütuna oturur; gövde e satırının hemen üstüne kadar uzanır,
+ * orta kanaldaki kablo şeritlerine değmez. kind: 'ldr' | 'buzzer'.
+ */
+export function partModule({ row, colStart, names, kind, title }) {
+  const pins = names.map((_, i) => hole(`${row}${colStart + i}`));
+  const first = pins[0], last = pins[pins.length - 1];
+  const x0 = first.x - 26, x1 = last.x + 26;
+  const top = Y_BLOCK_BOT - 6;
+  const bottom = first.y - 9;
+  const ix = x0 + 13, iy = top + 12;
+  const icon = kind === 'ldr'
+    ? [
+        `<circle class="ldr-body" cx="${ix}" cy="${iy}" r="7.5" />`,
+        `<path class="ldr-track" d="${[-4.5, -1.5, 1.5, 4.5].map((dy) => `M${ix - 4.5} ${iy + dy} h9`).join(' ')}" />`,
+      ]
+    : [
+        `<circle class="mod-buzzer" cx="${ix}" cy="${iy}" r="8" />`,
+        `<circle class="buzzer-hole" cx="${ix}" cy="${iy}" r="2" />`,
+      ];
+  return [
+    ...pins.map((p) => `<path class="leg" d="M${p.x} ${p.y} L${p.x} ${bottom}" />`),
+    `<rect class="part-mod" x="${x0}" y="${top}" width="${x1 - x0}" height="${bottom - top}" rx="4" />`,
+    ...icon,
+    `<text class="mod-lbl" x="${x0 + 25}" y="${top + 15}">${title}</text>`,
+    ...names.map((n, i) => `<text class="pin-name" x="${pins[i].x}" y="${bottom - 3}" text-anchor="middle">${n}</text>`),
+    ...pins.map((p) => `<circle class="btn-leg" cx="${p.x}" cy="${p.y}" r="3.2" />`),
+  ].join('\n  ');
+}
+
 /** Potansiyometre — üç bacağı yan yana aynı satırda, gövdesi üstte. */
 export function pot(colStart, row) {
   const legs = [0, 1, 2].map((i) => hole(`${row}${colStart + i}`));
@@ -522,6 +553,9 @@ const STYLE = `
   .btn-leg    { fill: #c9a227; stroke: #8a6d1a; stroke-width: .8; }
   .ldr-body   { fill: #e8c9a0; stroke: #a07a4a; stroke-width: 1; }
   .ldr-track  { fill: none; stroke: #8a5a2b; stroke-width: 1.4; }
+  .part-mod   { fill: #202428; stroke: #000; stroke-width: 1.2; }
+  .mod-buzzer { fill: #0b0d0f; stroke: #9ca3af; stroke-width: 1.2; }
+  .mod-lbl    { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 8.5px; font-weight: 700; fill: #fff; }
   .pot-body   { fill: #2f6fb3; stroke: #1d4f85; stroke-width: 1.2; }
   .pot-knob   { fill: #e5e7eb; stroke: #6b7280; stroke-width: 1; }
   .pot-slot   { stroke: #374151; stroke-width: 2; }

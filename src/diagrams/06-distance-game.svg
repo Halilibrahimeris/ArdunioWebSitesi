@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 480" role="img" aria-labelledby="d6-title">
+  <title id="d6-title">Sensörden tarayıcıya ve geri dönen yol / From the sensor to the browser and back</title>
+  <style>
+    .flow   { fill: none; stroke: var(--color-brand-500, #00979d); stroke-width: 3; marker-end: url(#a6); }
+    .flow-b { fill: none; stroke: #0d8ce0; stroke-width: 3; marker-end: url(#a6b); }
+    .box    { fill: var(--surface, #fff); stroke: var(--border, #dde4e8); stroke-width: 1.8; }
+    .mcu    { fill: var(--bg-subtle, #f6f8f9); stroke: #0d8ce0; stroke-width: 2.4; }
+    .mpu    { fill: var(--bg-subtle, #f6f8f9); stroke: var(--color-brand-500, #00979d); stroke-width: 2.4; }
+    .screen { fill: #0b1416; stroke: var(--border, #dde4e8); stroke-width: 1.6; }
+    .lbl-b  { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 13.5px; font-weight: 700; fill: var(--text, #102b2e); }
+    .lbl    { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 12px; fill: var(--text, #102b2e); }
+    .mono   { font-family: ui-monospace, monospace; font-size: 11.5px; font-weight: 700; fill: var(--color-brand-600, #007d83); }
+    .mono-b { font-family: ui-monospace, monospace; font-size: 11.5px; font-weight: 700; fill: #0d8ce0; }
+    .muted  { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 10.5px; fill: var(--text-faint, #83969b); }
+    .tag    { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 10.5px; font-weight: 700; }
+  </style>
+
+  <defs>
+    <marker id="a6" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="var(--color-brand-500, #00979d)" />
+    </marker>
+    <marker id="a6b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#0d8ce0" />
+    </marker>
+  </defs>
+
+  <!-- ───── 1. Tarayıcı ───── -->
+  <rect class="box" x="250" y="20" width="360" height="118" rx="12" />
+  <text class="tag" x="268" y="42" fill="var(--text-faint, #83969b)">TARAYICI / BROWSER · assets/</text>
+  <text class="lbl-b" x="268" y="64">Oyunun kendisi / The game itself</text>
+  <text class="muted" x="268" y="82">app.js — balon, hedef, süre, puan</text>
+  <text class="muted" x="268" y="96">app.js — balloon, target, timer, score</text>
+  <text class="muted" x="268" y="120">Tek gerçek çizim döngüsü burada</text>
+  <text class="muted" x="268" y="132">The only real render loop is here</text>
+
+  <!-- Küçük oyun ekranı -->
+  <rect class="screen" x="514" y="50" width="80" height="76" rx="6" />
+  <rect x="522" y="76" width="64" height="18" rx="3" fill="#1d4f52" />
+  <circle cx="554" cy="85" r="7" fill="#ffd166" />
+  <path d="M524 66 H586" stroke="#e0533f" stroke-width="1" stroke-dasharray="3 3" />
+
+  <!-- ───── 2. MPU ───── -->
+  <rect class="mpu" x="250" y="186" width="360" height="108" rx="12" />
+  <text class="tag" x="268" y="208" fill="var(--color-brand-600, #007d83)">MPU · Debian Linux · python/</text>
+  <text class="lbl-b" x="268" y="230">web_ui brick + main.py</text>
+  <text class="muted" x="268" y="248">web sunucusu + WebSocket, hazır geliyor</text>
+  <text class="muted" x="268" y="262">web server + WebSocket, out of the box</text>
+  <text class="muted" x="268" y="284">Hesap yapmaz: doğrular ve taşır / It validates and forwards</text>
+
+  <!-- ───── 3. MCU ───── -->
+  <rect class="mcu" x="250" y="342" width="360" height="120" rx="12" />
+  <text class="tag" x="268" y="364" fill="#0d8ce0">MCU · sketch/</text>
+  <text class="lbl-b" x="268" y="386">Ölçer ve refleks gösterir / Measures and reacts</text>
+  <text class="muted" x="268" y="404">HC-SR04 · 60 ms · halka tamponda ortalama</text>
+  <text class="muted" x="268" y="418">HC-SR04 · 60 ms · ring-buffer average</text>
+  <text class="muted" x="268" y="440">LED'ler, buzzer, LED matris — hepsi yerel</text>
+  <text class="muted" x="268" y="454">LEDs, buzzer, LED matrix — all local</text>
+
+  <!-- ───── Yukarı: ölçüm ───── -->
+  <path class="flow" d="M650 342 V304" />
+  <path class="flow" d="M650 186 V148" />
+
+  <text class="lbl-b" x="666" y="326">Ölçüm / Reading</text>
+  <text class="mono" x="666" y="342">Bridge.notify("olcum")</text>
+  <text class="muted" x="666" y="356">ham + ortalama</text>
+  <text class="muted" x="666" y="369">raw + average</text>
+  <text class="muted" x="666" y="382">saniyede ~16 / ~16 per s</text>
+
+  <text class="lbl-b" x="666" y="170">WebSocket</text>
+  <text class="muted" x="666" y="184">her ölçüm tek tek</text>
+  <text class="muted" x="666" y="197">one sample at a time</text>
+
+  <!-- ───── Aşağı: komut ───── -->
+  <path class="flow-b" d="M210 148 V186" />
+  <path class="flow-b" d="M210 304 V342" />
+
+  <text class="lbl-b" x="194" y="170" text-anchor="end">Komut / Command</text>
+  <text class="muted" x="194" y="184" text-anchor="end">hedef, pencere, kutlama</text>
+  <text class="muted" x="194" y="197" text-anchor="end">target, window, celebrate</text>
+
+  <text class="mono-b" x="194" y="326" text-anchor="end">Bridge.call("set_target")</text>
+  <text class="muted" x="194" y="340" text-anchor="end">turda bir kez</text>
+  <text class="muted" x="194" y="353" text-anchor="end">once per round</text>
+
+  <!-- Alt not -->
+  <text class="lbl" x="250" y="476">Hedef karta bir kez gider; LED'i ve matrisi kart kendi ölçümüyle sürer — her kare için ağ turu yok.</text>
+</svg>

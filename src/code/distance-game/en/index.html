@@ -1,0 +1,100 @@
+<!--
+  Project 6 — Distance Game web interface
+  Arduino UNO Q · assets/index.html
+-->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Distance Game</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+
+  <body>
+    <main>
+      <h1>Distance Game</h1>
+      <p id="connection" class="status waiting">Connecting&hellip;</p>
+
+      <!-- Play area -->
+      <section class="card">
+        <canvas id="game"></canvas>
+
+        <div class="counters">
+          <div class="counter"><span class="label">Score</span><span id="score" class="value">0</span></div>
+          <div class="counter"><span class="label">Time</span><span id="time" class="value">60</span></div>
+          <div class="counter"><span class="label">Round</span><span id="round" class="value">1</span></div>
+          <div class="counter"><span class="label">Best</span><span id="best" class="value">0</span></div>
+        </div>
+
+        <label for="player">Player name</label>
+        <input id="player" type="text" maxlength="16" placeholder="Type your name" />
+
+        <button id="start" class="big-button off">START</button>
+        <p class="hint">
+          Move your hand above the sensor. Keep the balloon inside the green
+          band; the band gets a little narrower every round.
+        </p>
+      </section>
+
+      <!-- Processing the data -->
+      <section class="card">
+        <h2>Averaging window</h2>
+
+        <label for="window">
+          Average of the last <span id="window-value">5</span> readings
+        </label>
+        <input id="window" type="range" min="1" max="9" step="1" value="5" />
+
+        <p class="hint">
+          <strong>1</strong> means no averaging at all — the balloon moves on a
+          single reading and shakes. The larger it gets, the smoother the
+          movement but the later the response. The chart below shows both traces
+          at once.
+        </p>
+
+        <div class="traces">
+          <span class="trace raw">Raw reading</span>
+          <span class="trace average">Average</span>
+        </div>
+
+        <canvas id="chart"></canvas>
+      </section>
+
+      <!-- Score table -->
+      <section class="card">
+        <h2>Score table</h2>
+
+        <p id="window-summary" class="hint">No games recorded yet.</p>
+
+        <div class="table-wrap">
+          <table class="score-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Player</th>
+                <th>Score</th>
+                <th>Round</th>
+                <th>Window</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody id="score-rows">
+              <tr class="empty"><td colspan="6">Finish a game and the first record is yours.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <button id="csv-download" class="secondary-button">Download CSV</button>
+        <p class="hint">
+          The scores live in a <code>scores.json</code> file on the board, so
+          they survive restarting the app. To reset the list, delete that file.
+        </p>
+      </section>
+    </main>
+
+    <script src="libs/socket.io.min.js"></script>
+    <script src="libs/arduino.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>

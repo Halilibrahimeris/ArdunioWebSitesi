@@ -6,6 +6,7 @@ import CodeTabs from '../../../components/CodeTabs.astro';
 import Callout from '../../../components/Callout.astro';
 import PhotoSlot from '../../../components/PhotoSlot.astro';
 import WiringDiagram from '../../../components/WiringDiagram.astro';
+import DiagramPicker from '../../../components/DiagramPicker.astro';
 import Step from '../../../components/Step.astro';
 import { useTranslations, path, type Lang } from '../../../i18n/utils';
 import { locales } from '../../../i18n/ui';
@@ -162,7 +163,11 @@ const mdxComponents = { Callout, PhotoSlot, WiringDiagram, Step, CodeTabs };
           </h2>
           {/* Şema metin sütunundan geniş olabilir: büyük ekranda iki yana taşar, küçük ekranda yatay kayar. */}
           <div class="lg:-mx-24 xl:-mx-40">
-            <WiringDiagram file={project.diagram} title={entry.data.title} />
+            {project.diagramPicker ? (
+              <DiagramPicker lang={lang} picker={project.diagramPicker} title={entry.data.title} />
+            ) : (
+              <WiringDiagram file={project.diagram} title={entry.data.title} />
+            )}
           </div>
         </section>
       )

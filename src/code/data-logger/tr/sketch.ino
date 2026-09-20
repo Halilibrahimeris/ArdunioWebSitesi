@@ -26,6 +26,11 @@ DHT dht(PIN_DHT, DHT11);
 const unsigned long SEND_INTERVAL_MS = 5000;
 
 const int ADC_BITS = 10;
+const int ADC_MAX  = 1023;
+
+// 2. projede LDR_INVERTED = true yaptıysan (ters çalışan ışık sensörü kartı)
+// burada da true yap.
+const bool LDR_INVERTED = false;
 
 unsigned long lastSendAt = 0;
 
@@ -48,6 +53,7 @@ void loop() {
   float sicaklik = dht.readTemperature();
   float nem      = dht.readHumidity();
   int   isik     = analogRead(PIN_LDR);
+  if (LDR_INVERTED) isik = ADC_MAX - isik;   // Ters kartta da 0 = karanlık olsun
 
   // DHT11 arada okuma kaçırır. Bozuk veriyi göndermenin anlamı yok —
   // bir sonraki turda tekrar deneriz.

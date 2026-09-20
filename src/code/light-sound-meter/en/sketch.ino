@@ -14,9 +14,9 @@
 #include <Arduino_RouterBridge.h>   // Monitor / App Lab serial monitor
 
 // ───────────────── Pin assignments ─────────────────
-const int PIN_LDR    = A0;   // LDR + 10k voltage divider
+const int PIN_LDR    = A0;   // LDR + 10k voltage divider, or a light sensor module's S/AO pin
 const int PIN_POT    = A1;   // Potentiometer wiper
-const int PIN_BUZZER = 8;    // Passive buzzer (+ 220 ohm series resistor)
+const int PIN_BUZZER = 8;    // Passive buzzer, or a buzzer module's S pin (+ 220 ohm series resistor)
 
 // LED bar: five LEDs left to right (each with a 220 ohm resistor)
 const int LED_PINS[]  = { 2, 3, 4, 5, 6 };
@@ -27,6 +27,16 @@ const int LED_COUNT   = 5;
 // no matter what default the core happens to use.
 const int ADC_BITS = 10;
 const int ADC_MAX  = 1023;   // 2^10 - 1
+
+// If you use a light sensor module and "Light" RISES when you cover the
+// sensor with your hand, set this to true. Some modules solder the LDR and
+// resistor the other way round; this flips the reading so no rewiring is needed.
+const bool LDR_INVERTED = false;
+
+// If you use a 3-pin buzzer module and the tiny transistor on it reads 8550 or
+// 9012, set this to true. Those modules sound on LOW; left false, the buzzer
+// draws current even while silent and the module warms up.
+const bool BUZZER_ACTIVE_LOW = false;
 
 // Range of tones the buzzer produces, in Hz
 const int TONE_MIN = 200;
@@ -40,6 +50,18 @@ float smoothedLight = 0;     // The smoothed light level
 
 unsigned long lastPrintAt = 0;
 
+// Read the light level: 0 = dark, ADC_MAX = bright, whichever sensor you have
+int readLight() {
+  int value = analogRead(PIN_LDR);
+  return LDR_INVERTED ? ADC_MAX - value : value;
+}
+
+// Silence the buzzer and park the pin at the module's "quiet" level
+void buzzerOff() {
+  noTone(PIN_BUZZER);
+  digitalWrite(PIN_BUZZER, BUZZER_ACTIVE_LOW ? HIGH : LOW);
+}
+
 void setup() {
   Monitor.begin();
 
@@ -49,14 +71,15 @@ void setup() {
     pinMode(LED_PINS[i], OUTPUT);
   }
   pinMode(PIN_BUZZER, OUTPUT);
+  buzzerOff();
 
   // Seed with a real reading so the bar does not climb up from zero
-  smoothedLight = analogRead(PIN_LDR);
+  smoothedLight = readLight();
 }
 
 void loop() {
   // ── Read the raw values ──
-  int rawLight = analogRead(PIN_LDR);   // 0 (dark) .. 1023 (bright)
+  int rawLight = readLight();           // 0 (dark) .. 1023 (bright)
   int rawPot   = analogRead(PIN_POT);   // 0 .. 1023
 
   // ── Smooth them ──
@@ -82,7 +105,7 @@ void loop() {
     frequency = constrain(frequency, TONE_MIN, TONE_MAX);
     tone(PIN_BUZZER, frequency);
   } else {
-    noTone(PIN_BUZZER);
+    buzzerOff();
   }
 
   // ── Print to the serial monitor twice a second ──

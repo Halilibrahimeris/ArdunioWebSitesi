@@ -28,6 +28,10 @@ const unsigned long SEND_INTERVAL_MS = 2000;
 const int ADC_BITS = 10;
 const int ADC_MAX  = 1023;
 
+// 2. projede LDR_INVERTED = true yaptıysan (ters çalışan ışık sensörü kartı)
+// burada da true yap.
+const bool LDR_INVERTED = false;
+
 unsigned long lastSendAt = 0;
 
 void setup() {
@@ -47,6 +51,7 @@ void loop() {
   float sicaklik = dht.readTemperature();
   float nem      = dht.readHumidity();
   int   hamIsik  = analogRead(PIN_LDR);
+  if (LDR_INVERTED) hamIsik = ADC_MAX - hamIsik;   // Ters kartta da 0 = karanlık olsun
 
   if (isnan(sicaklik) || isnan(nem)) {
     Monitor.println("DHT11 okunamadi, bu olcum atlandi");

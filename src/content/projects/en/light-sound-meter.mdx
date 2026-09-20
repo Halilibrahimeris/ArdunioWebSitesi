@@ -18,11 +18,27 @@ troubleshooting:
       A0, and the 10kΩ resistor between A0 and GND. Swap them and the readings
       invert. Open the serial monitor and cover the LDR with your hand — if the
       number does not move, a connection is broken.
+  - q: I use a light sensor module and the LED bar fills in the dark and empties in bright light.
+    a: >-
+      Your module has the LDR and resistor soldered the other way round, so
+      the value falls as the light rises. Leave the wiring alone and set
+      LDR_INVERTED to true at the top of the code.
+  - q: The LEDs never fill gradually — either all are lit or none.
+    a: >-
+      You have probably wired the light sensor module's DO (digital) pin to
+      A0. DO only reports bright/dark. Use the module's AO or S pin instead. If
+      your module only has a DO pin, this project needs a bare LDR and a 10kΩ
+      resistor.
   - q: The buzzer makes no sound at all.
     a: >-
       You probably bought an active buzzer. An active buzzer contains its own
       oscillator, plays a single fixed tone and cannot be driven by tone(). You
       need a passive one — usually unlabelled, with an open black underside.
+  - q: I use a buzzer module and it warms up while silent.
+    a: >-
+      Your module has a PNP transistor (marked 8550 or 9012) and sounds on LOW.
+      Set BUZZER_ACTIVE_LOW to true at the top of the code. Also check that the
+      module's VCC pin goes to 3V3, not 5V.
   - q: The buzzer sounds constantly and the potentiometer does nothing.
     a: >-
       Make sure the potentiometer's middle leg goes to A1. Its outer legs go to
@@ -80,6 +96,29 @@ voltage. Here one of them is the sensor itself and the goal is to measure how
 it changes.
 </Callout>
 
+<Callout lang="en" variant="info" title="Got a 3-pin light sensor module instead?">
+Some kits ship a small board with the LDR on it (e.g. KY-018) rather than a
+bare LDR. The resistor is already soldered next to the LDR, so the divider
+above is built into the module. In that case:
+
+- **Leave out the LDR and the 10kΩ resistor.** Add the resistor anyway and it
+  ends up in parallel with the one on the module, skewing the readings.
+- Wire the pins: `VCC` / `+` → **3V3**, `S` / `AO` → **A0**,
+  `GND` / `-` → **GND**. In the wiring diagram above, pick **3-pin module** for
+  the light sensor: the module sits in holes `c3`–`c5` (`S`, `VCC`, `GND` from
+  the left), with `a3` → A0, `a4` → + rail and `a5` → − rail.
+- The pin order differs between modules. Go by the labels printed on the board,
+  not by position.
+- Power the module from **3V3, not 5V**. That way its output can never exceed 3.3V.
+
+If the pin is labelled `DO` and the module has a small blue trimmer, that is a
+digital output: it only says "bright" or "dark", so the LED bar will not fill
+gradually. This project needs the `AO` or `S` pin.
+
+On some modules the value moves the other way, dropping in bright light. We
+test for that in step 5.
+</Callout>
+
 </Step>
 
 <Step n={3} title="Wire the potentiometer">
@@ -117,6 +156,29 @@ fixed tone and you cannot change its frequency. `tone()` only works with a
 **passive** buzzer.
 </Callout>
 
+<Callout lang="en" variant="info" title="Is your buzzer on a 3-pin module?">
+Some kits ship the buzzer on a small board (e.g. KY-006). The wiring is almost
+the same:
+
+- Keep the 220 Ω resistor: **D8** → 220 Ω → the module's `S` / `I/O` pin. It
+  protects the pin if the module has no transistor and does no harm if it does.
+- `VCC` / `+` → **3V3**, `GND` / `-` → **GND**.
+- Power the module from **3V3, not 5V**. On a module with a PNP transistor
+  (8550 / 9012), a 5V supply means the 3.3V pin can never switch the transistor
+  off: the buzzer will not sound properly and draws current all the time.
+- In the wiring diagram above, pick **3-pin module** for the buzzer: the module
+  sits in holes `c25`–`c27` (`S`, `VCC`, `GND` from the left), with 220 Ω
+  `b22` → `b25`, D8 → `a22`, `a26` → + rail and `a27` → − rail.
+
+If there is a tiny black transistor on the module, read its marking: if it says
+**8550** or **9012**, set `BUZZER_ACTIVE_LOW` at the top of the code to `true`.
+Those modules sound on LOW; left at `false`, the buzzer draws current even while
+silent and the module warms up.
+
+A module labelled **KY-012** is an active buzzer and, as the warning above says,
+will not work here.
+</Callout>
+
 <PhotoSlot lang="en" caption="The completed circuit: LDR, potentiometer, LED bar and buzzer" />
 
 </Step>
@@ -133,6 +195,16 @@ Light: 742   Threshold: 400   LEDs: 3
 
 Cover the LDR with your hand: "Light" drops quickly and fewer LEDs stay lit.
 Turn the potentiometer and "Threshold" moves.
+
+<Callout lang="en" variant="warning" title="Does your light sensor module read backwards?">
+If "Light" **rises** instead of dropping when you cover the sensor, your module
+has the LDR and resistor soldered the other way round. Many cheap modules do.
+
+Leave the wires alone. Set the option at the top of the code to `true`:
+`const bool LDR_INVERTED = true;`
+
+That flips the reading and the rest of the code works unchanged.
+</Callout>
 
 </Step>
 

@@ -100,7 +100,8 @@ An important point: an app **does not have to fill both sides**.
 
 - **Projects 1-4** only use `sketch/`. The Linux side sits empty, because
   blinking an LED does not need a computer.
-- **Project 6** uses both: Python receives text from the browser, hands it to
-  the microcontroller, which shows it on the matrix.
+- **Project 6** uses both, and in both directions: the microcontroller sends
+  the distance it measures to Python and on to the browser, and commands from
+  the browser travel back down the same path.
 
 The next guide covers how those two sides talk to each other.

@@ -1,11 +1,11 @@
-# Proje 6 — Web'den LED Matrise Yazı Yazma
+# Proje 6 — Mesafeyle Oynanan Web Oyunu
 #
 # web_ui brick'i bize hazır bir web sunucusu ve WebSocket bağlantısı veriyor.
 # Kendimiz Flask kurmuyor, port açmıyor, WebSocket yazmıyoruz.
 
-name: Web'den Yazi Yazma
-icon: ✍️
-description: Tarayicidan yazilan metni LED matriste kaydirir
+name: Mesafe Oyunu
+icon: 🎈
+description: Elinle balonu yukselt, hedef bolgede tut
 
 bricks:
   - arduino:web_ui

@@ -75,7 +75,16 @@ dokunmana gerek yok — sadece yeni bir uygulama oluşturup kodları değiştir.
 Bağlantılar 5. projedeki gibi:
 
 - **DHT11**: VCC → 3V3, DATA → **D7**, GND → GND (+ 10kΩ pull-up)
+- **Ya da 3 bacaklı DHT11 kartı**: `VCC` / `+` → 3V3, `DATA` / `OUT` / `S` → **D7**,
+  `GND` / `-` → GND. Kartın üstünde pull-up direnci hazır, 10kΩ gerekmez.
+  Bağlantı şemasında DHT11 için **3 bacaklı kart**'ı seç.
 - **LDR**: 3V3 → LDR → **A0**, A0 → 10kΩ → GND
+- **Ya da 3 bacaklı ışık sensörü kartı**: `VCC` → 3V3, `S` / `AO` → **A0**,
+  `GND` → GND. Bu durumda LDR'nin 10kΩ direnci gerekmez. Bağlantı şemasında
+  ışık sensörü için **3 bacaklı kart**'ı seç.
+
+Kartının değeri ters çalışıyorsa (2. projenin 5. adımı), sketch'teki
+`LDR_INVERTED` ayarını `true` yap.
 
 App Lab'de yeni bir uygulama aç, adını `canli-panel` koy. `app.yaml` dosyasına
 **iki brick birden** ekle:

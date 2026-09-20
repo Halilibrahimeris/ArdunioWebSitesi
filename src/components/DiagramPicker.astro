@@ -1,0 +1,160 @@
+---
+/**
+ * Parça seçmeli bağlantı şeması / Wiring diagram with part choices.
+ *
+ * Bazı parçalar iki biçimde satılır: çıplak LDR ya da 3 bacaklı ışık sensörü kartı,
+ * çıplak buzzer ya da buzzer kartı. Okur her parça için elindekini seçer; seçimlerin
+ * birleşimine uyan şema gösterilir. Seçimler tarayıcıda hatırlanır, böylece kartı olan
+ * biri sonraki projelerde de doğrudan kendi şemasını görür.
+ * Some parts come bare or on a 3-pin module. The reader picks what they own for each
+ * part and the matching diagram is shown; picks are remembered across projects.
+ */
+import WiringDiagram from './WiringDiagram.astro';
+import type { Lang } from '../i18n/utils';
+import type { DiagramPicker } from '../data/projects';
+
+interface Props {
+  lang: Lang;
+  picker: DiagramPicker;
+  title?: string;
+}
+
+const { lang, picker, title } = Astro.props;
+
+const isDefault = (when: Record<string, string>) =>
+  picker.choices.every((choice) => when[choice.id] === choice.options[0].id);
+
+/** Panelin hangi seçimlerde görüneceği: data-light="module" gibi / Which picks show the panel. */
+const dataAttrs = (when: Record<string, string>) =>
+  Object.fromEntries(Object.entries(when).map(([choice, option]) => [`data-${choice}`, option]));
+
+/** Ekran okuyucu için: "Işık sensörü: 3 bacaklı kart · Buzzer: Çıplak buzzer" */
+const describe = (when: Record<string, string>) =>
+  picker.choices
+    .map((choice) => `${choice.label[lang]}: ${choice.options.find((option) => option.id === when[choice.id])?.label[lang]}`)
+    .join(' · ');
+---
+
+<div class="diagram-picker mt-4">
+  <p class="text-sm" style="color: var(--text-muted);">
+    {lang === 'tr' ? 'Elindeki parçalara göre şemayı seç:' : 'Pick the diagram that matches your parts:'}
+  </p>
+
+  <div class="mt-2 flex flex-col gap-2">
+    {
+      picker.choices.map((choice) => (
+        <div class="flex flex-wrap items-center gap-2" role="radiogroup" aria-label={choice.label[lang]} data-choice={choice.id}>
+          <span class="w-28 shrink-0 text-sm font-semibold" style="color: var(--text);">
+            {choice.label[lang]}
+          </span>
+          {choice.options.map((option, i) => (
+            <button
+              type="button"
+              role="radio"
+              aria-checked={i === 0 ? 'true' : 'false'}
+              tabindex={i === 0 ? 0 : -1}
+              data-option={option.id}
+              class="diagram-option rounded-lg border px-3 py-1.5 text-sm font-semibold transition-colors"
+            >
+              {option.label[lang]}
+            </button>
+          ))}
+        </div>
+      ))
+    }
+  </div>
+
+  {
+    picker.variants.map((variant) => (
+      <div class="diagram-panel" hidden={!isDefault(variant.when)} {...dataAttrs(variant.when)}>
+        <WiringDiagram
+          file={variant.file}
+          title={title ? `${title} — ${describe(variant.when)}` : describe(variant.when)}
+        />
+      </div>
+    ))
+  }
+</div>
+
+<style>
+  .diagram-option {
+    border-color: var(--border);
+    background-color: var(--surface);
+    color: var(--text-muted);
+  }
+  .diagram-option[aria-checked='true'] {
+    border-color: var(--color-brand-500);
+    background-color: var(--bg-subtle);
+    color: var(--color-brand-600);
+  }
+  :global(.dark) .diagram-option[aria-checked='true'] { color: var(--color-brand-300); }
+  .diagram-option:hover:not([aria-checked='true']) { color: var(--text); }
+</style>
+
+<script>
+  const storageKey = (choice: string) => `uno-q:part:${choice}`;
+
+  function readPick(choice: string): string | null {
+    try {
+      return localStorage.getItem(storageKey(choice));
+    } catch {
+      return null; // Gizli pencere ya da engellenmiş depolama / Private window or blocked storage.
+    }
+  }
+
+  function savePick(choice: string, option: string) {
+    try {
+      localStorage.setItem(storageKey(choice), option);
+    } catch {
+      /* Hatırlanmasa da seçim çalışır / Picking still works without it. */
+    }
+  }
+
+  document.querySelectorAll<HTMLElement>('.diagram-picker').forEach((root) => {
+    const groups = Array.from(root.querySelectorAll<HTMLElement>('[data-choice]'));
+    const panels = Array.from(root.querySelectorAll<HTMLElement>('.diagram-panel'));
+    const picks: Record<string, string> = {};
+
+    function render() {
+      for (const group of groups) {
+        const choice = group.dataset.choice!;
+        group.querySelectorAll<HTMLButtonElement>('.diagram-option').forEach((button) => {
+          const on = button.dataset.option === picks[choice];
+          button.setAttribute('aria-checked', String(on));
+          button.tabIndex = on ? 0 : -1;
+        });
+      }
+      for (const panel of panels) {
+        panel.hidden = !groups.every((group) => panel.dataset[group.dataset.choice!] === picks[group.dataset.choice!]);
+      }
+    }
+
+    for (const group of groups) {
+      const choice = group.dataset.choice!;
+      const options = Array.from(group.querySelectorAll<HTMLButtonElement>('.diagram-option'));
+      const saved = readPick(choice);
+      picks[choice] = options.some((o) => o.dataset.option === saved) ? saved! : options[0].dataset.option!;
+
+      const pick = (button: HTMLButtonElement) => {
+        picks[choice] = button.dataset.option!;
+        savePick(choice, picks[choice]);
+        render();
+      };
+
+      options.forEach((button, i) => {
+        button.addEventListener('click', () => pick(button));
+        // Klavyeyle seçenekler arasında gezinme / Keyboard navigation between options.
+        button.addEventListener('keydown', (event) => {
+          if (!['ArrowRight', 'ArrowLeft', 'ArrowDown', 'ArrowUp'].includes(event.key)) return;
+          event.preventDefault();
+          const delta = event.key === 'ArrowRight' || event.key === 'ArrowDown' ? 1 : -1;
+          const next = options[(i + delta + options.length) % options.length];
+          pick(next);
+          next.focus();
+        });
+      });
+    }
+
+    render();
+  });
+</script>

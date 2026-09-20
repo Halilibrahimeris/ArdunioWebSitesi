@@ -117,20 +117,21 @@ riski doğar. 3V3 kullan — ekran zaten 3.3V ile tam parlaklıkta çalışır.
 
 <Step n={3} title="DHT11'i bağla">
 
-DHT11 sensörünün üç kullanılan pini var (dört bacaklı modelde bir bacak boştur):
+DHT11 iki biçimde satılır. Hangisi sende varsa ona göre bağla; bağlantı
+şemasının üstünden de DHT11 için kendi parçanı seç.
 
-- **VCC** → **3V3**
-- **DATA** → **D7**
-- **GND** → **GND**
+**3 bacaklı DHT11 kartı** (sensör küçük bir devre kartına lehimli):
 
-Ayrıca **DATA ile VCC arasına 10kΩ pull-up direnci** koy. Bu direnç veri
-hattını boştayken yukarı çeker ve haberleşmeyi kararlı hale getirir.
+- **VCC** / `+` → **3V3**
+- **DATA** / `OUT` / `S` → **D7**
+- **GND** / `-` → **GND**
 
-<Callout lang="tr" variant="tip" title="Modülünde direnç zaten olabilir">
-Üç pinli, küçük bir devre kartına lehimli DHT11 modüllerinde pull-up direnci
-genellikle hazır gelir. Modülün üzerinde küçük bir direnç görüyorsan ekstra
-direnç koymana gerek yok. Dört bacaklı çıplak sensör kullanıyorsan direnç şart.
-</Callout>
+Kartın üstünde pull-up direnci hazır gelir, **ekstra direnç koyma**. Pin sırası
+karttan karta değişir; sıraya değil, kartın üstündeki yazılara bak.
+
+**4 bacaklı çıplak sensör**: soldan sağa VCC, DATA, boş (NC), GND. Aynı
+bağlantıları yap ve ayrıca **DATA ile VCC arasına 10kΩ pull-up direnci** koy.
+Bu direnç veri hattını boştayken yukarı çeker ve haberleşmeyi kararlı hale getirir.
 
 <PhotoSlot lang="tr" caption="OLED ve DHT11 bağlanmış devre" />
 

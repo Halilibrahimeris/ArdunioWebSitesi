@@ -40,6 +40,11 @@ troubleshooting:
       Dirençlerin yerini kontrol et: 2.2kΩ üstte (ECHO tarafında), 3.3kΩ altta
       (GND tarafında) olmalı. Yer değiştirirlerse çıkış 2.0V olur — kart bunu
       okuyabilir ama sınıra yaklaşır. 3.4V ve üstü okuyorsan hemen kabloyu çek.
+  - q: Buzzer kartım hiç ötmüyor ya da sessizken ısınıyor.
+    a: >-
+      Kartın VCC pini 5V hattına bağlıysa ayrı bir kabloyla 3V3'e taşı. Kartta
+      8550 ya da 9012 yazan bir transistör varsa kodun başındaki
+      BUZZER_ACTIVE_LOW ayarını true yap.
 ---
 
 Bu proje ikiye ayrılıyor. Birincisi eğlenceli kısım: arabanın park sensörü
@@ -150,6 +155,18 @@ kablosunu tak.
 - Kırmızı LED + 220Ω → **D2**
 - Sarı LED + 220Ω → **D3**
 - Yeşil LED + 220Ω → **D4**
+
+<Callout lang="tr" variant="warning" title="Buzzer kartında VCC'yi 3V3'e bağla">
+Buzzer'ın 3 bacaklı bir kartsa (2. projenin 4. adımı) bağlantı aynı, tek bir
+fark var: bu projede breadboard'un **+ hattı 5V** taşıyor, çünkü sensör 5V
+istiyor. Kartın `VCC` pinini bu hatta **bağlama**; ayrı bir kabloyla kartın
+**3V3** pinine götür.
+
+Bağlantı şemasında buzzer için **3 bacaklı kart**'ı seç: kart `c5`–`c7`
+deliklerine oturur (soldan `S`, `VCC`, `GND`); 220 Ω `b2` → `b5`, D8 → `a2`,
+3V3 → `a6`, `a7` → − hattı. 2. projede `BUZZER_ACTIVE_LOW` ayarını `true`
+yaptıysan bu projenin kodunda da yap.
+</Callout>
 
 </Step>
 

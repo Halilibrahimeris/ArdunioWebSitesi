@@ -18,11 +18,26 @@ troubleshooting:
       ise A0 ile GND arasında olmalı. İkisini ters bağlarsan değerler tersine
       döner. Seri monitörü açıp elini LDR'nin üzerine kapat — sayı değişmiyorsa
       bağlantı kopuktur.
+  - q: Işık sensörü kartı kullanıyorum; LED çubuğu karanlıkta doluyor, aydınlıkta boşalıyor.
+    a: >-
+      Kartında LDR ile direnç ters sırada lehimli, bu yüzden değer ışık arttıkça
+      düşüyor. Kablolara dokunma: kodun başındaki LDR_INVERTED ayarını true yap.
+  - q: LED'ler kademeli dolmuyor, ya hepsi yanıyor ya hiçbiri.
+    a: >-
+      Işık sensörü kartının DO (dijital) pinini A0'a bağlamış olabilirsin. DO
+      yalnızca aydınlık/karanlık bilgisi verir. Kartın AO ya da S pinini kullan.
+      Kartında yalnızca DO pini varsa bu proje için çıplak LDR ve 10kΩ direnç
+      gerekir.
   - q: Buzzer hiç ses çıkarmıyor.
     a: >-
       Muhtemelen aktif buzzer aldın. Aktif buzzer içinde kendi osilatörü olduğu
       için sadece tek bir ton çalar ve tone() ile kontrol edilemez. Üzerinde
       yazı olmayan, alt tarafı açık siyah olan pasif buzzer gerekiyor.
+  - q: Buzzer kartı kullanıyorum; sessizken kart ısınıyor.
+    a: >-
+      Kartında PNP transistör var (üstünde 8550 ya da 9012 yazar) ve bu kart
+      LOW ile ötüyor. Kodun başındaki BUZZER_ACTIVE_LOW ayarını true yap. Kartın
+      VCC pininin 5V'a değil 3V3'e bağlı olduğunu da kontrol et.
   - q: Buzzer sürekli ötüyor, potansiyometre etkilemiyor.
     a: >-
       Potansiyometrenin orta bacağının A1'e gittiğinden emin ol. Uç bacaklarını
@@ -80,6 +95,28 @@ dirençler sabitti ve amacımız gerilimi düşürmekti. Burada dirençlerden bi
 sensörün kendisi ve amacımız değişimi ölçmek.
 </Callout>
 
+<Callout lang="tr" variant="info" title="Elindeki 3 bacaklı bir ışık sensörü kartı mı?">
+Bazı setlerde çıplak LDR yerine üzerinde LDR olan küçük bir kart gelir (ör.
+KY-018). Bu kartta LDR'nin yanındaki direnç zaten lehimlidir, yani yukarıdaki
+gerilim bölücü kartın üstünde hazır. Bu durumda:
+
+- **LDR'yi ve 10kΩ direnci takma.** Direnci de takarsan karttakiyle paralel
+  bağlanır ve okumalar kayar.
+- Pinleri kabloyla bağla: `VCC` / `+` → **3V3**, `S` / `AO` → **A0**,
+  `GND` / `-` → **GND**. Yukarıdaki bağlantı şemasında ışık sensörü için
+  **3 bacaklı kart**'ı seç: kart `c3`–`c5` deliklerine oturur (soldan `S`,
+  `VCC`, `GND`); `a3` → A0, `a4` → + hattı, `a5` → − hattı.
+- Pin sırası karttan karta değişir. Sıraya değil, kartın üstündeki yazılara bak.
+- Kartı **5V'a değil 3V3'e** bağla. Böylece çıkışı hiçbir zaman 3.3V'yi aşmaz.
+
+Pinin üstünde `DO` yazıyorsa ve kartta mavi bir ayar vidası varsa bu dijital
+çıkıştır: yalnızca "aydınlık" ya da "karanlık" bilgisini verir, LED çubuğu
+kademeli dolmaz. Bu proje için `AO` ya da `S` pini gerekiyor.
+
+Bazı kartlarda değer ters yönde değişir, yani aydınlıkta düşer. Bunu 5. adımda
+test edeceğiz.
+</Callout>
+
 </Step>
 
 <Step n={3} title="Potansiyometreyi bağla">
@@ -117,6 +154,29 @@ sabit ton çalar — frekansını değiştiremezsin. `tone()` fonksiyonunun işe
 yaraması için **pasif** buzzer gerekiyor.
 </Callout>
 
+<Callout lang="tr" variant="info" title="Elindeki buzzer 3 bacaklı bir kart mı?">
+Bazı setlerde buzzer küçük bir kartın üstünde gelir (ör. KY-006). Bağlantı
+neredeyse aynı:
+
+- 220 Ω direnci yine tak: **D8** → 220 Ω → kartın `S` / `I/O` pini. Kartta
+  transistör yoksa pini korur, varsa zararı olmaz.
+- `VCC` / `+` → **3V3**, `GND` / `-` → **GND**.
+- Kartı **5V'a değil 3V3'e** bağla. Üstünde PNP transistör (8550 / 9012) olan
+  kartlar 5V ile beslenirse 3.3V'luk pin transistörü kapatamaz: buzzer düzgün
+  ötmez ve sürekli akım çeker.
+- Yukarıdaki bağlantı şemasında buzzer için **3 bacaklı kart**'ı seç: kart
+  `c25`–`c27` deliklerine oturur (soldan `S`, `VCC`, `GND`); 220 Ω `b22` →
+  `b25`, D8 → `a22`, `a26` → + hattı, `a27` → − hattı.
+
+Kartta küçük siyah bir transistör varsa üstündeki yazıya bak: **8550** ya da
+**9012** yazıyorsa kodun başındaki `BUZZER_ACTIVE_LOW` ayarını `true` yap. Bu
+kartlar LOW ile öter; ayar `false` kalırsa buzzer sessizken de akım çeker ve kart
+ısınır.
+
+Kartın üstünde **KY-012** yazıyorsa o bir aktif buzzer kartıdır ve yukarıdaki
+uyarıdaki gibi bu projede çalışmaz.
+</Callout>
+
 <PhotoSlot lang="tr" caption="Kurulmuş devre: LDR, potansiyometre, LED çubuğu ve buzzer" />
 
 </Step>
@@ -133,6 +193,16 @@ Isik: 742   Esik: 400   LED: 3
 
 Elini LDR'nin üzerine kapat: "Isik" değeri hızla düşer, LED sayısı azalır.
 Potansiyometreyi çevir: "Esik" değişir.
+
+<Callout lang="tr" variant="warning" title="Işık sensörü kartında değer ters mi?">
+Elini kapattığında "Isik" değeri düşmek yerine **artıyorsa**, kartında LDR ile
+direnç ters sırada lehimlenmiş demektir. Birçok ucuz kartta böyledir.
+
+Kablolara dokunma. Kodun başındaki ayarı `true` yap:
+`const bool LDR_INVERTED = true;`
+
+Bu ayar okumayı çevirir, kodun gerisi olduğu gibi çalışır.
+</Callout>
 
 </Step>
 

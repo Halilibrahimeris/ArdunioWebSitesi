@@ -179,8 +179,8 @@ const partsCatalogue = {
     category: 'sensor',
     voltageRisk: 'safe',
     voltageNote: {
-      tr: '10 kΩ ile gerilim bölücü kurulur, çıkışı 3.3V’yi aşmaz.',
-      en: 'Forms a divider with a 10 kΩ resistor; its output never exceeds 3.3V.',
+      tr: '10 kΩ ile gerilim bölücü kurulur, çıkışı 3.3V’yi aşmaz. 3 bacaklı ışık sensörü kartı da olur: 3V3 ile besle, AO/S pinini kullan.',
+      en: 'Forms a divider with a 10 kΩ resistor; its output never exceeds 3.3V. A 3-pin light sensor module works too: power it from 3V3 and use its AO/S pin.',
     },
   },
   dht11: {
@@ -221,8 +221,8 @@ const partsCatalogue = {
     category: 'output',
     voltageRisk: 'safe',
     voltageNote: {
-      tr: 'Pasif olmalı — aktif buzzer tek ton çalar, melodi üretemez. Pin akımını sınırlamak için araya seri 220 Ω koy.',
-      en: 'Must be passive — an active buzzer plays one fixed tone and cannot make melodies. Put a 220 Ω resistor in series to limit the pin current.',
+      tr: 'Pasif olmalı — aktif buzzer tek ton çalar, melodi üretemez. Pin akımını sınırlamak için araya seri 220 Ω koy. 3 bacaklı buzzer kartı da olur (ör. KY-006): VCC’yi 3V3’e bağla.',
+      en: 'Must be passive — an active buzzer plays one fixed tone and cannot make melodies. Put a 220 Ω resistor in series to limit the pin current. A 3-pin buzzer module (e.g. KY-006) works too: power its VCC from 3V3.',
     },
   },
   'oled-ssd1306': {

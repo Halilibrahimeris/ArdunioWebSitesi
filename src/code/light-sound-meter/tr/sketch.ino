@@ -14,9 +14,9 @@
 #include <Arduino_RouterBridge.h>   // Monitor / App Lab serial monitor
 
 // ───────────────── Pin tanımları ─────────────────
-const int PIN_LDR    = A0;   // LDR + 10k gerilim bölücü
+const int PIN_LDR    = A0;   // LDR + 10k gerilim bölücü ya da ışık sensörü kartının S/AO pini
 const int PIN_POT    = A1;   // Potansiyometrenin orta bacağı
-const int PIN_BUZZER = 8;    // Pasif buzzer (+ 220 ohm seri direnç)
+const int PIN_BUZZER = 8;    // Pasif buzzer ya da buzzer kartının S pini (+ 220 ohm seri direnç)
 
 // LED çubuğu: soldan sağa beş LED (her biri + 220 ohm)
 const int LED_PINS[]  = { 2, 3, 4, 5, 6 };
@@ -27,6 +27,16 @@ const int LED_COUNT   = 5;
 // Böylece kart hangi varsayılanı kullanırsa kullansın, kod aynı davranır.
 const int ADC_BITS = 10;
 const int ADC_MAX  = 1023;   // 2^10 - 1
+
+// Işık sensörü kartı kullanıyorsan ve elini sensörün üstüne kapattığında
+// "Isik" değeri ARTIYORSA bunu true yap. Bazı kartlarda LDR ile direnç ters
+// sırada lehimlidir; bu ayar okumayı çevirir, kablolara dokunman gerekmez.
+const bool LDR_INVERTED = false;
+
+// 3 bacaklı buzzer kartı kullanıyorsan ve kartın üstündeki küçük transistörde
+// 8550 ya da 9012 yazıyorsa bunu true yap. Bu kartlar LOW ile öter; ayar false
+// kalırsa buzzer sessizken de akım çeker ve kart ısınır.
+const bool BUZZER_ACTIVE_LOW = false;
 
 // Buzzer'ın üreteceği ton aralığı (Hz)
 const int TONE_MIN = 200;
@@ -40,6 +50,18 @@ float smoothedLight = 0;     // Yumuşatılmış ışık değeri
 
 unsigned long lastPrintAt = 0;
 
+// Işığı oku: sensör hangisi olursa olsun 0 = karanlık, ADC_MAX = aydınlık
+int readLight() {
+  int value = analogRead(PIN_LDR);
+  return LDR_INVERTED ? ADC_MAX - value : value;
+}
+
+// Buzzer'ı sustur ve pini kartın "sessiz" seviyesinde bırak
+void buzzerOff() {
+  noTone(PIN_BUZZER);
+  digitalWrite(PIN_BUZZER, BUZZER_ACTIVE_LOW ? HIGH : LOW);
+}
+
 void setup() {
   Monitor.begin();
 
@@ -49,14 +71,15 @@ void setup() {
     pinMode(LED_PINS[i], OUTPUT);
   }
   pinMode(PIN_BUZZER, OUTPUT);
+  buzzerOff();
 
   // İlk okumayı doğrudan al ki çubuk sıfırdan tırmanmasın
-  smoothedLight = analogRead(PIN_LDR);
+  smoothedLight = readLight();
 }
 
 void loop() {
   // ── Ham değerleri oku ──
-  int rawLight = analogRead(PIN_LDR);   // 0 (karanlık) .. 1023 (aydınlık)
+  int rawLight = readLight();           // 0 (karanlık) .. 1023 (aydınlık)
   int rawPot   = analogRead(PIN_POT);   // 0 .. 1023
 
   // ── Yumuşat ──
@@ -82,7 +105,7 @@ void loop() {
     frequency = constrain(frequency, TONE_MIN, TONE_MAX);
     tone(PIN_BUZZER, frequency);
   } else {
-    noTone(PIN_BUZZER);
+    buzzerOff();
   }
 
   // ── Saniyede iki kez seri porta yaz ──

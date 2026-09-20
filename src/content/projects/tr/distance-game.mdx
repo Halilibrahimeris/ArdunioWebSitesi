@@ -1,0 +1,389 @@
+---
+projectId: distance-game
+title: Mesafeyle Oynanan Web Oyunu
+summary: >-
+  Elini sensörün üstünde gezdirerek tarayıcıdaki balonu yükselt ve daralan
+  hedef bantlarda tut. 3. projenin devresini hiç bozmadan yapılıyor — değişen
+  tek şey kod. Veri işlemenin ne işe yaradığını kendi elinde hissediyorsun.
+learn:
+  - "Ölçüm hızını senin değil sensörün belirlediğini (60 ms) ve bunun oyunun temposunu nasıl kurduğunu"
+  - Halka tamponla gerçek hareketli ortalama yazmak — ve gürültüyü gecikmeyle takas ettiğini görmek
+  - Aynı veriyi hem ham hem işlenmiş gönderip tarayıcıda iki çizgi olarak karşılaştırmak
+  - "İşi doğru katmana koymak: oyun tarayıcıda, refleksler mikrodenetleyicide"
+  - Saniyede ~16 mesajlık bir WebSocket akışını taşımak
+  - "Skorları kalıcı olarak saklamak ve verinin şekline uygun depoyu seçmek"
+  - Tek bir devreyi yalnızca kodla bambaşka bir şeye çevirmek
+troubleshooting:
+  - q: Web sayfasının adresini bilmiyorum, nereden açacağım?
+    a: >-
+      App Lab uygulamayı çalıştırdığında arayüzün adresini gösterir. Genellikle
+      kartın IP adresi ve bir port olur. Telefonunun kartla AYNI WiFi ağında
+      olduğundan emin ol — farklı ağdaysan sayfa açılmaz.
+  - q: Balon zıplıyor, titriyor, yerinde durmuyor.
+    a: >-
+      Bu bir hata değil, projenin konusu. Ortalama penceresi 1'deyken balon tek
+      bir ölçümle hareket eder ve ultrasonik ölçüm doğası gereği gürültülüdür.
+      Kaydırıcıyı 5'e getir, titremenin kesildiğini gör. Titreme ortalamayla da
+      geçmiyorsa elini düz tut — açık parmaklar ve yumuşak yüzeyler sesi dağıtır,
+      sensör dağınık yankıyı yanlış okur.
+  - q: Balon elimi geç takip ediyor.
+    a: >-
+      Ortalama penceresini küçült. 9 ölçümlük pencere, 60 ms'lik ölçüm
+      aralığıyla yarım saniyeye yakın gecikme demek. Ortalamanın bedeli tam
+      olarak budur; grafikte turkuaz çizginin kırmızıyı geriden takip ettiğini
+      göreceksin.
+  - q: Yeşil LED yanıyor ama puan gelmiyor.
+    a: >-
+      Pencere 1'deyken bandın tam kenarında bu normaldir: kart ölçümü aldığı
+      anda karar veriyor, tarayıcı ise bir sonraki karede. Gürültülü veride iki
+      cihaz aynı sayıya bakıp farklı sonuca varabilir — pencereyi büyüttüğünde
+      bu fark kaybolur. Ortalamalı modda da oluyorsa `set_window` karta
+      ulaşmıyordur: main.py'deki `Bridge.call("set_window", ...)` ile sketch'teki
+      `Bridge.provide("set_window", ...)` birebir aynı mı, bir de `Bridge.begin()`
+      çağrılmış mı kontrol et.
+  - q: LED matriste hiçbir şey görünmüyor.
+    a: >-
+      Parantez yalnızca oyun başladıktan sonra çıkar, çünkü hedef bandı karta
+      "BAŞLA" düğmesiyle gidiyor. Oyun başladığı hâlde boşsa `set_target` karta
+      ulaşmamış demektir; isim uyuşmazlığına bak. Balon bloğu ise her zaman
+      görünmeli — görünmüyorsa `matrix.begin()` çağrısını doğrula.
+  - q: Buzzer hiç ötmüyor ya da sürekli ötüyor.
+    a: >-
+      Bip yalnızca bir turu kazandığında çalıyor; hiç kazanamıyorsan hiç
+      duymazsın. Sürekli ötüyorsa muhtemelen 3 bacaklı bir buzzer kartın var ve
+      LOW ile ötüyor: sketch'teki `BUZZER_ACTIVE_LOW` değerini `true` yap.
+      Araya 220 Ω seri direnci koymayı da unutma.
+  - q: Skor tablosu boş kalıyor ya da oyunum tabloya girmiyor.
+    a: >-
+      Hiç puan almadan biten oyunlar bilerek kaydedilmiyor — en az 1 puan
+      almalısın. Puan aldığın hâlde tabloya girmiyorsa App Lab'in Python
+      çıktısına bak: "Skor kaydedildi" satırı görünüyorsa kayıt yapılmıştır,
+      sorun tarayıcıdadır. "skorlar.json yazilamadi" görüyorsan uygulama
+      klasörüne yazma izni yok demektir.
+  - q: Mesafe hep 60 cm okunuyor, balon tavana yapışmış.
+    a: >-
+      Sensörden yankı dönmüyor demektir. 3. projedeki kontrollerin aynısı: ECHO
+      kablosu bölücünün ORTA noktasından mı çıkıyor, sensörün VCC'si 3V3'e değil
+      **5V**'ye mi bağlı, TRIG gerçekten D10'da mı? Bir de sensörün önünde en az
+      20-30 cm açıklık olsun.
+---
+
+Bu proje sana iki şey birden yapıyor: birincisi gerçekten oynanabilir bir oyun,
+ikincisi bu sitedeki **veri işleme** dersinin ta kendisi.
+
+Ve en güzel tarafı: **hiçbir yeni malzeme gerekmiyor.** 3. projede kurduğun
+devrenin aynısını kullanıyoruz — aynı sensör, aynı gerilim bölücü, aynı
+LED'ler, aynı buzzer, aynı pinler. Devreyi bozmadıysan tek yapacağın kodu
+değiştirmek.
+
+<WiringDiagram file="06-distance-game.svg" caption="Ölçüm yukarı, komut aşağı akıyor" />
+
+## Bu proje 3. projenin yazılımla yeniden doğuşu
+
+Aynı devre, bambaşka bir cihaz. Fark tamamen kodda:
+
+| | 3. proje — Park sensörü | 6. proje — Mesafe oyunu |
+| --- | --- | --- |
+| Ölçüm | Ham okuma | Ham **ve** ortalanmış, ikisi birden |
+| LED'ler | **Mesafeyi** gösterir | **Hedefe uzaklığı** gösterir |
+| Buzzer | Sürekli bip | Sadece tur kazanınca |
+| Karar nerede | Kartta | Tarayıcıda |
+| Ekran | Yok | Telefon + kartın LED matrisi |
+
+LED'lerin anlamının değişmesi küçük bir ayrıntı gibi duruyor ama değil: tek bir
+kabloya dokunmadan üç LED'in ne söylediğini baştan tanımladın. Donanım aynı
+kaldı, ürün değişti.
+
+<Step n={1} title="Aynı devre, yeni bir amaç">
+
+3. projedeki devre hâlâ duruyorsa **hiçbir şeyi sökme** — doğrudan 3. adıma
+geçebilirsin.
+
+Yeniden kuruyorsan bağlantılar şunlar:
+
+- HC-SR04 **VCC** → kartın **5V** pini
+- HC-SR04 **GND** → kartın **GND** pini
+- HC-SR04 **TRIG** → kartın **D10** pini
+- HC-SR04 **ECHO** → **gerilim bölücü üzerinden** kartın **D9** pini
+- Buzzer → **D8** (araya 220 Ω seri direnç)
+- Kırmızı / sarı / yeşil LED → **D2 / D3 / D4** (her birine 220 Ω)
+
+<Callout lang="tr" variant="voltage" linkToGuide>
+HC-SR04'ün **ECHO pini 5V** verir. UNO Q'nun pinleri 3.3V lojik için
+tasarlandı; ECHO'yu doğrudan bağlamak pini riske atar. 2.2kΩ + 3.3kΩ gerilim
+bölücü olmadan bu projeye başlama.
+</Callout>
+
+</Step>
+
+<Step n={2} title="Gerilim bölücüyü bir kez daha doğrula">
+
+Devreyi yeniden kurduysan bu adımı atlama.
+
+<WiringDiagram file="voltage-divider.svg" caption="Gerilim bölücünün mantığı" />
+
+```
+Vçıkış = 5.0 V × 3300 / (2200 + 3300) = 3.0 V
+```
+
+<Callout lang="tr" variant="danger" title="Dirençlerin sırası önemli">
+2.2kΩ **üstte** (ECHO tarafında), 3.3kΩ **altta** (GND tarafında) olmalı.
+Yer değiştirirlerse çıkış 3.0V yerine 2.0V olur; kart bunu hâlâ okur ama
+gürültüye karşı payın azalır.
+</Callout>
+
+<PhotoSlot lang="tr" caption="Bölücünün orta noktasında multimetre: 3.0V civarı görmelisin" />
+
+</Step>
+
+<Step n={3} title="Uygulamayı oluştur">
+
+App Lab'de yeni bir uygulama aç ve `app.yaml` dosyasına tek bir brick ekle:
+
+```yaml
+name: Mesafe Oyunu
+icon: 🎈
+description: Elinle balonu yukselt, hedef bolgede tut
+
+bricks:
+  - arduino:web_ui
+```
+
+<Callout lang="tr" variant="info" title="Bu satır ne yapıyor?">
+`arduino:web_ui`, sana çalışır hâlde bir web sunucusu ve WebSocket bağlantısı
+veriyor. Flask kurmuyor, port açmıyor, soket kodu yazmıyorsun. Tarayıcıya
+göndereceğin dosyalar uygulamanın `assets/` klasörüne konuyor.
+</Callout>
+
+</Step>
+
+<Step n={4} title="Sketch: ölç, ortala, ikisini birden gönder">
+
+Ölçüm kısmı 3. projeden neredeyse birebir geliyor. İki şey değişiyor.
+
+**Birincisi, zaman aşımı kısaldı:**
+
+```cpp
+// 3. projede bu 25000 idi (~4 m). Burada oyun alanı 60 cm'i geçmiyor ve
+// pulseIn zaman aşımı boyunca BLOKLUYOR — 25 ms, 60 ms'lik bütçenin neredeyse
+// yarısı demek.
+const unsigned long ECHO_TIMEOUT_US = 12000;
+```
+
+**İkincisi, hareketli ortalama eklendi.** Halka tampon: son ölçümleri bir
+dizide tutarsın, en yeniden geriye doğru istediğin kadarını toplayıp ortalarsın.
+
+```cpp
+float pushSample(float value) {
+  samples[sampleIndex] = value;
+  sampleIndex = (sampleIndex + 1) % WINDOW_MAX;
+  if (sampleCount < WINDOW_MAX) sampleCount++;
+
+  int count = min(window, sampleCount);
+  float total = 0;
+
+  for (int i = 0; i < count; i++) {
+    int index = (sampleIndex - 1 - i + WINDOW_MAX) % WINDOW_MAX;
+    total += samples[index];
+  }
+
+  return total / count;
+}
+```
+
+Ve ölçümü gönderirken **iki değeri birden** yolluyoruz:
+
+```cpp
+Bridge.notify("olcum", rawCm, avgCm);
+```
+
+<Callout lang="tr" variant="tip" title="Ölçüm hızını sen değil sensör belirliyor">
+`MEASURE_INTERVAL_MS = 60` keyfi bir sayı değil. Daha sık ölçersen önceki
+ölçümün yankısı bir sonrakine karışır. Yani oyunun kare hızının tavanı saniyede
+yaklaşık 16 — ve bu sınır koddan değil, sesin havadaki hızından geliyor.
+</Callout>
+
+<Callout lang="tr" variant="info" title="2. projedeki yumuşatmadan farkı ne?">
+2. projede üstel ortalama (EMA) kullanmıştık: tek bir sayı tutar, her yeni
+ölçümü biraz karıştırır, eskileri hiç tam unutmaz. Buradaki gerçek hareketli
+ortalama ise penceredeki ölçümlere **eşit** ağırlık verir ve pencere dışını
+tamamen unutur. İkisi de yumuşatır; davranışları farklıdır.
+</Callout>
+
+</Step>
+
+<Step n={5} title="Sketch: LED'ler, matris ve bip">
+
+Artık LED'ler mesafeyi değil **hatayı** gösteriyor: hedeften ne kadar uzaktasın?
+
+```cpp
+float error = 0;
+if (avgCm < targetNear)     error = targetNear - avgCm;
+else if (avgCm > targetFar) error = avgCm - targetFar;
+
+digitalWrite(PIN_GREEN,  error == 0);
+digitalWrite(PIN_YELLOW, error > 0 && error <= NEAR_MARGIN_CM);
+digitalWrite(PIN_RED,    error > NEAR_MARGIN_CM);
+```
+
+Hedef bandı karta turda **bir kez** geliyor; gerisini kart kendi ölçümüyle
+hallediyor. Her kare için tarayıcıya sorsaydık LED'ler elinin gerisinde kalırdı.
+
+LED matriste de oyunun kendisi çiziliyor: iki yanda hedef parantezi, ortada
+balon, en altta bantta ne kadar kaldığını gösteren çubuk.
+
+<Callout lang="tr" variant="warning" title="Döngüyü bloklama">
+`delay()` yok, uzun `tone()` yok. Kutlama ezgisi bile nota nota, `millis()`
+kapılarıyla ilerliyor. Bir de **ölçüm döngüsüne `Monitor.println()` koyma** —
+saniyede 16 satır monitörü boğar ve döngüyü yavaşlatır. Matris ya da buzzer
+beklenmedik davranırsa sketch'in başındaki `MATRIX_ENABLED` / `BEEP_ENABLED`
+değerlerini tek tek `false` yapıp hangisinin sorun çıkardığını bulabilirsin.
+</Callout>
+
+</Step>
+
+<Step n={6} title="Python: aradaki ince katman">
+
+Python burada **hiç hesap yapmıyor**. Ortalama zaten kartta, verinin doğduğu
+yerde alındı. Python'un işi taşımak ve gelen komutları doğrulamak:
+
+```python
+def olcum_geldi(ham: float, ortalama: float):
+    ui.send_message("olcum", {"ham": round(ham, 1), "ortalama": round(ortalama, 1)})
+```
+
+<Callout lang="tr" variant="warning" title="Bu bir güvenlik sınırı">
+Tarayıcı sana `{"yakin": -999, "uzak": 1e9}` da gönderebilir — kötü niyetle ya
+da sadece bir hata yüzünden. `sayiya_cevir()` fonksiyonu gelen her sayıyı önce
+sayı olduğundan emin olup sonra aralığa sıkıştırıyor. Tarayıcıdan gelen veriye
+asla olduğu gibi güvenme.
+</Callout>
+
+Ayarın tek sahibi Python: pencere değeri hem `state` içinde tutuluyor hem de
+her yeni bağlantıda karta yeniden gönderiliyor. Böylece kart ile tarayıcı asla
+farklı pencereye bakmıyor.
+
+**Skorlar da burada saklanıyor.** `state` içinde tutsaydık uygulama her yeniden
+başladığında silinirdi; düz bir JSON dosyası bu iş için yeterli:
+
+```python
+SKOR_DOSYASI = Path(__file__).parent / "skorlar.json"
+
+def skorlari_kaydet():
+    # Önce geçici dosyaya yazıp sonra yerine koyuyoruz. Yazma sırasında
+    # uygulama kapanırsa elimizde yarım bir JSON kalmasın diye.
+    gecici = SKOR_DOSYASI.with_name(SKOR_DOSYASI.name + ".tmp")
+    with gecici.open("w", encoding="utf-8") as f:
+        json.dump(skorlar, f, ensure_ascii=False, indent=2)
+    gecici.replace(SKOR_DOSYASI)
+```
+
+<Callout lang="tr" variant="tip" title="Neden dbstorage_tsstore brick'i değil?">
+5. ve 8. projede kullandığımız o brick **zaman serisi** için: saniyede bir
+gelen sayılar için. Bir skor kaydı ise oyuncu adı gibi **metin** de taşıyor,
+saniyede değil oyunda bir kez yazılıyor ve silinmesini istemiyoruz — brick
+varsayılan olarak 7 gün sonra siliyor. Aracı veriye göre seç, alışkanlığa göre
+değil.
+</Callout>
+
+Her kayıtta o oyunun **ortalama penceresi** de saklanıyor. Küçük bir ayrıntı
+gibi duruyor ama tablonun asıl marifeti bu: birazdan "ortalama işe yarıyor mu?"
+sorusunu tahminle değil veriyle cevaplayacaksın.
+
+</Step>
+
+<Step n={7} title="Arayüz: oyun döngüsü ve iki çizgi">
+
+Oyunun kendisi tarayıcıda çalışıyor. Sebebi basit: gerçek bir çizim döngüsü
+(`requestAnimationFrame`) sadece orada var.
+
+`assets/` klasörüne üç dosya koyuyorsun — `index.html`, `app.js`, `style.css` —
+ve HTML'in sonundaki script sırası **önemli**:
+
+```html
+<script src="libs/socket.io.min.js"></script>
+<script src="libs/arduino.js"></script>
+<script src="app.js"></script>
+```
+
+<Callout lang="tr" variant="warning" title="assets/ klasörünü elle oluşturduysan">
+`web_ui` brick'i sayfayı yalnızca uygulama klasöründeki `assets/index.html`
+dosyasından okur. Dosyalar `python/` altında ya da uygulama kökündeyse sayfa
+bembeyaz açılır. Hızlı kontrol: adres çubuğuna `.../app.js` yaz — JavaScript
+yerine 404 görüyorsan klasör yanlış.
+</Callout>
+
+Balonun çiziminde bilinçli bir tercih var:
+
+```js
+// Balon — YUMUŞATMA YOK.
+// Balonu çizimde kaydırarak yumuşatmak kolay olurdu ama o zaman ham
+// ölçümün titremesi görünmezdi.
+```
+
+Balon tam olarak karttan gelen son değerde duruyor. Titriyorsa veri gerçekten
+titriyordur — bu projede saklamak istediğimiz son şey bu.
+
+Sayfanın altındaki **skor tablosu** da buradan çiziliyor. Tabloyu kurarken
+küçük ama önemli bir tercih var:
+
+```js
+// Hücreleri textContent ile dolduruyoruz. Oyuncu adı tarayıcıdan geldi;
+// innerHTML kullansaydık yazdığın metin HTML olarak çalıştırılabilirdi.
+const hucre = document.createElement('td');
+hucre.textContent = deger;
+```
+
+<Callout lang="tr" variant="warning" title="İki ayrı savunma hattı">
+Python oyuncu adını zaten temizliyor (`ad_temizle`), tarayıcı da onu metin
+olarak basıyor. İkisi de gerekli: biri sunucuda yanlış veriyi engelliyor, öbürü
+ekranda çalıştırılmasını. Arkadaşının adını `<b>Ali</b>` diye yazıp dene —
+tabloda aynen öyle görünmeli, kalın değil.
+</Callout>
+
+</Step>
+
+<Step n={8} title="Dene, karşılaştır, geliştir">
+
+Oyunu başlat ve şunları sırayla dene:
+
+1. Pencereyi **1**'e al. Balon titriyor, yeşil LED bandın kenarında kırpışıyor.
+2. Pencereyi **5**'e al. Titreme kesildi, LED kararlı yanıyor.
+3. Elini birden çek. Grafikte turkuaz çizginin kırmızıyı **geriden** takip
+   ettiğini gör — ortalamanın bedeli bu.
+4. Pencereyi **9** yap ve oynamayı dene. Artık balon senden yarım saniye geride.
+5. Her iki modda da **birkaç tam oyun** bitir ve skor tablosunun üstündeki özet
+   satırına bak:
+
+```
+Ham ölçümle (pencere 1): 4 oyun, ortalama 58 puan ·
+Ortalamalı (pencere 2+): 4 oyun, ortalama 112 puan.
+```
+
+Artık "ortalama daha iyi hissettiriyor" demiyorsun; elinde sayı var. Sınıfta
+herkes kendi adıyla oynadığında bu tablo tek başına bir deney sonucu oluyor.
+
+<Callout lang="tr" variant="info" title="Ortalama bedava değil">
+Ortalamalı modda puanın büyük ihtimalle daha yüksek. Ama şunu sor: oyun mu daha
+iyi oldu, yoksa sadece daha mı kolaylaştı? Gerçek sistemlerde bu takas her
+zaman var — gürültüyü azaltmanın bedeli gecikme.
+</Callout>
+
+Geliştirme fikirleri:
+
+- Ortalama yerine **medyan** al (5 ölçümü sırala, ortadakini seç). Tek bir hatalı
+  ölçüm ortalamayı 300 ms boyunca bozarken medyanı hiç etkilemez.
+- Hedef bandını sabit tutmak yerine yavaşça yukarı aşağı kaydır
+- Matristeki ilerleme çubuğu yerine 3x5 fontla skoru yazdır
+- İki telefondan aynı anda bağlan — ikisi de aynı ölçüm akışını görüyor, kim
+  daha çok puan toplayacak?
+- Skor tablosuna "bugünün rekoru" filtresi ekle (`zaman` alanı zaten kayıtlı)
+- CSV'yi indirip tabloyu Excel'de aç: pencereye göre ortalamaları kendin çıkar
+
+<Callout lang="tr" variant="info" title="Sıradaki proje">
+Web arayüzünden karta komut göndermeyi öğrendin. Bir sonraki projede aynı
+tekniği bir röleye uygulayacağız: telefondan açılıp kapanan, zamanlayıcısı olan
+bir akıllı priz.
+</Callout>
+
+</Step>

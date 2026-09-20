@@ -19,7 +19,7 @@
 // ───────────────── Pin tanımları ─────────────────
 const int PIN_TRIG   = 10;  // Sensöre gider  (kart → sensör, 3.3V yeterli)
 const int PIN_ECHO   = 9;   // Sensörden gelir (GERİLİM BÖLÜCÜ ÜZERİNDEN!)
-const int PIN_BUZZER = 8;   // Pasif buzzer (+ 220 ohm seri direnç)
+const int PIN_BUZZER = 8;   // Pasif buzzer ya da buzzer kartının S pini (+ 220 ohm seri direnç)
 
 const int PIN_GREEN  = 4;
 const int PIN_YELLOW = 3;
@@ -37,6 +37,10 @@ const int BEEP_LENGTH_MS = 60;    // Her bipin süresi
 const int BEEP_GAP_MIN   = 60;    // En sık bip aralığı (yakınken)
 const int BEEP_GAP_MAX   = 900;   // En seyrek bip aralığı (uzakken)
 
+// 2. projede BUZZER_ACTIVE_LOW = true yaptıysan (üstünde 8550 ya da 9012 yazan
+// transistörlü buzzer kartı) burada da true yap.
+const bool BUZZER_ACTIVE_LOW = false;
+
 // ───────────────── Zamanlama ─────────────────
 const unsigned long MEASURE_INTERVAL_MS = 60;   // Ölçümler arası bekleme
 const unsigned long ECHO_TIMEOUT_US     = 25000; // ~4 m karşılığı
@@ -53,6 +57,7 @@ void setup() {
   pinMode(PIN_TRIG, OUTPUT);
   pinMode(PIN_ECHO, INPUT);
   pinMode(PIN_BUZZER, OUTPUT);
+  buzzerOff();
   pinMode(PIN_GREEN, OUTPUT);
   pinMode(PIN_YELLOW, OUTPUT);
   pinMode(PIN_RED, OUTPUT);
@@ -108,7 +113,7 @@ void updateLeds() {
 void updateBuzzer() {
   // Çok uzaksa sessiz kal
   if (distanceCm >= DIST_FAR) {
-    noTone(PIN_BUZZER);
+    buzzerOff();
     beeping = false;
     return;
   }
@@ -126,7 +131,7 @@ void updateBuzzer() {
   unsigned long now = millis();
 
   if (beeping && now - lastBeepAt >= (unsigned long)BEEP_LENGTH_MS) {
-    noTone(PIN_BUZZER);
+    buzzerOff();
     beeping = false;
     lastBeepAt = now;
   } else if (!beeping && now - lastBeepAt >= (unsigned long)gap) {
@@ -134,6 +139,12 @@ void updateBuzzer() {
     beeping = true;
     lastBeepAt = now;
   }
+}
+
+// Buzzer'ı sustur ve pini kartın "sessiz" seviyesinde bırak
+void buzzerOff() {
+  noTone(PIN_BUZZER);
+  digitalWrite(PIN_BUZZER, BUZZER_ACTIVE_LOW ? HIGH : LOW);
 }
 
 // map() tam sayılarla çalışır; ondalıklı mesafe için kendi sürümümüz

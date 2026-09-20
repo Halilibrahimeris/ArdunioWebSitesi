@@ -120,20 +120,22 @@ anyway.
 
 <Step n={3} title="Wire the DHT11">
 
-The DHT11 uses three pins (four-pin versions leave one unconnected):
+The DHT11 is sold in two forms. Wire whichever you have, and pick your part
+for the DHT11 above the wiring diagram.
 
-- **VCC** → **3V3**
-- **DATA** → **D7**
-- **GND** → **GND**
+**3-pin DHT11 module** (sensor soldered onto a small PCB):
 
-Also fit a **10kΩ pull-up resistor between DATA and VCC**. It holds the data
-line high when idle and keeps the communication stable.
+- **VCC** / `+` → **3V3**
+- **DATA** / `OUT` / `S` → **D7**
+- **GND** / `-` → **GND**
 
-<Callout lang="en" variant="tip" title="Your module may already have one">
-Three-pin DHT11 modules soldered onto a small PCB usually include the pull-up
-already. If you can see a tiny resistor on the module, you do not need to add
-one. With a bare four-pin sensor, the resistor is essential.
-</Callout>
+The pull-up resistor is already on the module, so **do not add another one**.
+Pin order varies between modules; go by the labels printed on yours, not the
+position.
+
+**Bare 4-pin sensor**: left to right VCC, DATA, unused (NC), GND. Make the same
+connections and also fit a **10kΩ pull-up resistor between DATA and VCC**. It
+holds the data line high when idle and keeps the communication stable.
 
 <PhotoSlot lang="en" caption="The circuit with OLED and DHT11 connected" />
 

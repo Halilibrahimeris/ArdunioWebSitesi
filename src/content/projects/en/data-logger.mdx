@@ -81,7 +81,16 @@ wiring from project 2 stay exactly as they were.
 If you took them apart, rebuild:
 
 - **DHT11**: VCC → 3V3, DATA → **D7**, GND → GND (+ a 10kΩ between DATA and VCC)
+- **Or a 3-pin DHT11 module**: `VCC` / `+` → 3V3, `DATA` / `OUT` / `S` → **D7**,
+  `GND` / `-` → GND. The pull-up is already on the module, so no 10kΩ is needed.
+  In the wiring diagram, pick **3-pin module** for the DHT11.
 - **LDR**: 3V3 → LDR → **A0**, A0 → 10kΩ → GND
+- **Or a 3-pin light sensor module**: `VCC` → 3V3, `S` / `AO` → **A0**,
+  `GND` → GND. The LDR's 10kΩ resistor is then not needed. In the wiring
+  diagram, pick **3-pin module** for the light sensor.
+
+If your module reads backwards (step 5 of project 2), set `LDR_INVERTED` to
+`true` in the sketch.
 
 This project does not need the OLED, but you can leave it connected.
 
@@ -253,9 +262,9 @@ file has no such limit; it grows until you delete it.
 - Swap the LDR for the HC-SR04 from project 3 and log distances instead
 
 <Callout lang="en" variant="info" title="What comes next">
-You now know Bridge. The next project uses the same bridge in the opposite
-direction: text you type in a browser travels to Linux, then on to the
-microcontroller, and appears on the LED matrix.
+You now know Bridge. The next project uses the same bridge in both directions
+at once: readings flow up, commands flow down — and what comes out is a web
+game you play with your hand.
 </Callout>
 
 </Step>

@@ -74,7 +74,16 @@ have to touch a single wire — just create a new app and change the code.
 The connections are as in project 5:
 
 - **DHT11**: VCC → 3V3, DATA → **D7**, GND → GND (+ a 10kΩ pull-up)
+- **Or a 3-pin DHT11 module**: `VCC` / `+` → 3V3, `DATA` / `OUT` / `S` → **D7**,
+  `GND` / `-` → GND. The pull-up is already on the module, so no 10kΩ is needed.
+  In the wiring diagram, pick **3-pin module** for the DHT11.
 - **LDR**: 3V3 → LDR → **A0**, A0 → 10kΩ → GND
+- **Or a 3-pin light sensor module**: `VCC` → 3V3, `S` / `AO` → **A0**,
+  `GND` → GND. The LDR's 10kΩ resistor is then not needed. In the wiring
+  diagram, pick **3-pin module** for the light sensor.
+
+If your module reads backwards (step 5 of project 2), set `LDR_INVERTED` to
+`true` in the sketch.
 
 Create a new app in App Lab and name it `live-dashboard`. Add **two bricks** to
 `app.yaml`:

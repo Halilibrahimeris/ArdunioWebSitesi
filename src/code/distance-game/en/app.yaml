@@ -1,11 +1,11 @@
-# Project 6 — Write to the LED Matrix from the Web
+# Project 6 — Distance-Controlled Web Game
 #
 # The web_ui brick hands us a web server and a WebSocket connection.
 # We never install Flask, open a port, or write any WebSocket code.
 
-name: Write From The Web
-icon: ✍️
-description: Scrolls text typed in a browser across the LED matrix
+name: Distance Game
+icon: 🎈
+description: Lift the balloon with your hand and hold it in the target band
 
 bricks:
   - arduino:web_ui

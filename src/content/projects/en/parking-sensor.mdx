@@ -39,6 +39,11 @@ troubleshooting:
       Check the resistor positions: 2.2kΩ on top (the ECHO side), 3.3kΩ at the
       bottom (the GND side). Swapped, the output becomes 2.0V — readable, but
       with less margin. If you read 3.4V or more, unplug immediately.
+  - q: My buzzer module never sounds, or warms up while silent.
+    a: >-
+      If its VCC pin is on the 5V rail, move it to 3V3 with a separate wire. If
+      the module has a transistor marked 8550 or 9012, set BUZZER_ACTIVE_LOW to
+      true at the top of the code.
 ---
 
 This project has two halves. The first is the fun one: a circuit that behaves
@@ -150,6 +155,18 @@ Familiar from project 2:
 - Red LED + 220Ω → **D2**
 - Amber LED + 220Ω → **D3**
 - Green LED + 220Ω → **D4**
+
+<Callout lang="en" variant="warning" title="On a buzzer module, VCC goes to 3V3">
+If your buzzer is on a 3-pin module (step 4 of project 2), the wiring is the
+same with one difference: here the breadboard's **+ rail carries 5V**, because
+the sensor needs it. Do **not** connect the module's `VCC` pin to that rail;
+run a separate wire to the board's **3V3** pin instead.
+
+In the wiring diagram, pick **3-pin module** for the buzzer: the module sits in
+holes `c5`–`c7` (`S`, `VCC`, `GND` from the left), with 220 Ω `b2` → `b5`,
+D8 → `a2`, 3V3 → `a6` and `a7` → − rail. If you set `BUZZER_ACTIVE_LOW` to
+`true` in project 2, do the same in this project's code.
+</Callout>
 
 </Step>
 

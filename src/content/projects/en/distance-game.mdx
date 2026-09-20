@@ -1,0 +1,400 @@
+---
+projectId: distance-game
+title: Distance-Controlled Web Game
+summary: >-
+  Move your hand above the sensor to lift a balloon in the browser and hold it
+  inside shrinking target bands. It runs on project 3's circuit without moving
+  a single wire — only the code changes. You feel what data processing does.
+learn:
+  - "That the sensor, not you, sets the measuring rate (60 ms) — and how that sets the pace of the game"
+  - Writing a true moving average with a ring buffer, and seeing that it trades noise for delay
+  - Sending the same data both raw and processed, then comparing them as two traces in the browser
+  - "Putting work in the right layer: the game in the browser, the reflexes on the microcontroller"
+  - Carrying a WebSocket stream of about 16 messages a second
+  - "Storing scores permanently, and picking the store that fits the shape of the data"
+  - Turning one circuit into a completely different thing with nothing but code
+troubleshooting:
+  - q: I do not know the address of the web page, where do I open it?
+    a: >-
+      App Lab shows the interface's address when it runs the app. It is usually
+      the board's IP address and a port. Make sure your phone is on the SAME
+      WiFi network as the board — on a different network the page will not open.
+  - q: The balloon jumps and shakes, it will not stay still.
+    a: >-
+      That is not a fault, it is the subject of the project. With the averaging
+      window at 1 the balloon moves on a single reading, and ultrasonic
+      measurement is noisy by nature. Move the slider to 5 and watch the shaking
+      stop. If it persists even with averaging, hold your hand flat — spread
+      fingers and soft surfaces scatter the sound, and the sensor misreads the
+      scattered echo.
+  - q: The balloon follows my hand too late.
+    a: >-
+      Make the averaging window smaller. A window of 9, with a 60 ms measuring
+      interval, means almost half a second of delay. That is exactly what
+      averaging costs; on the chart you can see the cyan line trailing the red one.
+  - q: The green LED is on but I am not scoring.
+    a: >-
+      At the very edge of the band this is normal with the window at 1: the
+      board decides the instant it measures, the browser one frame later. On
+      noisy data two devices can look at the same number and reach different
+      conclusions — widen the window and the difference disappears. If it also
+      happens in averaged mode then `set_window` is not reaching the board:
+      check that `Bridge.call("set_window", ...)` in main.py and
+      `Bridge.provide("set_window", ...)` in the sketch match exactly, and that
+      `Bridge.begin()` is called.
+  - q: Nothing shows up on the LED matrix.
+    a: >-
+      The bracket only appears once the game has started, because the target
+      band travels to the board with the START button. If the game is running
+      and it is still empty, `set_target` never arrived — look for a name
+      mismatch. The balloon block should always be visible; if it is not,
+      check the `matrix.begin()` call.
+  - q: The buzzer never sounds, or it sounds all the time.
+    a: >-
+      The beep only plays when you win a round, so if you never win you never
+      hear it. If it sounds constantly you probably have a 3-pin buzzer module
+      that sounds on LOW: set `BUZZER_ACTIVE_LOW` to `true` in the sketch. Do
+      not forget the 220 Ω resistor in series either.
+  - q: The score table stays empty, or my game never appears in it.
+    a: >-
+      Games that end without a single point are deliberately not recorded — you
+      need at least 1 point. If you did score and it still does not appear, look
+      at the Python output in App Lab: a "Score saved" line means the record was
+      written and the problem is in the browser. "Could not write scores.json"
+      means the app folder is not writable.
+  - q: The distance always reads 60 cm and the balloon is stuck at the ceiling.
+    a: >-
+      No echo is coming back from the sensor. The same checks as project 3: does
+      the ECHO wire come from the MIDDLE point of the divider, is the sensor's
+      VCC on **5V** rather than 3V3, is TRIG really on D10? Also leave at least
+      20-30 cm of clear space in front of the sensor.
+---
+
+This project does two things at once: it is a genuinely playable game, and it
+is the **data processing** lesson of this whole site.
+
+The best part: **it needs no new parts.** We use the very circuit you built in
+project 3 — same sensor, same voltage divider, same LEDs, same buzzer, same
+pins. If you kept that build, all you have to do is change the code.
+
+<WiringDiagram file="06-distance-game.svg" caption="Readings flow up, commands flow down" />
+
+## This project is project 3 reborn in software
+
+The same circuit, a completely different device. The difference is entirely in
+the code:
+
+| | Project 3 — Parking sensor | Project 6 — Distance game |
+| --- | --- | --- |
+| Measurement | Raw reading | Raw **and** averaged, both at once |
+| LEDs | Show **distance** | Show **distance from the target** |
+| Buzzer | Constant beeping | Only when you win a round |
+| Where decisions happen | On the board | In the browser |
+| Display | None | Phone + the board's LED matrix |
+
+The LEDs changing meaning looks like a detail, but it is not: without touching
+a single wire you redefined what those three LEDs say. The hardware stayed the
+same and the product changed.
+
+<Step n={1} title="Same circuit, a new purpose">
+
+If project 3's circuit is still standing, **do not take anything apart** — go
+straight to step 3.
+
+If you are rebuilding it, the connections are:
+
+- HC-SR04 **VCC** → the board's **5V** pin
+- HC-SR04 **GND** → the board's **GND** pin
+- HC-SR04 **TRIG** → the board's **D10** pin
+- HC-SR04 **ECHO** → the board's **D9** pin **through the voltage divider**
+- Buzzer → **D8** (with a 220 Ω resistor in series)
+- Red / yellow / green LED → **D2 / D3 / D4** (220 Ω each)
+
+<Callout lang="en" variant="voltage" linkToGuide>
+The HC-SR04's **ECHO pin outputs 5V**. The UNO Q's pins are designed for 3.3V
+logic; wiring ECHO straight in puts that pin at risk. Do not start this project
+without the 2.2kΩ + 3.3kΩ voltage divider.
+</Callout>
+
+</Step>
+
+<Step n={2} title="Verify the divider one more time">
+
+If you rebuilt the circuit, do not skip this step.
+
+<WiringDiagram file="voltage-divider.svg" caption="How the voltage divider works" />
+
+```
+Vout = 5.0 V × 3300 / (2200 + 3300) = 3.0 V
+```
+
+<Callout lang="en" variant="danger" title="The order of the resistors matters">
+The 2.2kΩ goes **on top** (the ECHO side) and the 3.3kΩ **underneath** (the GND
+side). Swapped, the output becomes 2.0V instead of 3.0V; the board still reads
+it, but your margin against noise shrinks.
+</Callout>
+
+<PhotoSlot lang="en" caption="A multimeter on the divider's middle point: you should see around 3.0V" />
+
+</Step>
+
+<Step n={3} title="Create the app">
+
+Open a new app in App Lab and add a single brick to `app.yaml`:
+
+```yaml
+name: Distance Game
+icon: 🎈
+description: Lift the balloon with your hand and hold it in the target band
+
+bricks:
+  - arduino:web_ui
+```
+
+<Callout lang="en" variant="info" title="What does that line do?">
+`arduino:web_ui` hands you a working web server and a WebSocket connection. You
+do not install Flask, open a port, or write any socket code. The files you send
+to the browser go in the app's `assets/` folder.
+</Callout>
+
+</Step>
+
+<Step n={4} title="The sketch: measure, average, send both">
+
+The measuring part comes almost verbatim from project 3. Two things change.
+
+**First, the timeout got shorter:**
+
+```cpp
+// In project 3 this was 25000 (~4 m). Here the play area never exceeds 60 cm,
+// and pulseIn BLOCKS for the whole timeout — 25 ms is nearly half of the
+// 60 ms budget.
+const unsigned long ECHO_TIMEOUT_US = 12000;
+```
+
+**Second, a moving average was added.** A ring buffer: you keep the latest
+readings in an array, then add up as many as you want, walking back from the
+newest.
+
+```cpp
+float pushSample(float value) {
+  samples[sampleIndex] = value;
+  sampleIndex = (sampleIndex + 1) % WINDOW_MAX;
+  if (sampleCount < WINDOW_MAX) sampleCount++;
+
+  int count = min(window, sampleCount);
+  float total = 0;
+
+  for (int i = 0; i < count; i++) {
+    int index = (sampleIndex - 1 - i + WINDOW_MAX) % WINDOW_MAX;
+    total += samples[index];
+  }
+
+  return total / count;
+}
+```
+
+And when we send the measurement, we send **both values at once**:
+
+```cpp
+Bridge.notify("reading", rawCm, avgCm);
+```
+
+<Callout lang="en" variant="tip" title="The sensor sets the rate, not you">
+`MEASURE_INTERVAL_MS = 60` is not an arbitrary number. Measure more often and
+the previous ping's echo bleeds into the next one. So the ceiling on this
+game's frame rate is about 16 a second — and that limit comes from the speed of
+sound, not from your code.
+</Callout>
+
+<Callout lang="en" variant="info" title="How is this different from project 2's smoothing?">
+Project 2 used an exponential average (EMA): it keeps one number, mixes a bit
+of each new reading in, and never entirely forgets the old ones. The true
+moving average here gives every reading in the window **equal** weight and
+forgets everything outside it. Both smooth; they behave differently.
+</Callout>
+
+</Step>
+
+<Step n={5} title="The sketch: LEDs, matrix and the beep">
+
+The LEDs no longer show distance, they show **error**: how far are you from the
+target?
+
+```cpp
+float error = 0;
+if (avgCm < targetNear)     error = targetNear - avgCm;
+else if (avgCm > targetFar) error = avgCm - targetFar;
+
+digitalWrite(PIN_GREEN,  error == 0);
+digitalWrite(PIN_YELLOW, error > 0 && error <= NEAR_MARGIN_CM);
+digitalWrite(PIN_RED,    error > NEAR_MARGIN_CM);
+```
+
+The target band reaches the board **once** per round; the board handles the rest
+from its own readings. If we asked the browser every frame, the LEDs would trail
+behind your hand.
+
+The matrix draws the game too: a target bracket on both edges, the balloon in
+the middle, and a bar along the bottom showing how long you have held the band.
+
+<Callout lang="en" variant="warning" title="Never block the loop">
+No `delay()`, no long `tone()`. Even the victory tune steps note by note behind
+`millis()` gates. And **do not put a `Monitor.println()` in the measuring
+loop** — 16 lines a second floods the monitor and slows the loop down. If the
+matrix or the buzzer misbehaves, set `MATRIX_ENABLED` / `BEEP_ENABLED` at the
+top of the sketch to `false` one at a time to find out which one is at fault.
+</Callout>
+
+</Step>
+
+<Step n={6} title="Python: the thin layer in the middle">
+
+Python does **no maths at all** here. The average was already taken on the
+board, where the data is born. Python's job is to carry it and to validate
+incoming commands:
+
+```python
+def on_reading(raw: float, average: float):
+    ui.send_message("reading", {"raw": round(raw, 1), "average": round(average, 1)})
+```
+
+<Callout lang="en" variant="warning" title="This is a security boundary">
+A browser can just as easily send you `{"near": -999, "far": 1e9}` — maliciously
+or simply because of a bug. The `to_number()` function makes sure a value is a
+number and then clamps it to range. Never trust data from a browser as it stands.
+</Callout>
+
+Python is the one owner of the setting: the window value lives in `state` and is
+pushed to the board again on every new connection. That way the board and the
+browser never look at different windows.
+
+**The scores live here too.** Keeping them in `state` would wipe them every
+time the app restarted; a plain JSON file is enough for this:
+
+```python
+SCORE_FILE = Path(__file__).parent / "scores.json"
+
+def save_scores():
+    # Write to a temporary file first and then move it into place, so that a
+    # crash halfway through never leaves us with half a JSON file.
+    temporary = SCORE_FILE.with_name(SCORE_FILE.name + ".tmp")
+    with temporary.open("w", encoding="utf-8") as f:
+        json.dump(scores, f, ensure_ascii=False, indent=2)
+    temporary.replace(SCORE_FILE)
+```
+
+<Callout lang="en" variant="tip" title="Why not the dbstorage_tsstore brick?">
+The brick we used in projects 5 and 8 is for **time series**: for numbers
+arriving once a second. A score record also carries **text** such as the
+player's name, it is written once per game rather than once per second, and we
+do not want it deleted — the brick drops anything older than 7 days by default.
+Pick the tool that fits the data, not the one you used last.
+</Callout>
+
+Every record also stores the **averaging window** that game was played with. It
+looks like a detail, but it is the whole point of the table: in a moment you
+will answer "does averaging help?" with data rather than a guess.
+
+</Step>
+
+<Step n={7} title="The interface: the game loop and two traces">
+
+The game itself runs in the browser. The reason is simple: a real drawing loop
+(`requestAnimationFrame`) only exists there.
+
+You put three files in the `assets/` folder — `index.html`, `app.js`,
+`style.css` — and the script order at the end of the HTML **matters**:
+
+```html
+<script src="libs/socket.io.min.js"></script>
+<script src="libs/arduino.js"></script>
+<script src="app.js"></script>
+```
+
+<Callout lang="en" variant="warning" title="If you created the assets/ folder by hand">
+The `web_ui` brick only reads the page from `assets/index.html` inside the app
+folder. If the files sit under `python/` or in the app root, the page opens
+blank. Quick check: type `.../app.js` in the address bar — if you get a 404
+instead of JavaScript, the folder is wrong.
+</Callout>
+
+There is a deliberate choice in how the balloon is drawn:
+
+```js
+// The balloon — NO SMOOTHING HERE.
+// Easing the balloon while drawing would have been easy, but then the raw
+// reading's jitter would be invisible.
+```
+
+The balloon sits exactly on the last value that came from the board. If it
+shakes, the data really is shaking — and hiding that is the last thing this
+project wants.
+
+The **score table** at the bottom of the page is drawn here as well. Building
+it involves one small but important choice:
+
+```js
+// We fill the cells with textContent. The player's name came from a browser;
+// with innerHTML the text you typed could run as HTML.
+const cell = document.createElement('td');
+cell.textContent = value;
+```
+
+<Callout lang="en" variant="warning" title="Two separate lines of defence">
+Python already cleans the player's name (`clean_name`), and the browser prints
+it as text. Both are needed: one stops bad data on the server, the other stops
+it running on screen. Try typing a friend's name as `<b>Ali</b>` —
+the table should show exactly that, not bold text.
+</Callout>
+
+</Step>
+
+<Step n={8} title="Play, compare, improve">
+
+Start the game and try these in order:
+
+1. Set the window to **1**. The balloon shakes and the green LED flickers at the
+   edge of the band.
+2. Set the window to **5**. The shaking stops and the LED holds steady.
+3. Pull your hand away suddenly. Watch the cyan line on the chart trail
+   **behind** the red one — that is what averaging costs.
+4. Set the window to **9** and try to play. The balloon is now half a second
+   behind you.
+5. Finish **several full games** in each mode and read the summary line above
+   the score table:
+
+```
+Raw readings (window 1): 4 games, 58 points on average ·
+Averaged (window 2+): 4 games, 112 points on average.
+```
+
+Now you are not saying "averaging feels better" — you have numbers. When a
+whole class plays under their own names, that table becomes an experiment
+result on its own.
+
+<Callout lang="en" variant="info" title="Averaging is not free">
+Your score is probably higher in averaged mode. But ask yourself: did the game
+get better, or just easier? Real systems always face this trade — the price of
+less noise is delay.
+</Callout>
+
+Ideas to take it further:
+
+- Take the **median** instead of the mean (sort 5 readings, pick the middle one).
+  A single bad reading corrupts the mean for 300 ms and never touches the median.
+- Instead of holding the target band still, drift it slowly up and down
+- Replace the progress bar on the matrix with the score in a 3x5 font
+- Connect from two phones at once — both see the same stream of readings, so
+  who collects more points?
+- Add a "today's record" filter to the table (the `time` field is already stored)
+- Download the CSV and open it in a spreadsheet: work out the per-window
+  averages yourself
+
+<Callout lang="en" variant="info" title="What comes next">
+You have learned how to send a command from a web interface to the board. The
+next project applies the same technique to a relay: a smart plug you can switch
+from your phone, with a timer.
+</Callout>
+
+</Step>
